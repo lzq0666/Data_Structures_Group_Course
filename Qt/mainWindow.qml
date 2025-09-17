@@ -28,6 +28,7 @@ ApplicationWindow {
             }//结束颜色
         }
 
+        //登录框
         Rectangle {
             anchors.centerIn: parent//居中
             height: 500
