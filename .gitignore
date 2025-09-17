@@ -578,3 +578,4 @@ FodyWeavers.xsd
 # Customize
 build/
 .idea/
+*.bat
