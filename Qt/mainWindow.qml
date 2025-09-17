@@ -91,7 +91,14 @@ ApplicationWindow {
                 text: qsTr("登  录")
                 width: password.width
                 x: password.x
-                y: password.y + password.height + 10
+                y: password.y + password.height + 20
+                background: Rectangle {
+                    //圆角
+                    border.color: username.background.border.color
+                    border.width: username.background.border.width
+                    color: username.background.color
+                    radius: username.background.radius
+                }
 
                 onClicked: {
                     print("用户名:" + username.text + " 密码:" + password.text);  //改这部分
