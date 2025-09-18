@@ -87,6 +87,7 @@ ApplicationWindow {
             }
             //登陆按钮
             Button {
+                id: loginButton
                 font.pixelSize: 22
                 height: password.height
                 text: qsTr("登  录")
@@ -97,7 +98,7 @@ ApplicationWindow {
                     //圆角
                     border.color: username.background.border.color
                     border.width: username.background.border.width
-                    color: username.background.color
+                    color: loginButton.pressed ? "#c6c6c6" : "#e6e6e6"  // 按下时变为深色
                     radius: username.background.radius
                 }
 
