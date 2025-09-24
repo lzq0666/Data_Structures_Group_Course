@@ -6,7 +6,7 @@
 *.d
 
 # Compiled Object files
-*.slo
+*.slogit
 *.lo
 *.o
 *.obj
@@ -578,7 +578,8 @@ FodyWeavers.xsd
 # Customize
 build/
 .idea/
-
+*.bat
+CMakeSettings.json
 *.sln
 *.vcxproj
 *.vcxproj.filters
