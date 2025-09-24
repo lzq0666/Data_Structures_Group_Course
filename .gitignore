@@ -578,3 +578,7 @@ FodyWeavers.xsd
 # Customize
 build/
 .idea/
+
+*.sln
+*.vcxproj
+*.vcxproj.filters
