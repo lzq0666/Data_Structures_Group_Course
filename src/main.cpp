@@ -1,10 +1,12 @@
-#include <iostream>
+#include <QtGui/QGuiApplication>
+#include <QtQml/QQmlApplicationEngine>
 
-using namespace std;
-
-int main() {
-    cout << "Hello, World!" << endl;
-    return 0;
+int main(int argc, char* argv[])
+{
+    QGuiApplication app(argc, argv);
+    QQmlApplicationEngine engine;
+    engine.load(QUrl(QStringLiteral("qrc:/Qt/mainWindow.qml")));
+    return app.exec();
 }
 /*
                    _ooOoo_
