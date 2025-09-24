@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Qt/mainWindow.qml</file>
+        <file>resources/images/undraw_enter-password_1kl4.svg</file>
+    </qresource>
+</RCC>

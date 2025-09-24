@@ -583,3 +583,5 @@ CMakeSettings.json
 *.sln
 *.vcxproj
 *.vcxproj.filters
+CMakePresets.json
+CMakeUserPresets.json
