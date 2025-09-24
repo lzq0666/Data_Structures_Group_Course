@@ -580,3 +580,6 @@ build/
 .idea/
 *.bat
 CMakeSettings.json
+*.sln
+*.vcxproj
+*.vcxproj.filters
