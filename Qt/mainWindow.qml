@@ -3,14 +3,20 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Window 2.12
 import QtQuick.Controls.Basic 2.12
+import LoginManager 1.0
 
 ApplicationWindow {
     id: logicWindow
 
     height: 800
     title: "Logic Simulator"
-    visible: true //ÈªòËÆ§ÊòæÁ§∫
+    visible: true //ƒ¨»œœ‘ æ
     width: 1280
+
+    // ◊¥Ã¨π‹¿Ì
+    property bool isLoggedIn: false
+    property string currentUser: ""
+    property int currentMode: 0 // 0: µ«¬º, 1: ◊¢≤·, 2: –ﬁ∏ƒ√‹¬Î
 
     Rectangle {
         height: parent.height
@@ -22,31 +28,31 @@ ApplicationWindow {
             GradientStop {
                 color: "#4158d0"
                 position: 0.0
-            }//ÂºÄÂßãÈ¢úËâ≤
+            }//ø™ º—’…´
             GradientStop {
                 color: "#c850c0"
                 position: 1.0
-            }//ÁªìÊùüÈ¢úËâ≤
+            }//Ω· ¯—’…´
         }
 
-        // ‰∏ªÂÆπÂô® RectangleÔºåÂåÖÂê´ÂõæÁâáÂíåÁôªÂΩïÊ°Ü
+        // ÷˜»›∆˜ Rectangle£¨∞¸∫¨Õº∆¨∫Õµ«¬ºøÚ
         Rectangle {
             anchors.centerIn: parent
             width: Math.min(parent.width * 0.85, 1100)
-            height: Math.min(parent.height * 0.85, 650)
+            height: Math.min(parent.height * 0.85, 700)
             radius: 20
             color: "white"
             opacity: 0.98
             border.color: "#e0e0e0"
             border.width: 1
 
-            // RowLayout Â∏ÉÂ±ÄÔºöÂ∑¶‰æßÂõæÁâáÔºåÂè≥‰æßÁôªÂΩïÊ°Ü
+            // RowLayout ≤ºæ÷£∫◊Û≤‡Õº∆¨£¨”“≤‡µ«¬ºøÚ
             RowLayout {
                 anchors.fill: parent
                 anchors.margins: 40
                 spacing: 60
 
-                // Â∑¶‰æßÂõæÁâáÂå∫Âüü
+                // ◊Û≤‡Õº∆¨«¯”Ú
                 Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -61,7 +67,7 @@ ApplicationWindow {
                     }
                 }
 
-                // Âè≥‰æßÁôªÂΩïÊ°ÜÂå∫Âüü
+                // ”“≤‡µ«¬ºøÚ«¯”Ú
                 Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -69,37 +75,87 @@ ApplicationWindow {
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 25
+                        spacing: 20
                         width: Math.min(parent.width * 0.85, 320)
 
-                        // Ê†áÈ¢òÂå∫Âüü
+                        // ƒ£ Ω«–ªª∞¥≈•
+                        Row {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            spacing: 10
+                            
+                            Repeater {
+                                model: ["µ«¬º", "◊¢≤·", "–ﬁ∏ƒ√‹¬Î"]
+                                delegate: Rectangle {
+                                    width: 80
+                                    height: 30
+                                    radius: 15
+                                    color: currentMode === index ? "#3498db" : "transparent"
+                                    border.color: "#3498db"
+                                    border.width: 1
+                                    
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: modelData
+                                        color: currentMode === index ? "white" : "#3498db"
+                                        font.pixelSize: 12
+                                        font.bold: true
+                                    }
+                                    
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            currentMode = index
+                                            clearInputs()
+                                            clearMessage()
+                                        }
+                                        cursorShape: Qt.PointingHandCursor
+                                    }
+                                }
+                            }
+                        }
+
+                        // ±ÍÃ‚«¯”Ú
                         Column {
                             anchors.horizontalCenter: parent.horizontalCenter
                             spacing: 8
                             
                             Text {
                                 color: "#2c3e50"
-                                font.pixelSize: 32
+                                font.pixelSize: 28
                                 font.bold: true
-                                text: qsTr("Ê¨¢ËøéÁôªÂΩï")
+                                text: {
+                                    switch(currentMode) {
+                                        case 0: return qsTr("ª∂”≠µ«¬º")
+                                        case 1: return qsTr("”√ªß◊¢≤·")  
+                                        case 2: return qsTr("–ﬁ∏ƒ√‹¬Î")
+                                        default: return qsTr("ª∂”≠µ«¬º")
+                                    }
+                                }
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             
                             Text {
                                 color: "#7f8c8d"
-                                font.pixelSize: 16
-                                text: qsTr("ËØ∑ËæìÂÖ•ÊÇ®ÁöÑÁôªÂΩï‰ø°ÊÅØ")
+                                font.pixelSize: 14
+                                text: {
+                                    switch(currentMode) {
+                                        case 0: return qsTr("«Î ‰»Îƒ˙µƒµ«¬º–≈œ¢")
+                                        case 1: return qsTr("–’ œ”Î√˚◊÷÷Æº‰«Î”√_¡¨Ω”")
+                                        case 2: return qsTr("«Î ‰»Î”√ªß–≈œ¢∫Õ–¬√‹¬Î")
+                                        default: return qsTr("«Î ‰»Îƒ˙µƒµ«¬º–≈œ¢")
+                                    }
+                                }
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                         }
 
-                        //Áî®Êà∑ÂêçËæìÂÖ•Ê°Ü
+                        //”√ªß√˚ ‰»ÎøÚ
                         Column {
                             width: parent.width
                             spacing: 8
                             
                             Text {
-                                text: qsTr("Áî®Êà∑Âêç")
+                                text: qsTr("”√ªß√˚")
                                 color: "#34495e"
                                 font.pixelSize: 14
                                 font.bold: true
@@ -109,39 +165,78 @@ ApplicationWindow {
                                 id: username
                                 color: "#2c3e50"
                                 font.pixelSize: 16
-                                height: 50
-                                placeholderText: qsTr("ËØ∑ËæìÂÖ•Áî®Êà∑Âêç")
+                                height: 45
+                                placeholderText: qsTr("«Î ‰»Î”√ªß√˚")
                                 leftPadding: 20
                                 rightPadding: 20
                                 placeholderTextColor: "#bdc3c7"
                                 width: parent.width
                                 verticalAlignment: TextInput.AlignVCenter
+                                
+                                Keys.onReturnPressed: {
+                                    if (currentMode === 2) oldPassword.forceActiveFocus()
+                                    else password.forceActiveFocus()
+                                }
+                                Keys.onEnterPressed: {
+                                    if (currentMode === 2) oldPassword.forceActiveFocus()
+                                    else password.forceActiveFocus()
+                                }
+                                
                                 background: Rectangle {
                                     border.color: username.activeFocus ? "#3498db" : "#ecf0f1"
                                     border.width: username.activeFocus ? 2 : 1
                                     color: "#ffffff"
                                     radius: 12
-                                    
-                                    // Ê∑ªÂä†ÂæÆÂ¶ôÁöÑÂÜÖÈò¥ÂΩ±ÊïàÊûú
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: 1
-                                        color: "transparent"
-                                        border.color: username.activeFocus ? "#ffffff" : "#f8f9fa"
-                                        border.width: 1
-                                        radius: parent.radius - 1
-                                    }
                                 }
                             }
                         }
 
-                        //ÂØÜÁ†ÅËæìÂÖ•Ê°Ü
+                        // æ…√‹¬Î ‰»ÎøÚ (Ωˆ–ﬁ∏ƒ√‹¬Îƒ£ Ωœ‘ æ)
+                        Column {
+                            width: parent.width
+                            spacing: 8
+                            visible: currentMode === 2
+                            height: visible ? implicitHeight : 0
+                            
+                            Text {
+                                text: qsTr("æ…√‹¬Î")
+                                color: "#34495e"
+                                font.pixelSize: 14
+                                font.bold: true
+                            }
+                            
+                            TextField {
+                                id: oldPassword
+                                color: "#2c3e50"
+                                echoMode: TextInput.Password
+                                font.pixelSize: 16
+                                height: 45
+                                placeholderText: qsTr("«Î ‰»Îæ…√‹¬Î")
+                                leftPadding: 20
+                                rightPadding: 20
+                                placeholderTextColor: "#bdc3c7"
+                                width: parent.width
+                                verticalAlignment: TextInput.AlignVCenter
+                                
+                                Keys.onReturnPressed: password.forceActiveFocus()
+                                Keys.onEnterPressed: password.forceActiveFocus()
+                                
+                                background: Rectangle {
+                                    border.color: oldPassword.activeFocus ? "#3498db" : "#ecf0f1"
+                                    border.width: oldPassword.activeFocus ? 2 : 1
+                                    color: "#ffffff"
+                                    radius: 12
+                                }
+                            }
+                        }
+
+                        //√‹¬Î ‰»ÎøÚ
                         Column {
                             width: parent.width
                             spacing: 8
                             
                             Text {
-                                text: qsTr("ÂØÜÁ†Å")
+                                text: currentMode === 2 ? qsTr("–¬√‹¬Î") : qsTr("√‹¬Î")
                                 color: "#34495e"
                                 font.pixelSize: 14
                                 font.bold: true
@@ -149,70 +244,111 @@ ApplicationWindow {
                             
                             TextField {
                                 id: password
-                                color: username.color
+                                color: "#2c3e50"
                                 echoMode: TextInput.Password
-                                font.pixelSize: username.font.pixelSize
-                                height: username.height
-                                placeholderText: qsTr("ËØ∑ËæìÂÖ•ÂØÜÁ†Å")
-                                leftPadding: username.leftPadding
-                                rightPadding: username.rightPadding
-                                placeholderTextColor: username.placeholderTextColor
+                                font.pixelSize: 16
+                                height: 45
+                                placeholderText: {
+                                    switch(currentMode) {
+                                        case 0: return qsTr("«Î ‰»Î√‹¬Î")
+                                        case 1: return qsTr("«Î ‰»Î√‹¬Î£®÷¡…Ÿ6Œª£©")
+                                        case 2: return qsTr("«Î ‰»Î–¬√‹¬Î£®÷¡…Ÿ6Œª£©")
+                                        default: return qsTr("«Î ‰»Î√‹¬Î")
+                                    }
+                                }
+                                leftPadding: 20
+                                rightPadding: 20
+                                placeholderTextColor: "#bdc3c7"
                                 width: parent.width
                                 verticalAlignment: TextInput.AlignVCenter
+                                
+                                Keys.onReturnPressed: handleAction()
+                                Keys.onEnterPressed: handleAction()
+                                
                                 background: Rectangle {
                                     border.color: password.activeFocus ? "#3498db" : "#ecf0f1"
                                     border.width: password.activeFocus ? 2 : 1
                                     color: "#ffffff"
                                     radius: 12
-                                    
-                                    // Ê∑ªÂä†ÂæÆÂ¶ôÁöÑÂÜÖÈò¥ÂΩ±ÊïàÊûú
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: 1
-                                        color: "transparent"
-                                        border.color: password.activeFocus ? "#ffffff" : "#f8f9fa"
-                                        border.width: 1
-                                        radius: parent.radius - 1
-                                    }
                                 }
                             }
                         }
 
-                        //ÁôªÂΩïÊåâÈíÆ
+                        // œ˚œ¢Ã· æ«¯”Ú
                         Rectangle {
-                            id: loginButton
-                            height: 55
+                            id: messageArea
+                            width: parent.width
+                            height: messageText.visible ? 35 : 0
+                            color: "transparent"
+                            
+                            Text {
+                                id: messageText
+                                anchors.centerIn: parent
+                                width: parent.width
+                                wrapMode: Text.WordWrap
+                                horizontalAlignment: Text.AlignHCenter
+                                font.pixelSize: 13
+                                visible: text.length > 0
+                                
+                                property bool isSuccess: false
+                                color: isSuccess ? "#27ae60" : "#e74c3c"
+                            }
+                            
+                            Timer {
+                                id: messageTimer
+                                interval: 4000
+                                onTriggered: messageText.text = ""
+                            }
+                        }
+
+                        // ÷˜≤Ÿ◊˜∞¥≈•
+                        Rectangle {
+                            id: actionButton
+                            height: 50
                             width: parent.width
                             radius: 12
                             
                             property bool hovered: false
                             property bool pressed: false
+                            property bool loading: false
                             
                             color: {
+                                if (loading) return "#95a5a6"
                                 if (pressed) return "#2980b9"
                                 if (hovered) return "#3498db"
                                 return "#2c3e50"
                             }
                             
-                            // Ê∑ªÂä†Âπ≥ÊªëÁöÑËøáÊ∏°Âä®Áîª
                             Behavior on color {
-                                ColorAnimation {
-                                    duration: 200
-                                }
+                                ColorAnimation { duration: 200 }
                             }
                             
                             Behavior on scale {
-                                NumberAnimation {
-                                    duration: 100
-                                }
+                                NumberAnimation { duration: 100 }
                             }
                             
                             scale: pressed ? 0.98 : 1.0
                             
                             Text {
                                 anchors.centerIn: parent
-                                text: qsTr("Áôª ÂΩï")
-                                font.pixelSize: 18
+                                text: {
+                                    if (actionButton.loading) {
+                                        switch(currentMode) {
+                                            case 0: return qsTr("µ«¬º÷–...")
+                                            case 1: return qsTr("◊¢≤·÷–...")
+                                            case 2: return qsTr("–ﬁ∏ƒ÷–...")
+                                            default: return qsTr("¥¶¿Ì÷–...")
+                                        }
+                                    } else {
+                                        switch(currentMode) {
+                                            case 0: return qsTr("µ« ¬º")
+                                            case 1: return qsTr("◊¢ ≤·")
+                                            case 2: return qsTr("–ﬁ∏ƒ√‹¬Î")
+                                            default: return qsTr("»∑ ∂®")
+                                        }
+                                    }
+                                }
+                                font.pixelSize: 16
                                 font.bold: true
                                 color: "white"
                             }
@@ -221,30 +357,120 @@ ApplicationWindow {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                enabled: !actionButton.loading
                                 
-                                onClicked: {
-                                    print("Áî®Êà∑Âêç:" + username.text + " ÂØÜÁ†Å:" + password.text);
-                                }
-                                
-                                onPressed: {
-                                    loginButton.pressed = true
-                                }
-                                
-                                onReleased: {
-                                    loginButton.pressed = false
-                                }
-                                
-                                onEntered: {
-                                    loginButton.hovered = true
-                                }
-                                
-                                onExited: {
-                                    loginButton.hovered = false
-                                }
+                                onClicked: handleAction()
+                                onPressed: actionButton.pressed = true
+                                onReleased: actionButton.pressed = false
+                                onEntered: actionButton.hovered = true
+                                onExited: actionButton.hovered = false
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    // ¥¶¿Ì÷˜“™≤Ÿ◊˜
+    function handleAction() {
+        if (actionButton.loading) return
+        
+        var user = username.text.trim()
+        var pass = password.text
+        
+        if (user.length === 0) {
+            showMessage("«Î ‰»Î”√ªß√˚", false)
+            return
+        }
+        
+        if (pass.length === 0) {
+            showMessage("«Î ‰»Î√‹¬Î", false)
+            return
+        }
+        
+        actionButton.loading = true
+        
+        switch(currentMode) {
+            case 0: // µ«¬º
+                loginManager.login(user, pass)
+                break
+            case 1: // ◊¢≤·  
+                loginManager.registerUser(user, pass)
+                break
+            case 2: // –ﬁ∏ƒ√‹¬Î
+                var oldPass = oldPassword.text
+                if (oldPass.length === 0) {
+                    showMessage("«Î ‰»Îæ…√‹¬Î", false)
+                    actionButton.loading = false
+                    return
+                }
+                loginManager.changePassword(user, oldPass, pass)
+                break
+        }
+    }
+    
+    // œ‘ æœ˚œ¢
+    function showMessage(message, isSuccess) {
+        messageText.text = message
+        messageText.isSuccess = isSuccess
+        messageTimer.restart()
+    }
+    
+    // «Âø’ ‰»ÎøÚ
+    function clearInputs() {
+        username.text = ""
+        password.text = ""
+        oldPassword.text = ""
+    }
+    
+    // «Âø’œ˚œ¢
+    function clearMessage() {
+        messageText.text = ""
+    }
+    
+    // µ«¬º≥…π¶∫Ûµƒ¥¶¿Ì
+    function onLoginSuccess(user) {
+        isLoggedIn = true
+        currentUser = user
+        showMessage("µ«¬º≥…π¶£°ª∂”≠ " + user, true)
+        
+        // ’‚¿Ôø…“‘ÃÌº”Ã¯◊™µΩ÷˜”¶”√ΩÁ√Êµƒ¬ﬂº≠
+        // ¿˝»Á£∫stackView.push("MainApp.qml")
+    }
+    
+    // LoginManager –≈∫≈¡¨Ω”
+    Connections {
+        target: loginManager
+        
+        function onLoginResult(success, message) {
+            actionButton.loading = false
+            showMessage(message, success)
+            
+            if (success) {
+                onLoginSuccess(username.text.trim())
+            }
+        }
+        
+        function onRegisterResult(success, message) {
+            actionButton.loading = false
+            showMessage(message, success)
+            
+            if (success) {
+                // ◊¢≤·≥…π¶∫Û«–ªªµΩµ«¬ºƒ£ Ω
+                currentMode = 0
+                clearInputs()
+            }
+        }
+        
+        function onChangePasswordResult(success, message) {
+            actionButton.loading = false
+            showMessage(message, success)
+            
+            if (success) {
+                // –ﬁ∏ƒ√‹¬Î≥…π¶∫Û«–ªªµΩµ«¬ºƒ£ Ω
+                currentMode = 0
+                clearInputs()
             }
         }
     }
