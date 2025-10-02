@@ -21,9 +21,9 @@ ApplicationWindow {
         
         source: {
             switch(stateManager.getCurrentState()) {
-                case 0: return "qrc:/Qt/LoginPage.qml"      // STATE_LOGIN
-                //case 1: return "MainMenu.qml"       // STATE_MAIN_MENU  
-                //case 2: return "BrowsePage.qml"     // STATE_BROWSE
+                case StateManager.STATE_LOGIN: return "qrc:/Qt/LoginPage.qml"
+                //case StateManager.STATE_MAIN_MENU: return "MainMenu.qml"
+                //case StateManager.STATE_BROWSE: return "BrowsePage.qml"
                 default: return "qrc:/Qt/LoginPage.qml"
             }
         }
