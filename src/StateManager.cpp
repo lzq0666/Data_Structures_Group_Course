@@ -29,7 +29,6 @@ bool login(const QString& username, const QString& password) {
 		g_isLoggedIn = true;
 		g_currentUser = username;
 		setState(STATE_MAIN_MENU);
-		saveAppState();
 		qDebug() << "用户" << username << "登录成功";
 		return true;
 	}
