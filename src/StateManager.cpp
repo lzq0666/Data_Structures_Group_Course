@@ -24,8 +24,19 @@ AppState getCurrentState() {
 }
 
 bool login(const QString& username, const QString& password) {
-	// 登录逻辑
-
+	// 替换为实际登录逻辑
+	if(!username.isEmpty() && !password.isEmpty()) {
+		g_isLoggedIn = true;
+		g_currentUser = username;
+		setState(STATE_MAIN_MENU);
+		saveAppState();
+		qDebug() << "用户" << username << "登录成功";
+		return true;
+	}
+	else {
+		qDebug() << "登录失败: 用户名或密码不能为空";
+		return false;
+	}
 }
 
 void logout() {
