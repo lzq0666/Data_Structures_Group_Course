@@ -13,7 +13,7 @@ enum AppState {
 // 全局状态变量
 extern AppState g_currentState;
 extern bool g_isLoggedIn;
-extern QString g_currentUser;
+extern QString g_currentUsername;
 
 // 状态管理函数声明
 void initializeApp();
