@@ -18,8 +18,11 @@ set(RESOURCES ${PROJECT_SOURCE_DIR}/resources.qrc)
 add_executable(main ${SRC_LIST} ${RESOURCES})
 
 # 链接 Qt6 库
-target_link_libraries(main Qt6::Core Qt6::Quick)
+target_link_libraries(main
+	Qt6::Core
+	Qt6::Quick
+	Qt6::Qml
+)
 
 # 设置输出路径
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-
