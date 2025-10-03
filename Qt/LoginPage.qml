@@ -5,6 +5,21 @@ import QtQuick.Layouts 1.12
 Item {
     // 定义信号，用于与父组件通信
     signal loginRequested(string username, string password)
+    
+    // 添加用于显示登录错误信息的属性
+    property string errorMessage: ""
+    property bool showError: false
+    
+    // 添加用于接收登录结果的函数
+    function showLoginError(message) {
+        errorMessage = message
+        showError = true
+    }
+    
+    function clearError() {
+        errorMessage = ""
+        showError = false
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -169,6 +184,25 @@ Item {
                             }
                         }
 
+                        // 错误提示文本
+                        Text {
+                            width: parent.width
+                            visible: showError
+                            text: errorMessage
+                            color: "#e74c3c"
+                            font.pixelSize: 14
+                            wrapMode: Text.WordWrap
+                            horizontalAlignment: Text.AlignHCenter
+                            
+                            // 添加淡入淡出动画
+                            opacity: showError ? 1.0 : 0.0
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: 300
+                                }
+                            }
+                        }
+
                         //登录按钮
                         Rectangle {
                             id: loginButton
@@ -213,6 +247,8 @@ Item {
                                 cursorShape: Qt.PointingHandCursor
                                 
                                 onClicked: {
+                                    // 清除之前的错误信息
+                                    clearError()
                                     // 发射信号给父组件处理登录
                                     loginRequested(username.text, password.text);
                                 }

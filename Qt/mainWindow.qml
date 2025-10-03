@@ -37,29 +37,21 @@ ApplicationWindow {
         }
     }
     
-    // 系统消息框 - 登录失败
-    MessageDialog {
-        id: loginFailedDialog
-        title: "登录失败"
-        text: "用户名或密码错误，请重新输入。"
-        buttons: MessageDialog.Ok
-    }
 
-    // 系统消息框 - 登录成功
-    MessageDialog {
-        id: loginSuccessDialog
-        title: "登录成功"
-        text: "欢迎使用商品推荐系统！"
-        buttons: MessageDialog.Ok
-    }
 
     // 登录按钮的处理逻辑
     function handleLogin(username, password) {
         console.log("正在尝试登录:", username);
         if (stateManager.login(username, password)) {
-            loginSuccessDialog.open();
+            // 登录成功，直接跳转到主菜单（目前还没有实现，所以暂时保持在登录页）
+            console.log("登录成功！欢迎使用商品推荐系统！");
+            // TODO: 跳转到主菜单页面
+            // stateManager.setState(StateManager.STATE_MAIN_MENU);
         } else {
-            loginFailedDialog.open();
+            // 登录失败，通知登录页面显示错误信息
+            if (contentLoader.item && typeof contentLoader.item.showLoginError === "function") {
+                contentLoader.item.showLoginError("用户名或密码错误，请重新输入。");
+            }
         }
     }
 }
