@@ -7,6 +7,7 @@
 enum AppState {
 	STATE_LOGIN,
 	STATE_MAIN_MENU,
+	STATE_BROWSE,
 	STATE_EXIT
 };
 

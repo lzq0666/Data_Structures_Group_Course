@@ -7,12 +7,25 @@ class StateManagerWrapper : public QObject
 {
     Q_OBJECT
 public:
-    Q_INVOKABLE bool login(const QString& username, const QString& password) {
-        return ::login(username, password);
-	}
+    // 枚举声明( QML无法直接访问 C++ 枚举 )
+    enum State {
+        STATE_LOGIN = 0,
+        STATE_MAIN_MENU = 1,
+        STATE_EXIT = 2
+    };
+    Q_ENUM(State)
+
+        Q_INVOKABLE bool login(const QString& username, const QString& password) {
+        bool result = ::login(username, password);
+        if (result) {
+            emit stateChanged(getCurrentState());
+        }
+        return result;
+    }
 
     Q_INVOKABLE void logout() {
         ::logout();
+        emit stateChanged(getCurrentState());
     }
 
     Q_INVOKABLE bool isLoggedIn() {
@@ -29,7 +42,11 @@ public:
 
     Q_INVOKABLE void setState(int state) {
         ::setState(static_cast<AppState>(state));
+        emit stateChanged(getCurrentState());
     }
+
+signals:
+    void stateChanged(int newState);
 };
 
 int main(int argc, char* argv[])

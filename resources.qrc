@@ -3,5 +3,6 @@
         <file>Qt/mainWindow.qml</file>
         <file>Qt/LoginPage.qml</file>
         <file>resources/images/undraw_enter-password_1kl4.svg</file>
+        <file>Qt/MainMenu.qml</file>
     </qresource>
 </RCC>
