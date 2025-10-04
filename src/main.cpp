@@ -11,16 +11,25 @@ public:
     enum State {
         STATE_LOGIN = 0,
         STATE_MAIN_MENU = 1,
-        STATE_EXIT = 2
+        STATE_REGISTER=2,
+        STATE_EXIT = 3
     };
     Q_ENUM(State)
 
-        Q_INVOKABLE bool login(const QString& username, const QString& password) {
+    Q_INVOKABLE bool login(const QString& username, const QString& password) {
         bool result = ::login(username, password);
         if (result) {
             emit stateChanged(getCurrentState());
         }
         return result;
+    }
+
+    Q_INVOKABLE bool registerUser(const QString& username, const QString& password) {
+        return ::registerUser(username, password);
+    }
+
+    Q_INVOKABLE bool userExists(const QString& username) {
+        return ::userExists(username);
     }
 
     Q_INVOKABLE void logout() {

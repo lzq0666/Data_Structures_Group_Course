@@ -1,6 +1,9 @@
 #include "StateManager.h"
+#include <QCryptographicHash>
+#include <QRandomGenerator>
 #include <QSettings>
 #include <QDebug>
+#include <QDateTime>
 
 // 全局状态变量定义
 AppState g_currentState = STATE_LOGIN;
@@ -26,10 +29,88 @@ AppState getCurrentState() {
 	return g_currentState;
 }
 
+// 生成随机盐值
+QString generateSalt() {
+	const QString characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	QString salt;
+	for (int i = 0; i < 16; ++i) {
+		int index = QRandomGenerator::global()->bounded(characters.length());
+		salt.append(characters.at(index));
+	}
+	return salt;
+}
+
+// 使用SHA-256对密码进行哈希处理
+QString hashPassword(const QString& password, const QString& salt) {
+	QString saltedPassword = password + salt;
+	QByteArray hash = QCryptographicHash::hash(saltedPassword.toUtf8(), QCryptographicHash::Sha256);
+	return hash.toHex();
+}
+
+// 验证密码
+bool verifyPassword(const QString& password, const QString& hashedPassword, const QString& salt) {
+	QString computedHash = hashPassword(password, salt);
+	return computedHash == hashedPassword;
+}
+
+// 检查用户是否存在
+bool userExists(const QString& username) {
+	QSettings settings("DataStructure", "CourseDesign");
+	settings.beginGroup("Users");
+	bool exists = settings.contains(username + "/passwordHash");
+	settings.endGroup();
+	return exists;
+}
+
+// 用户注册功能
+bool registerUser(const QString& username, const QString& password) {
+	if (username.isEmpty() || password.isEmpty()) {
+		qDebug() << "注册失败: 用户名或密码不能为空";
+		return false;
+	}
+
+	if (userExists(username)) {
+		qDebug() << "注册失败: 用户名已存在";
+		return false;
+	}
+
+	// 生成盐值并哈希密码
+	QString salt = generateSalt();
+	QString hashedPassword = hashPassword(password, salt);
+
+	// 保存用户信息
+	QSettings settings("DataStructure", "CourseDesign");
+	settings.beginGroup("Users");
+	settings.setValue(username + "/passwordHash", hashedPassword);
+	settings.setValue(username + "/salt", salt);
+	settings.setValue(username + "/registrationTime", QDateTime::currentDateTime());
+	settings.endGroup();
+
+	qDebug() << "用户" << username << "注册成功";
+	return true;
+}
+
 // 登录操作
 bool login(const QString& username, const QString& password) {
-	// 替换为实际登录逻辑
-	if(!username.isEmpty() && !password.isEmpty()) {
+	if (username.isEmpty() || password.isEmpty()) {
+		qDebug() << "登录失败: 用户名或密码不能为空";
+		return false;
+	}
+
+	if (!userExists(username)) {
+		qDebug() << "登录失败: 用户不存在";
+		return false;
+	}
+
+	// 从设置中获取存储的密码哈希和盐值
+	QSettings settings("DataStructure", "CourseDesign");
+	settings.beginGroup("Users");
+	QString storedHash = settings.value(username + "/passwordHash").toString();
+	QString salt = settings.value(username + "/salt").toString();
+	settings.endGroup();
+
+	// 验证密码
+	if (verifyPassword(password, storedHash, salt)) {
 		g_isLoggedIn = true;
 		g_currentUsername = username;
 		setState(STATE_MAIN_MENU);
@@ -37,7 +118,7 @@ bool login(const QString& username, const QString& password) {
 		return true;
 	}
 	else {
-		qDebug() << "登录失败: 用户名或密码不能为空";
+		qDebug() << "登录失败: 密码错误";
 		return false;
 	}
 }
