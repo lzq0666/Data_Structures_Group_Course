@@ -39,6 +39,9 @@ ApplicationWindow {
                 case StateManager.STATE_MAIN_MENU: 
                     source = "qrc:/Qt/MainMenu.qml"
                     break
+                case 4: // STATE_ADMIN - 添加管理员状态
+                    source = "qrc:/Qt/adminPage.qml"
+                    break
                 //case StateManager.STATE_BROWSE: 
                 //    source = "qrc:/Qt/BrowsePage.qml"
                 //    break
@@ -86,6 +89,23 @@ ApplicationWindow {
                 // 连接主菜单退出信号
                 if (typeof item.logoutRequested !== "undefined") {
                     item.logoutRequested.connect(handleLogout);
+                }
+                
+                // 连接管理员页面的信号
+                if (typeof item.userManagementRequested !== "undefined") {
+                    item.userManagementRequested.connect(handleUserManagement);
+                }
+                
+                if (typeof item.productManagementRequested !== "undefined") {
+                    item.productManagementRequested.connect(handleProductManagement);
+                }
+                
+                if (typeof item.orderManagementRequested !== "undefined") {
+                    item.orderManagementRequested.connect(handleOrderManagement);
+                }
+                
+                if (typeof item.systemSettingsRequested !== "undefined") {
+                    item.systemSettingsRequested.connect(handleSystemSettings);
                 }
             }
         }
@@ -196,5 +216,27 @@ ApplicationWindow {
     function handleLogout() {
         console.log("用户退出登录");
         stateManager.logout();  
+    }
+    
+    // 管理员页面功能处理函数
+    function handleUserManagement() {
+        console.log("打开用户管理");
+        // TODO: 实现用户管理功能
+        // 可以切换到用户管理页面或打开对话框
+    }
+    
+    function handleProductManagement() {
+        console.log("打开商品管理");
+        // TODO: 实现商品管理功能
+    }
+    
+    function handleOrderManagement() {
+        console.log("打开订单管理");
+        // TODO: 实现订单管理功能
+    }
+    
+    function handleSystemSettings() {
+        console.log("打开系统设置");
+        // TODO: 实现系统设置功能
     }
 }
