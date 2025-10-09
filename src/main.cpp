@@ -1,7 +1,5 @@
 #include <QtGui/QGuiApplication>
 #include <QtQml>
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
 #include "StateManager.h"
 
 // 将 C++ 状态管理函数封装为 QML 可调用的类
