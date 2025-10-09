@@ -17,6 +17,8 @@ extern AppState g_currentState;
 extern bool g_isLoggedIn;
 extern QString g_currentUsername;
 
+QString getDataFilePath();
+
 // 状态管理函数声明
 void initializeApp();
 void setState(AppState newState);
