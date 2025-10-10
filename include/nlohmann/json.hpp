@@ -2289,7 +2289,7 @@ JSON_HEDLEY_INTEL_VERSION_CHECK(13, 0, 0)
 #undef JSON_HEDLEY_FLAGS
 #endif
 #if JSON_HEDLEY_HAS_ATTRIBUTE(flag_enum) && (!defined(__cplusplus) || JSON_HEDLEY_HAS_WARNING(
-"-Wbitfield-enum-conversion"))
+    "-Wbitfield-enum-conversion"))
 #define JSON_HEDLEY_FLAGS __attribute__((__flag_enum__))
 #else
 #define JSON_HEDLEY_FLAGS
@@ -3169,7 +3169,6 @@ NLOHMANN_JSON_NAMESPACE_END
 #include <array> // array
 #include <cstddef> // size_t
 #include <type_traits> // conditional, enable_if, false_type, integral_constant, is_constructible, is_integral, is_same, remove_cv, remove_reference, true_type
-
 
 #include <utility> // index_sequence, make_index_sequence, index_sequence_for
 
@@ -4853,8 +4852,7 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
                 && is_detected_exact<typename BasicJsonType::string_t::value_type, value_type_t, StringType>::value
                 && !std::is_same < typename BasicJsonType::string_t, StringType>::value
             &&!is_json_ref<StringType>::value, int>
-
-        
+ 
         =
         0
         >
@@ -5188,7 +5186,6 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
             typename = enable_if_t<!std::is_constructible <
                                    typename BasicJsonType::string_t, Key>::value>
 
-        
         >
         inline void from_json(const BasicJsonType &j, std::map<Key, Value, Compare, Allocator> &m) {
             if (JSON_HEDLEY_UNLIKELY(!j.is_array())) {
@@ -5208,7 +5205,6 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
             typename = enable_if_t<!std::is_constructible <
                                    typename BasicJsonType::string_t, Key>::value>
 
-        
         >
         inline void from_json(const BasicJsonType &j, std::unordered_map<Key, Value, Hash, KeyEqual, Allocator> &m) {
             if (JSON_HEDLEY_UNLIKELY(!j.is_array())) {
@@ -5254,7 +5250,6 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
 /// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4381.html
     namespace // NOLINT(cert-dcl59-cpp,fuchsia-header-anon-namespaces,google-build-namespaces)
     {
-
 
 #endif
     JSON_INLINE_VARIABLE constexpr const auto &from_json = // NOLINT(misc-definitions-in-headers)
@@ -5803,8 +5798,7 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
 
         template<typename BasicJsonType, typename CompatibleString,
             enable_if_t<std::is_constructible < typename BasicJsonType::string_t, CompatibleString>::value, int>
-
-        
+ 
         =
         0
         >
@@ -5865,8 +5859,7 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
                         !std::is_same < typename BasicJsonType::binary_t, CompatibleArrayType>::value &&
                          !is_basic_json<CompatibleArrayType>::value,
             int>
-
-        
+ 
         =
         0
         >
@@ -5907,8 +5900,7 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
             enable_if_t<!std::is_constructible < typename BasicJsonType::string_t,
                 const T(&)[N]>::value, // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
             int>
-
-        
+ 
         =
         0
         >
@@ -5955,7 +5947,6 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
         template<typename BasicJsonType>
         inline void to_json(BasicJsonType &j, const std_fs::path &p) {
 
-
 #ifdef JSON_HAS_CPP_20
         const std::u8string s = p.u8string();
         j= std::string (s.begin(), s.end());
@@ -5980,7 +5971,6 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
 /// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4381.html
     namespace // NOLINT(cert-dcl59-cpp,fuchsia-header-anon-namespaces,google-build-namespaces)
     {
-
 
 #endif
     JSON_INLINE_VARIABLE constexpr const auto &to_json = // NOLINT(misc-definitions-in-headers)
@@ -19433,7 +19423,6 @@ The invariants are checked by member function assert_invariant().
                                     return j.m_parent == this;
                                 }));
         
-            
             }
             JSON_CATCH(...) {
             } // LCOV_EXCL_LINE
@@ -22164,7 +22153,6 @@ The invariants are checked by member function assert_invariant().
         /// @brief comparison: equal
     /// @sa https://json.nlohmann.me/api/basic_json/operator_eq/
         bool operator==(const_reference rhs) const noexcept {
-
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
