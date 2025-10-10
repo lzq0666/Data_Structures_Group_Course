@@ -1,6 +1,7 @@
 #include <QtGui/QGuiApplication>
 #include <QtQml>
 #include "StateManager.h"
+#include "DataManager.h"
 
 // 将 C++ 状态管理函数封装为 QML 可调用的类
 class StateManagerWrapper : public QObject

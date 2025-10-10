@@ -2,6 +2,11 @@
 #define STATEMANAGER_H
 
 #include <QString>
+#include <QCryptographicHash>
+#include <QRandomGenerator>
+#include <QSettings>
+#include <QDebug>
+#include <QDateTime>
 
 // 程序状态枚举
 enum AppState {
