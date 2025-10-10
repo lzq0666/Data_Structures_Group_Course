@@ -29,7 +29,7 @@ void setState(AppState newState);
 
 AppState getCurrentState();
 
-bool loginWithStateUpdate(const QString &username, const QString &password);
+bool loginWithStateUpdate(const std::string &username, const std::string &password);
 
 void logout();
 
