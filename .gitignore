@@ -579,7 +579,7 @@ FodyWeavers.xsd
 build/
 .idea/
 *.bat
-*.json
+.json
 *.sln
 *.vcxproj
 *.vcxproj.filters
