@@ -28,6 +28,7 @@ Item {
         gradient: Gradient {
             orientation: Gradient.Horizontal
 
+
             GradientStop {
                 color: "#4158d0"
                 position: 0.0

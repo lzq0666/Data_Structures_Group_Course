@@ -1,9 +1,5 @@
 #include "StateManager.h"
-#include <QCryptographicHash>
-#include <QRandomGenerator>
-#include <QSettings>
-#include <QDebug>
-#include <QDateTime>
+
 
 // 全局状态变量定义
 AppState g_currentState = STATE_LOGIN;

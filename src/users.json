@@ -1,0 +1,46 @@
+{
+  "users": [
+    {
+      "userId": 99999999,
+      "username": "admin",
+      "password": "admin123",
+      "isAdmin": true,
+      "shoppingCart": [],
+      "viewHistory": [],
+      "favorites": []
+    },
+    {
+      "userId": 1,
+      "username": "user1",
+      "password": "12345678",
+      "isAdmin": false,
+      "shoppingCart": [],
+      "viewHistory": [],
+      "favorites": []
+    },
+    {
+      "userId": 2,
+      "username": "user2",
+      "password": "12345678",
+      "isAdmin": false,
+      "shoppingCart": [],
+      "viewHistory": [],
+      "favorites": []
+    },
+    {
+      "userId": 3,
+      "username": "user3",
+      "password": "12345678",
+      "isAdmin": false,
+      "shoppingCart": [],
+      "viewHistory": [],
+      "favorites": []
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created": "1760080000",
+    "lastUpdated": "1760080715",
+    "totalUsers": 4
+  }
+}
