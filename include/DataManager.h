@@ -1,7 +1,10 @@
 #ifndef DATAMANAGER_H
 #define DATAMANAGER_H
 
+#include <ctime>
 #include <vector>
+#include <QDebug>
+#include <qlogging.h>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -9,6 +12,7 @@
 
 using json = nlohmann::json;
 
+//用户数据结构体
 struct UserData {
     int userId;
     bool isAdmin;
@@ -19,16 +23,15 @@ struct UserData {
     std::vector<std::vector<int> > favorites; // 显式评分，二维数组
 };
 
-// TODO: 确定商品数据结构
+// 商品数据结构体
 struct ProductData {
-    // TODO: 添加商品相关字段
     int productId;
     std::string name;
-    std::string description;
     double price;
     int stock;
     std::string category;
-    // TODO: 添加更多商品属性（如品牌、评分、图片路径等）
+    double avg_rating; // 平均评分
+    int reviewers; // 评分人数
 };
 
 class DataManager {
