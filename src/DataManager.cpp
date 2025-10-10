@@ -267,6 +267,7 @@ json DataManager::userToJson(const UserData &user) {
         {"userId", user.userId},
         {"username", user.username},
         {"password", user.password},
+        {"salt", user.salt},
         {"isAdmin", user.isAdmin},
         {"shoppingCart", user.shoppingCart},
         {"viewHistory", user.viewHistory},
@@ -283,6 +284,7 @@ UserData DataManager::jsonToUser(const json &j) {
     user.password = j.value("password", "");
     user.userId = j.value("userId", 0);
     user.isAdmin = j.value("isAdmin", false);
+    user.salt = j.value("salt", "");
     user.shoppingCart = j.at("shoppingCart").get<std::vector<std::vector<int> > >();
     user.viewHistory = j.at("viewHistory").get<std::vector<std::vector<int> > >();
     user.favorites = j.at("favorites").get<std::vector<std::vector<int> > >();

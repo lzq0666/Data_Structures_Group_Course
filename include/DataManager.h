@@ -18,6 +18,7 @@ struct UserData {
     bool isAdmin;
     std::string username;
     std::string password;
+    std::string salt;
     std::vector<std::vector<int> > shoppingCart; // 购物车，二维数组
     std::vector<std::vector<int> > viewHistory; // 浏览历史，二维数组
     std::vector<std::vector<int> > favorites; // 显式评分，二维数组
