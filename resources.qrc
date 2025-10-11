@@ -4,5 +4,7 @@
         <file>Qt/LoginPage.qml</file>
         <file>resources/images/undraw_enter-password_1kl4.svg</file>
         <file>Qt/MainMenu.qml</file>
+        <file>Qt/RegisterPage.qml</file>
+        <file>Qt/adminPage.qml</file>
     </qresource>
 </RCC>

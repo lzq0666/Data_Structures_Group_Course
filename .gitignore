@@ -579,9 +579,7 @@ FodyWeavers.xsd
 build/
 .idea/
 *.bat
-CMakeSettings.json
+*.json
 *.sln
 *.vcxproj
 *.vcxproj.filters
-CMakePresets.json
-CMakeUserPresets.json

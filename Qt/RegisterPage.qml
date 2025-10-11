@@ -4,15 +4,15 @@ import QtQuick.Layouts 1.12
 
 Item {
     // 定义信号，用于与父组件通信
-    signal loginRequested(string username, string password)
-    signal registerRequested() // 改为无参数信号，用于跳转到注册页面
+    signal registerRequested(string username, string password, string confirmPassword)
+    signal backToLoginRequested()
     
-    // 添加用于显示登录错误信息的属性
+    // 添加用于显示错误信息的属性
     property string errorMessage: ""
     property bool showError: false
     
-    // 添加用于接收登录结果的函数
-    function showLoginError(message) {
+    // 添加用于接收注册结果的函数
+    function showRegisterError(message) {
         errorMessage = message
         showError = true
     }
@@ -28,6 +28,7 @@ Item {
         gradient: Gradient {
             orientation: Gradient.Horizontal
 
+
             GradientStop {
                 color: "#4158d0"
                 position: 0.0
@@ -38,18 +39,18 @@ Item {
             }
         }
 
-        // 主容器 Rectangle，包含图片和登录框
+        // 主容器 Rectangle，包含图片和注册框
         Rectangle {
             anchors.centerIn: parent
             width: Math.min(parent.width * 0.85, 1100)
-            height: Math.min(parent.height * 0.85, 650) // 恢复原始高度
+            height: Math.min(parent.height * 0.85, 750) // 稍微增加高度以容纳更多字段
             radius: 20
             color: "white"
             opacity: 0.98
             border.color: "#e0e0e0"
             border.width: 1
 
-            // RowLayout 布局：左侧图片，右侧登录框
+            // RowLayout 布局：左侧图片，右侧注册框
             RowLayout {
                 anchors.fill: parent
                 anchors.margins: 40
@@ -70,7 +71,7 @@ Item {
                     }
                 }
 
-                // 右侧登录框区域
+                // 右侧注册框区域
                 Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -78,7 +79,7 @@ Item {
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 25 // 恢复原始间距
+                        spacing: 18 // 减少间距以容纳更多内容
                         width: Math.min(parent.width * 0.85, 320)
 
                         // 标题区域
@@ -90,14 +91,14 @@ Item {
                                 color: "#2c3e50"
                                 font.pixelSize: 32
                                 font.bold: true
-                                text: qsTr("欢迎登录")
+                                text: qsTr("创建账户")
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             
                             Text {
                                 color: "#7f8c8d"
                                 font.pixelSize: 16
-                                text: qsTr("请输入您的登录信息")
+                                text: qsTr("请填写您的注册信息")
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                         }
@@ -119,14 +120,14 @@ Item {
                                 color: "#2c3e50"
                                 font.pixelSize: 16
                                 height: 50
-                                placeholderText: qsTr("请输入用户名")
+                                placeholderText: qsTr("请输入用户名（3-20个字符）")
                                 leftPadding: 20
                                 rightPadding: 20
                                 placeholderTextColor: "#bdc3c7"
                                 width: parent.width
                                 verticalAlignment: TextInput.AlignVCenter
                                 background: Rectangle {
-                                    border.color: username.activeFocus ? "#3498db" : "#ecf0f1"
+                                    border.color: username.activeFocus ? "#2ecc71" : "#ecf0f1"
                                     border.width: username.activeFocus ? 2 : 1
                                     color: "#ffffff"
                                     radius: 12
@@ -161,14 +162,14 @@ Item {
                                 echoMode: TextInput.Password
                                 font.pixelSize: username.font.pixelSize
                                 height: username.height
-                                placeholderText: qsTr("请输入密码")
+                                placeholderText: qsTr("请输入密码（至少6位字符）")
                                 leftPadding: username.leftPadding
                                 rightPadding: username.rightPadding
                                 placeholderTextColor: username.placeholderTextColor
                                 width: parent.width
                                 verticalAlignment: TextInput.AlignVCenter
                                 background: Rectangle {
-                                    border.color: password.activeFocus ? "#3498db" : "#ecf0f1"
+                                    border.color: password.activeFocus ? "#2ecc71" : "#ecf0f1"
                                     border.width: password.activeFocus ? 2 : 1
                                     color: "#ffffff"
                                     radius: 12
@@ -178,6 +179,48 @@ Item {
                                         anchors.margins: 1
                                         color: "transparent"
                                         border.color: password.activeFocus ? "#ffffff" : "#f8f9fa"
+                                        border.width: 1
+                                        radius: parent.radius - 1
+                                    }
+                                }
+                            }
+                        }
+
+                        //确认密码输入框
+                        Column {
+                            width: parent.width
+                            spacing: 8
+                            
+                            Text {
+                                text: qsTr("确认密码")
+                                color: "#34495e"
+                                font.pixelSize: 14
+                                font.bold: true
+                            }
+                            
+                            TextField {
+                                id: confirmPassword
+                                color: username.color
+                                echoMode: TextInput.Password
+                                font.pixelSize: username.font.pixelSize
+                                height: username.height
+                                placeholderText: qsTr("请再次输入密码")
+                                leftPadding: username.leftPadding
+                                rightPadding: username.rightPadding
+                                placeholderTextColor: username.placeholderTextColor
+                                width: parent.width
+                                verticalAlignment: TextInput.AlignVCenter
+                                background: Rectangle {
+                                    border.color: confirmPassword.activeFocus ? "#2ecc71" : "#ecf0f1"
+                                    border.width: confirmPassword.activeFocus ? 2 : 1
+                                    color: "#ffffff"
+                                    radius: 12
+                                    
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        anchors.margins: 1
+                                        color: "transparent"
+                                        border.color: confirmPassword.activeFocus ? "#ffffff" : "#f8f9fa"
                                         border.width: 1
                                         radius: parent.radius - 1
                                     }
@@ -209,9 +252,9 @@ Item {
                             width: parent.width
                             spacing: 15
 
-                            //登录按钮
+                            //注册按钮
                             Rectangle {
-                                id: loginButton
+                                id: registerButton
                                 height: 55
                                 width: parent.width
                                 radius: 12
@@ -220,9 +263,9 @@ Item {
                                 property bool pressed: false
                                 
                                 color: {
-                                    if (pressed) return "#2980b9"
-                                    if (hovered) return "#3498db"
-                                    return "#2c3e50"
+                                    if (pressed) return "#27ae60"
+                                    if (hovered) return "#2ecc71"
+                                    return "#2ecc71"
                                 }
                                 
                                 Behavior on color {
@@ -241,7 +284,7 @@ Item {
                                 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: qsTr("登 录")
+                                    text: qsTr("立即注册")
                                     font.pixelSize: 18
                                     font.bold: true
                                     color: "white"
@@ -255,31 +298,31 @@ Item {
                                     onClicked: {
                                         // 清除之前的错误信息
                                         clearError()
-                                        // 发射信号给父组件处理登录
-                                        loginRequested(username.text, password.text);
+                                        // 发射信号给父组件处理注册
+                                        registerRequested(username.text, password.text, confirmPassword.text);
                                     }
                                     
                                     onPressed: {
-                                        loginButton.pressed = true
+                                        registerButton.pressed = true
                                     }
                                     
                                     onReleased: {
-                                        loginButton.pressed = false
+                                        registerButton.pressed = false
                                     }
                                     
                                     onEntered: {
-                                        loginButton.hovered = true
+                                        registerButton.hovered = true
                                     }
                                     
                                     onExited: {
-                                        loginButton.hovered = false
+                                        registerButton.hovered = false
                                     }
                                 }
                             }
 
-                            //前往注册按钮
+                            //返回登录按钮
                             Rectangle {
-                                id: registerButton
+                                id: backButton
                                 height: 55
                                 width: parent.width
                                 radius: 12
@@ -288,15 +331,15 @@ Item {
                                 property bool pressed: false
                                 
                                 color: {
-                                    if (pressed) return "#27ae60"
-                                    if (hovered) return "#2ecc71"
+                                    if (pressed) return "#5a6c7d"
+                                    if (hovered) return "#7f8c8d"
                                     return "#ffffff"
                                 }
                                 
                                 border.color: {
-                                    if (pressed) return "#27ae60"
-                                    if (hovered) return "#2ecc71"
-                                    return "#2ecc71"
+                                    if (pressed) return "#5a6c7d"
+                                    if (hovered) return "#7f8c8d"
+                                    return "#7f8c8d"
                                 }
                                 border.width: 2
                                 
@@ -322,12 +365,12 @@ Item {
                                 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: qsTr("前往注册")
+                                    text: qsTr("返回登录")
                                     font.pixelSize: 18
                                     font.bold: true
                                     color: {
-                                        if (registerButton.pressed || registerButton.hovered) return "white"
-                                        return "#2ecc71"
+                                        if (backButton.pressed || backButton.hovered) return "white"
+                                        return "#7f8c8d"
                                     }
                                     
                                     Behavior on color {
@@ -343,39 +386,49 @@ Item {
                                     cursorShape: Qt.PointingHandCursor
                                     
                                     onClicked: {
-                                        // 清除之前的错误信息
+                                        // 清除错误信息
                                         clearError()
-                                        // 发射无参数信号跳转到注册页面
-                                        registerRequested();
+                                        // 发射信号返回登录页面
+                                        backToLoginRequested();
                                     }
                                     
                                     onPressed: {
-                                        registerButton.pressed = true
+                                        backButton.pressed = true
                                     }
                                     
                                     onReleased: {
-                                        registerButton.pressed = false
+                                        backButton.pressed = false
                                     }
                                     
                                     onEntered: {
-                                        registerButton.hovered = true
+                                        backButton.hovered = true
                                     }
                                     
                                     onExited: {
-                                        registerButton.hovered = false
+                                        backButton.hovered = false
                                     }
                                 }
                             }
                         }
 
                         // 底部提示信息
-                        Text {
-                            text: qsTr("没有账户？点击前往注册按钮创建新账户")
-                            color: "#7f8c8d"
-                            font.pixelSize: 12
+                        Column {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            wrapMode: Text.WordWrap
-                            horizontalAlignment: Text.AlignHCenter
+                            spacing: 5
+                            
+                            Text {
+                                text: qsTr("已有账户？点击返回登录")
+                                color: "#7f8c8d"
+                                font.pixelSize: 12
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                            
+                            Text {
+                                text: qsTr("注册即表示您同意我们的服务条款")
+                                color: "#bdc3c7"
+                                font.pixelSize: 10
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
                         }
                     }
                 }
