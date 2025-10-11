@@ -6,5 +6,7 @@
         <file>Qt/MainMenu.qml</file>
         <file>Qt/RegisterPage.qml</file>
         <file>Qt/adminPage.qml</file>
+        <file>Qt/UserInfoPage.qml</file>
+        <file>Qt/ChangePasswordPage.qml</file>
     </qresource>
 </RCC>

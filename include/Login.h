@@ -25,4 +25,6 @@ bool userExists(const std::string &username);
 
 bool login(const std::string &username, const std::string &password);
 
+bool changePassword(const std::string &username, const std::string &oldPassword, const std::string &newPassword);
+
 #endif //LOGIN_H

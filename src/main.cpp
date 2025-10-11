@@ -12,11 +12,13 @@ public:
     // 枚举声明( QML无法直接访问 C++ 枚举 )
     enum State {
         STATE_LOGIN = 0,
-        STATE_REGISTER = 1,  
-        STATE_MAIN_MENU = 2, 
-        STATE_BROWSE = 3,    
-        STATE_ADMIN = 4,     
-        STATE_EXIT = 5
+        STATE_REGISTER = 1,
+        STATE_MAIN_MENU = 2,
+        STATE_BROWSE = 3,
+        STATE_ADMIN = 4,
+        STATE_EXIT = 5,
+        STATE_USER_INFO = 6,
+        STATE_CHANGE_PASSWORD = 7
     };
 
     Q_ENUM(State)
@@ -35,6 +37,14 @@ public:
 
     Q_INVOKABLE bool userExists(const QString &username) {
         return ::userExists(username.toStdString());
+    }
+
+    Q_INVOKABLE bool changePassword(const QString &oldPassword, const QString &newPassword) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return false;
+        }
+        return ::changePassword(currentUser.toStdString(), oldPassword.toStdString(), newPassword.toStdString());
     }
 
     Q_INVOKABLE void logout() {
@@ -68,8 +78,6 @@ public:
     }
 
     signals:
-    
-
     void stateChanged(int newState);
 };
 

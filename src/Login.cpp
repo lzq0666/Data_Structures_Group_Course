@@ -131,3 +131,43 @@ bool isCurrentUserAdmin(const std::string& username) {
     }
     return false;
 }
+
+// 修改密码功能
+bool changePassword(const std::string& username, const std::string& oldPassword, const std::string& newPassword) {
+    if (username.empty() || oldPassword.empty() || newPassword.empty()) {
+        qDebug() << "修改密码失败: 参数不能为空";
+        return false;
+    }
+
+    DataManager* dm = getDataManager();
+    UserData* user = dm->findUser(username);
+
+    if (!user) {
+        std::cerr << "修改密码失败: 用户不存在" << std::endl;
+        return false;
+    }
+
+    // 验证旧密码
+    if (!verifyPassword(oldPassword, user->password, user->salt)) {
+        std::cerr << "修改密码失败: 旧密码错误" << std::endl;
+        return false;
+    }
+
+    // 生成新的盐值并哈希新密码
+    std::string newSalt = generateSalt();
+    std::string newHashedPassword = hashPassword(newPassword, newSalt);
+
+    // 更新用户密码和盐值
+    user->password = newHashedPassword;
+    user->salt = newSalt;
+
+    // 保存更新后的数据
+    if (dm->saveUsersToJson()) {
+        std::cout << "用户 " << username << " 密码修改成功" << std::endl;
+        return true;
+    }
+    else {
+        std::cerr << "修改密码失败: 无法保存用户数据" << std::endl;
+        return false;
+    }
+}

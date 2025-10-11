@@ -15,7 +15,9 @@ enum AppState {
     STATE_MAIN_MENU = 2,
     STATE_BROWSE = 3,
     STATE_ADMIN = 4,
-    STATE_EXIT = 5
+    STATE_EXIT = 5,
+    STATE_USER_INFO = 6,
+    STATE_CHANGE_PASSWORD = 7
 };
 
 // 全局状态变量

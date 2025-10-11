@@ -42,6 +42,12 @@ ApplicationWindow {
                 case StateManager.STATE_ADMIN: 
                     source = "qrc:/Qt/adminPage.qml"
                     break
+                case StateManager.STATE_USER_INFO:
+                    source = "qrc:/Qt/UserInfoPage.qml"
+                    break
+                case StateManager.STATE_CHANGE_PASSWORD:  
+                    source = "qrc:/Qt/ChangePasswordPage.qml"
+                    break
                 //case StateManager.STATE_BROWSE: 
                 //    source = "qrc:/Qt/BrowsePage.qml"
                 //    break
@@ -89,6 +95,31 @@ ApplicationWindow {
                 // 连接主菜单退出信号
                 if (typeof item.logoutRequested !== "undefined") {
                     item.logoutRequested.connect(handleLogout);
+                }
+                
+                // 连接主菜单的用户信息信号
+                if (typeof item.userInfoRequested !== "undefined") {
+                    item.userInfoRequested.connect(handleUserInfo);
+                }
+                
+                // 连接用户信息页面的返回主菜单信号
+                if (typeof item.backToMainMenuRequested !== "undefined") {
+                    item.backToMainMenuRequested.connect(handleBackToMainMenu);
+                }
+                
+                // 连接用户信息页面的修改密码信号
+                if (typeof item.changePasswordRequested !== "undefined") {
+                    item.changePasswordRequested.connect(handleChangePassword);
+                }
+                
+                // 连接修改密码页面的返回用户信息信号
+                if (typeof item.backToUserInfoRequested !== "undefined") {
+                    item.backToUserInfoRequested.connect(handleBackToUserInfo);
+                }
+                
+                // 连接修改密码页面的修改密码信号
+                if (typeof item.changePasswordRequested !== "undefined" && currentState === StateManager.STATE_CHANGE_PASSWORD) {
+                    item.changePasswordRequested.connect(handleChangePasswordSubmit);
                 }
                 
                 // 连接管理员页面的信号
@@ -215,6 +246,80 @@ ApplicationWindow {
     function handleLogout() {
         console.log("用户退出登录");
         stateManager.logout();  
+    }
+    
+    // 跳转到用户信息页面
+    function handleUserInfo() {
+        console.log("跳转到用户信息页面");
+        stateManager.setState(StateManager.STATE_USER_INFO);
+    }
+    
+    // 从用户信息页面返回主菜单
+    function handleBackToMainMenu() {
+        console.log("返回主菜单");
+        stateManager.setState(StateManager.STATE_MAIN_MENU);
+    }
+    
+    // 跳转到修改密码页面
+    function handleChangePassword() {
+        console.log("跳转到修改密码页面");
+        stateManager.setState(StateManager.STATE_CHANGE_PASSWORD);
+    }
+    
+    // 从修改密码页面返回用户信息页面
+    function handleBackToUserInfo() {
+        console.log("返回用户信息页面");
+        stateManager.setState(StateManager.STATE_USER_INFO);
+    }
+    
+    // 处理修改密码提交
+    function handleChangePasswordSubmit(oldPassword, newPassword, confirmPassword) {
+        console.log("正在尝试修改密码");
+        
+        // 验证输入
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("请填写完整的密码信息");
+            }
+            return;
+        }
+        
+        // 验证新密码长度
+        if (newPassword.length < 6) {
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("新密码长度至少需要6位字符");
+            }
+            return;
+        }
+        
+        // 验证两次新密码是否一致
+        if (newPassword !== confirmPassword) {
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("两次输入的新密码不一致");
+            }
+            return;
+        }
+        
+        // 验证新密码与旧密码是否相同
+        if (oldPassword === newPassword) {
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("新密码不能与原密码相同");
+            }
+            return;
+        }
+        
+        // 尝试修改密码
+        if (stateManager.changePassword(oldPassword, newPassword)) {
+            console.log("密码修改成功");
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordSuccess === "function") {
+                contentLoader.item.showChangePasswordSuccess("密码修改成功！即将返回用户信息页面...");
+            }
+        } else {
+            console.log("密码修改失败");
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("密码修改失败，请检查原密码是否正确");
+            }
+        }
     }
     
     // 管理员页面功能处理函数
