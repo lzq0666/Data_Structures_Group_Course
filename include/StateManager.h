@@ -10,12 +10,12 @@
 
 // 程序状态枚举
 enum AppState {
-    STATE_LOGIN,
-    STATE_REGISTER,
-    STATE_MAIN_MENU,
-    STATE_BROWSE,
-    STATE_ADMIN,
-    STATE_EXIT
+    STATE_LOGIN = 0,
+    STATE_REGISTER = 1,
+    STATE_MAIN_MENU = 2,
+    STATE_BROWSE = 3,
+    STATE_ADMIN = 4,
+    STATE_EXIT = 5
 };
 
 // 全局状态变量

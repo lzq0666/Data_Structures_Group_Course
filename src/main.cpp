@@ -12,10 +12,11 @@ public:
     // 枚举声明( QML无法直接访问 C++ 枚举 )
     enum State {
         STATE_LOGIN = 0,
-        STATE_MAIN_MENU = 1,
-        STATE_REGISTER = 2,
-        STATE_EXIT = 3,
-        STATE_ADMIN = 4  
+        STATE_REGISTER = 1,  
+        STATE_MAIN_MENU = 2, 
+        STATE_BROWSE = 3,    
+        STATE_ADMIN = 4,     
+        STATE_EXIT = 5
     };
 
     Q_ENUM(State)
