@@ -10,7 +10,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 //用户数据结构体
 struct UserData {
