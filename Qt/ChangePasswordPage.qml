@@ -73,102 +73,96 @@ Item {
         Rectangle {
             anchors.centerIn: parent
             width: Math.min(parent.width * 0.9, 600)
-            height: Math.min(parent.height * 0.9, 650)
+            height: Math.min(parent.height * 0.9, 700)  // 增加高度以容纳消息
             radius: 20
             color: "white"
             opacity: 0.98
             border.color: "#e0e0e0"
             border.width: 1
 
-            Column {
+            // 使用 ScrollView 来处理内容溢出
+            ScrollView {
                 anchors.fill: parent
                 anchors.margins: 40
-                spacing: 0
+                contentWidth: width
+                contentHeight: contentColumn.implicitHeight
+                clip: true
+                
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-                // 顶部区域：标题和返回按钮
-                Row {
+                Column {
+                    id: contentColumn
                     width: parent.width
-                    height: 60
-                    
-                    // 返回按钮
-                    Rectangle {
-                        id: backButton
-                        width: 100
-                        height: 40
-                        radius: 8
-                        color: backArea.containsMouse ? "#3498db" : "#95a5a6"
-                        anchors.verticalCenter: parent.verticalCenter
-                        
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 5
-                            
-                            Text {
-                                text: "←"
-                                color: "white"
-                                font.pixelSize: 16
-                                font.bold: true
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                            
-                            Text {
-                                text: qsTr("返回")
-                                color: "white"
-                                font.pixelSize: 12
-                                font.bold: true
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                        }
-                        
-                        MouseArea {
-                            id: backArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                clearMessages()
-                                clearForm()
-                                backToUserInfoRequested()
-                            }
-                        }
-                        
-                        Behavior on color {
-                            ColorAnimation { duration: 200 }
-                        }
-                    }
-                    
-                    // 标题
-                    Text {
-                        text: qsTr("修改密码")
-                        color: "#2c3e50"
-                        font.pixelSize: 28
-                        font.bold: true
-                        anchors.centerIn: parent
-                    }
-                    
-                    // 右侧空白保持平衡
+                    spacing: 20
+
+                    // 顶部区域：标题和返回按钮
                     Item {
-                        width: 100
-                        height: 40
+                        width: parent.width
+                        height: 60
+                        
+                        // 返回按钮
+                        Rectangle {
+                            id: backButton
+                            width: 100
+                            height: 40
+                            radius: 8
+                            color: backArea.containsMouse ? "#3498db" : "#95a5a6"
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.left: parent.left
+                            
+                            Row {
+                                anchors.centerIn: parent
+                                spacing: 5
+                                
+                                Text {
+                                    text: "←"
+                                    color: "white"
+                                    font.pixelSize: 16
+                                    font.bold: true
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                
+                                Text {
+                                    text: qsTr("返回")
+                                    color: "white"
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                            
+                            MouseArea {
+                                id: backArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    clearMessages()
+                                    clearForm()
+                                    backToUserInfoRequested()
+                                }
+                            }
+                            
+                            Behavior on color {
+                                ColorAnimation { duration: 200 }
+                            }
+                        }
+                        
+                        // 标题
+                        Text {
+                            text: qsTr("修改密码")
+                            color: "#2c3e50"
+                            font.pixelSize: 28
+                            font.bold: true
+                            anchors.centerIn: parent
+                        }
                     }
-                }
 
-                // 间距
-                Item {
-                    width: parent.width
-                    height: 40
-                }
-
-                // 修改密码表单区域
-                Rectangle {
-                    width: parent.width
-                    height: parent.height - 100
-                    color: "transparent"
-                    
+                    // 修改密码表单区域
                     Column {
-                        anchors.centerIn: parent
+                        width: parent.width
                         spacing: 25
-                        width: Math.min(parent.width * 0.8, 400)
 
                         // 用户信息提示
                         Column {
@@ -191,23 +185,34 @@ Item {
                             }
                         }
 
-                        // 消息提示区域
-                        Rectangle {
+                        // 消息提示区域 - 改进布局
+                        Item {
                             width: parent.width
-                            height: showError || showSuccess ? 50 : 0
-                            radius: 8
-                            color: showError ? "#fee" : "#efe"
-                            border.color: showError ? "#e74c3c" : "#27ae60"
-                            border.width: showError || showSuccess ? 1 : 0
+                            height: messageRect.visible ? messageRect.height + 10 : 0
                             visible: showError || showSuccess
                             
-                            Text {
+                            Rectangle {
+                                id: messageRect
+                                width: parent.width
+                                height: Math.max(60, messageText.contentHeight + 20)  // 根据文本内容动态调整高度
+                                radius: 8
+                                color: showError ? "#fee" : "#efe"
+                                border.color: showError ? "#e74c3c" : "#27ae60"
+                                border.width: 1
                                 anchors.centerIn: parent
-                                text: showError ? errorMessage : successMessage
-                                color: showError ? "#e74c3c" : "#27ae60"
-                                font.pixelSize: 14
-                                font.bold: true
-                                wrapMode: Text.WordWrap
+                                
+                                Text {
+                                    id: messageText
+                                    anchors.centerIn: parent
+                                    anchors.margins: 10
+                                    width: parent.width - 20
+                                    text: showError ? errorMessage : successMessage
+                                    color: showError ? "#e74c3c" : "#27ae60"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                    wrapMode: Text.WordWrap
+                                    horizontalAlignment: Text.AlignHCenter
+                                }
                             }
                             
                             Behavior on height {
@@ -215,138 +220,146 @@ Item {
                             }
                         }
 
-                        // 原密码输入框
+                        // 输入框区域
                         Column {
-                            width: parent.width
-                            spacing: 8
-                            
-                            Text {
-                                text: qsTr("原密码")
-                                color: "#34495e"
-                                font.pixelSize: 14
-                                font.bold: true
-                            }
-                            
-                            TextField {
-                                id: oldPasswordField
-                                color: "#2c3e50"
-                                echoMode: TextInput.Password
-                                font.pixelSize: 16
-                                height: 50
-                                placeholderText: qsTr("请输入原密码")
-                                leftPadding: 20
-                                rightPadding: 20
-                                placeholderTextColor: "#bdc3c7"
-                                width: parent.width
-                                verticalAlignment: TextInput.AlignVCenter
-                                background: Rectangle {
-                                    border.color: oldPasswordField.activeFocus ? "#3498db" : "#ecf0f1"
-                                    border.width: oldPasswordField.activeFocus ? 2 : 1
-                                    color: "#ffffff"
-                                    radius: 12
-                                    
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: 1
-                                        color: "transparent"
-                                        border.color: oldPasswordField.activeFocus ? "#ffffff" : "#f8f9fa"
-                                        border.width: 1
-                                        radius: parent.radius - 1
-                                    }
-                                }
-                                onTextChanged: clearMessages()
-                            }
-                        }
+                            width: Math.min(parent.width * 0.8, 400)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            spacing: 20
 
-                        // 新密码输入框
-                        Column {
-                            width: parent.width
-                            spacing: 8
-                            
-                            Text {
-                                text: qsTr("新密码")
-                                color: "#34495e"
-                                font.pixelSize: 14
-                                font.bold: true
-                            }
-                            
-                            TextField {
-                                id: newPasswordField
-                                color: "#2c3e50"
-                                echoMode: TextInput.Password
-                                font.pixelSize: 16
-                                height: 50
-                                placeholderText: qsTr("请输入新密码（至少6位）")
-                                leftPadding: 20
-                                rightPadding: 20
-                                placeholderTextColor: "#bdc3c7"
+                            // 原密码输入框
+                            Column {
                                 width: parent.width
-                                verticalAlignment: TextInput.AlignVCenter
-                                background: Rectangle {
-                                    border.color: newPasswordField.activeFocus ? "#3498db" : "#ecf0f1"
-                                    border.width: newPasswordField.activeFocus ? 2 : 1
-                                    color: "#ffffff"
-                                    radius: 12
-                                    
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: 1
-                                        color: "transparent"
-                                        border.color: newPasswordField.activeFocus ? "#ffffff" : "#f8f9fa"
-                                        border.width: 1
-                                        radius: parent.radius - 1
-                                    }
+                                spacing: 8
+                                
+                                Text {
+                                    text: qsTr("原密码")
+                                    color: "#34495e"
+                                    font.pixelSize: 14
+                                    font.bold: true
                                 }
-                                onTextChanged: clearMessages()
+                                
+                                TextField {
+                                    id: oldPasswordField
+                                    color: "#2c3e50"
+                                    echoMode: TextInput.Password
+                                    font.pixelSize: 16
+                                    height: 50
+                                    placeholderText: qsTr("请输入原密码")
+                                    leftPadding: 20
+                                    rightPadding: 20
+                                    placeholderTextColor: "#bdc3c7"
+                                    width: parent.width
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    background: Rectangle {
+                                        border.color: oldPasswordField.activeFocus ? "#3498db" : "#ecf0f1"
+                                        border.width: oldPasswordField.activeFocus ? 2 : 1
+                                        color: "#ffffff"
+                                        radius: 12
+                                        
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            anchors.margins: 1
+                                            color: "transparent"
+                                            border.color: oldPasswordField.activeFocus ? "#ffffff" : "#f8f9fa"
+                                            border.width: 1
+                                            radius: parent.radius - 1
+                                        }
+                                    }
+                                    onTextChanged: clearMessages()
+                                }
                             }
-                        }
 
-                        // 确认新密码输入框
-                        Column {
-                            width: parent.width
-                            spacing: 8
-                            
-                            Text {
-                                text: qsTr("确认新密码")
-                                color: "#34495e"
-                                font.pixelSize: 14
-                                font.bold: true
-                            }
-                            
-                            TextField {
-                                id: confirmPasswordField
-                                color: "#2c3e50"
-                                echoMode: TextInput.Password
-                                font.pixelSize: 16
-                                height: 50
-                                placeholderText: qsTr("请再次输入新密码")
-                                leftPadding: 20
-                                rightPadding: 20
-                                placeholderTextColor: "#bdc3c7"
+                            // 新密码输入框
+                            Column {
                                 width: parent.width
-                                verticalAlignment: TextInput.AlignVCenter
-                                background: Rectangle {
-                                    border.color: confirmPasswordField.activeFocus ? "#3498db" : "#ecf0f1"
-                                    border.width: confirmPasswordField.activeFocus ? 2 : 1
-                                    color: "#ffffff"
-                                    radius: 12
-                                    
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: 1
-                                        color: "transparent"
-                                        border.color: confirmPasswordField.activeFocus ? "#ffffff" : "#f8f9fa"
-                                        border.width: 1
-                                        radius: parent.radius - 1
-                                    }
+                                spacing: 8
+                                
+                                Text {
+                                    text: qsTr("新密码")
+                                    color: "#34495e"
+                                    font.pixelSize: 14
+                                    font.bold: true
                                 }
-                                onTextChanged: clearMessages()
+                                
+                                TextField {
+                                    id: newPasswordField
+                                    color: "#2c3e50"
+                                    echoMode: TextInput.Password
+                                    font.pixelSize: 16
+                                    height: 50
+                                    placeholderText: qsTr("请输入新密码（至少6位）")
+                                    leftPadding: 20
+                                    rightPadding: 20
+                                    placeholderTextColor: "#bdc3c7"
+                                    width: parent.width
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    background: Rectangle {
+                                        border.color: newPasswordField.activeFocus ? "#3498db" : "#ecf0f1"
+                                        border.width: newPasswordField.activeFocus ? 2 : 1
+                                        color: "#ffffff"
+                                        radius: 12
+                                        
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            anchors.margins: 1
+                                            color: "transparent"
+                                            border.color: newPasswordField.activeFocus ? "#ffffff" : "#f8f9fa"
+                                            border.width: 1
+                                            radius: parent.radius - 1
+                                        }
+                                    }
+                                    onTextChanged: clearMessages()
+                                }
+                            }
+
+                            // 确认新密码输入框
+                            Column {
+                                width: parent.width
+                                spacing: 8
+                                
+                                Text {
+                                    text: qsTr("确认新密码")
+                                    color: "#34495e"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                }
+                                
+                                TextField {
+                                    id: confirmPasswordField
+                                    color: "#2c3e50"
+                                    echoMode: TextInput.Password
+                                    font.pixelSize: 16
+                                    height: 50
+                                    placeholderText: qsTr("请再次输入新密码")
+                                    leftPadding: 20
+                                    rightPadding: 20
+                                    placeholderTextColor: "#bdc3c7"
+                                    width: parent.width
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    background: Rectangle {
+                                        border.color: confirmPasswordField.activeFocus ? "#3498db" : "#ecf0f1"
+                                        border.width: confirmPasswordField.activeFocus ? 2 : 1
+                                        color: "#ffffff"
+                                        radius: 12
+                                        
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            anchors.margins: 1
+                                            color: "transparent"
+                                            border.color: confirmPasswordField.activeFocus ? "#ffffff" : "#f8f9fa"
+                                            border.width: 1
+                                            radius: parent.radius - 1
+                                        }
+                                    }
+                                    onTextChanged: clearMessages()
+                                }
                             }
                         }
 
                         // 按钮区域
                         Column {
-                            width: parent.width
+                            width: Math.min(parent.width * 0.8, 400)
+                            anchors.horizontalCenter: parent.horizontalCenter
                             spacing: 15
 
                             // 确认修改按钮
@@ -513,6 +526,12 @@ Item {
                             anchors.horizontalCenter: parent.horizontalCenter
                             wrapMode: Text.WordWrap
                             horizontalAlignment: Text.AlignHCenter
+                        }
+
+                        // 底部间距
+                        Item {
+                            width: parent.width
+                            height: 20
                         }
                     }
                 }

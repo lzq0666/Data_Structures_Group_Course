@@ -117,8 +117,9 @@ ApplicationWindow {
                     item.backToUserInfoRequested.connect(handleBackToUserInfo);
                 }
                 
-                // 连接修改密码页面的修改密码信号
-                if (typeof item.changePasswordRequested !== "undefined" && currentState === StateManager.STATE_CHANGE_PASSWORD) {
+                // 连接修改密码页面的修改密码信号 - 修复这里的重复绑定
+                var currentStateValue = stateManager.getCurrentState();
+                if (typeof item.changePasswordRequested !== "undefined" && currentStateValue === StateManager.STATE_CHANGE_PASSWORD) {
                     item.changePasswordRequested.connect(handleChangePasswordSubmit);
                 }
                 
