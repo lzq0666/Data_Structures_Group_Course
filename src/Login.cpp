@@ -120,3 +120,14 @@ bool login(const std::string &username, const std::string &password) {
         return false;
     }
 }
+
+// 检查当前用户是否为管理员
+bool isCurrentUserAdmin(const std::string& username) {
+    DataManager* dm = getDataManager();
+    UserData* user = dm->findUser(username);
+
+    if (user) {
+        return user->isAdmin;
+    }
+    return false;
+}

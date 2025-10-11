@@ -14,6 +14,7 @@ enum AppState {
     STATE_REGISTER,
     STATE_MAIN_MENU,
     STATE_BROWSE,
+    STATE_ADMIN,
     STATE_EXIT
 };
 
@@ -28,7 +29,6 @@ void initializeApp();
 void setState(AppState newState);
 
 AppState getCurrentState();
-
 bool loginWithStateUpdate(const std::string &username, const std::string &password);
 
 void logout();
@@ -41,5 +41,7 @@ void saveAppState();
 
 void loadAppState();
 
+//判断是否为管理员
+bool isCurrentUserAdmin(const std::string& username);
 
 #endif // !STATEMANAGER_H

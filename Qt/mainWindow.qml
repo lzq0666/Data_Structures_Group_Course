@@ -39,7 +39,7 @@ ApplicationWindow {
                 case StateManager.STATE_MAIN_MENU: 
                     source = "qrc:/Qt/MainMenu.qml"
                     break
-                case 4: // STATE_ADMIN - 添加管理员状态
+                case StateManager.STATE_ADMIN: 
                     source = "qrc:/Qt/adminPage.qml"
                     break
                 //case StateManager.STATE_BROWSE: 
@@ -126,7 +126,6 @@ ApplicationWindow {
         if (stateManager.login(username, password)) {
             // 登录成功，直接跳转到主菜单
             console.log("登录成功！欢迎使用商品推荐系统！");
-            stateManager.setState(StateManager.STATE_MAIN_MENU);
         } else {
             // 登录失败，通知登录页面显示错误信息
             if (contentLoader.item && typeof contentLoader.item.showLoginError === "function") {
