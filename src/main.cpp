@@ -14,7 +14,8 @@ public:
         STATE_LOGIN = 0,
         STATE_MAIN_MENU = 1,
         STATE_REGISTER = 2,
-        STATE_EXIT = 3
+        STATE_EXIT = 3,
+        STATE_ADMIN = 4  
     };
 
     Q_ENUM(State)
@@ -55,6 +56,14 @@ public:
     Q_INVOKABLE void setState(int state) {
         ::setState(static_cast<AppState>(state));
         emit stateChanged(getCurrentState());
+    }
+
+    Q_INVOKABLE bool isCurrentUserAdmin() {
+        QString currentUser = getCurrentUser();
+        if (!currentUser.isEmpty()) {
+            return ::isCurrentUserAdmin(currentUser.toStdString());
+        }
+        return false;
     }
 
     signals:

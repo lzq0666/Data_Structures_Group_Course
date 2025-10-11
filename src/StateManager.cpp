@@ -26,14 +26,23 @@ AppState getCurrentState() {
 }
 
 // 登录操作（包装器函数，用于更新状态）
-bool loginWithStateUpdate(const std::string &username, const std::string &password) {
+bool loginWithStateUpdate(const std::string& username, const std::string& password) {
 	if (login(username, password)) {
 		g_isLoggedIn = true;
 		g_currentUsername = QString::fromStdString(username);
-		setState(STATE_MAIN_MENU);
-		qDebug() << "用户" << username << "登录成功";
+
+		// 根据用户权限决定跳转页面
+		if (isCurrentUserAdmin(username)) {
+			setState(STATE_ADMIN);  // 管理员跳转到管理页面
+			qDebug() << "管理员" << username << "登录成功";
+		}
+		else {
+			setState(STATE_MAIN_MENU);  // 普通用户跳转到主菜单
+			qDebug() << "用户" << username << "登录成功";
+		}
 		return true;
-	} else {
+	}
+	else {
 		qDebug() << "登录失败";
 		return false;
 	}
