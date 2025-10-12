@@ -5,6 +5,11 @@ DataManager::DataManager() {
     // 初始化时尝试加载数据
     loadUsersFromJson();
     loadProductsFromJson();
+    
+    // 如果商品数据为空，创建示例数据
+    if (products.empty()) {
+        createSampleProducts();
+    }
 }
 
 // 析构函数，销毁对象时保存用户和商品数据
@@ -259,6 +264,47 @@ void DataManager::clearAllData() {
     qDebug() << "已清空所有数据";
 }
 
+// 创建示例商品数据
+void DataManager::createSampleProducts() {
+    qDebug() << "创建示例商品数据...";
+    
+    std::vector<ProductData> sampleProducts = {
+        {1001, "iPhone 15 Pro", 8999.00, 50, "手机", 4.8, 156},
+        {1002, "小米14 Ultra", 5999.00, 80, "手机", 4.6, 89},
+        {1003, "华为Mate60 Pro", 6999.00, 35, "手机", 4.7, 234},
+        {1004, "OPPO Find X7", 4599.00, 60, "手机", 4.5, 67},
+        
+        {2001, "MacBook Pro M3", 16999.00, 25, "电脑", 4.9, 78},
+        {2002, "ThinkPad X1 Carbon", 12999.00, 40, "电脑", 4.6, 92},
+        {2003, "Surface Laptop 5", 9999.00, 30, "电脑", 4.4, 45},
+        {2004, "华为MateBook X Pro", 8999.00, 20, "电脑", 4.5, 56},
+        
+        {3001, "AirPods Pro", 1999.00, 100, "耳机", 4.7, 289},
+        {3002, "Sony WH-1000XM5", 2399.00, 75, "耳机", 4.8, 167},
+        {3003, "Bose QC45", 2299.00, 60, "耳机", 4.6, 123},
+        {3004, "森海塞尔 HD660S", 3299.00, 25, "耳机", 4.9, 34},
+        
+        {4001, "iPad Pro 12.9", 8599.00, 45, "平板", 4.8, 145},
+        {4002, "华为MatePad Pro", 3999.00, 55, "平板", 4.5, 78},
+        {4003, "小米平板6", 1999.00, 80, "平板", 4.4, 156},
+        {4004, "Surface Pro 9", 7999.00, 30, "平板", 4.6, 67},
+        
+        {5001, "Apple Watch Ultra 2", 6299.00, 35, "手表", 4.7, 234},
+        {5002, "华为Watch GT 4", 1688.00, 70, "手表", 4.5, 189},
+        {5003, "小米Watch S1", 999.00, 90, "手表", 4.3, 267},
+        {5004, "OPPO Watch 3", 1299.00, 50, "手表", 4.4, 98}
+    };
+    
+    for (const auto& product : sampleProducts) {
+        products.push_back(product);
+    }
+    
+    qDebug() << "成功创建 " << sampleProducts.size() << " 个示例商品";
+    
+    // 保存到文件
+    saveProductsToJson();
+}
+
 // ============== 私有函数 ==============
 
 // 用户数据结构体序列化为 JSON 对象
@@ -301,7 +347,7 @@ json DataManager::productToJson(const ProductData &product) {
         {"price", product.price},
         {"stock", product.stock},
         {"category", product.category},
-        {"avg_rating", product.avg_rating},
+        {"avgRating", product.avg_rating},  // 修改为avgRating匹配QML
         {"reviewers", product.reviewers}
     };
 }
@@ -316,7 +362,12 @@ ProductData DataManager::jsonToProduct(const json &j) {
     product.price = j.value("price", 0.0);
     product.stock = j.value("stock", 0);
     product.category = j.value("category", "");
-    product.avg_rating = j.value("avg_rating", 0.0);
+    // 支持两种字段名：avgRating (新) 和 avg_rating (旧)
+    if (j.contains("avgRating")) {
+        product.avg_rating = j.value("avgRating", 0.0);
+    } else {
+        product.avg_rating = j.value("avg_rating", 0.0);
+    }
     product.reviewers = j.value("reviewers", 0);
 
     return product;

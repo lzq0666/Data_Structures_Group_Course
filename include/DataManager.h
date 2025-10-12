@@ -94,6 +94,9 @@ private:
     bool fileExists(const std::string &filename);
 
     bool createEmptyJsonFile(const std::string &filename);
+    
+    // 创建示例商品数据
+    void createSampleProducts();
 };
 
 #endif // DATAMANAGER_H

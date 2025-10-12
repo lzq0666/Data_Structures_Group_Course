@@ -8,5 +8,7 @@
         <file>Qt/adminPage.qml</file>
         <file>Qt/UserInfoPage.qml</file>
         <file>Qt/ChangePasswordPage.qml</file>
+        <file>Qt/BrowsePage.qml</file>
+        <file>Qt/ProductCard.qml</file>
     </qresource>
 </RCC>

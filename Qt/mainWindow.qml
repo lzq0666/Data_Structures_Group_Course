@@ -13,8 +13,8 @@ ApplicationWindow {
     StateManager {
         id: stateManager
         
-        // 监听状态变化信号
-        onStateChanged: {
+        // 监听状态变化信号 - 使用函数形式而不是参数注入
+        onStateChanged: function(newState) {
             console.log("状态变化信号接收到，新状态:", newState)
             contentLoader.updateSource()
         }
@@ -39,6 +39,9 @@ ApplicationWindow {
                 case StateManager.STATE_MAIN_MENU: 
                     source = "qrc:/Qt/MainMenu.qml"
                     break
+                case StateManager.STATE_BROWSE: 
+                    source = "qrc:/Qt/BrowsePage.qml"
+                    break
                 case StateManager.STATE_ADMIN: 
                     source = "qrc:/Qt/adminPage.qml"
                     break
@@ -48,9 +51,6 @@ ApplicationWindow {
                 case StateManager.STATE_CHANGE_PASSWORD:  
                     source = "qrc:/Qt/ChangePasswordPage.qml"
                     break
-                //case StateManager.STATE_BROWSE: 
-                //    source = "qrc:/Qt/BrowsePage.qml"
-                //    break
                 default: 
                     source = "qrc:/Qt/LoginPage.qml"
                     break
@@ -97,12 +97,17 @@ ApplicationWindow {
                     item.logoutRequested.connect(handleLogout);
                 }
                 
+                // 连接主菜单的商品浏览信号
+                if (typeof item.browseProductsRequested !== "undefined") {
+                    item.browseProductsRequested.connect(handleBrowseProducts);
+                }
+                
                 // 连接主菜单的用户信息信号
                 if (typeof item.userInfoRequested !== "undefined") {
                     item.userInfoRequested.connect(handleUserInfo);
                 }
                 
-                // 连接用户信息页面的返回主菜单信号
+                // 连接返回主菜单信号（从各个子页面）
                 if (typeof item.backToMainMenuRequested !== "undefined") {
                     item.backToMainMenuRequested.connect(handleBackToMainMenu);
                 }
@@ -249,13 +254,19 @@ ApplicationWindow {
         stateManager.logout();  
     }
     
+    // 跳转到商品浏览页面
+    function handleBrowseProducts() {
+        console.log("跳转到商品浏览页面");
+        stateManager.setState(StateManager.STATE_BROWSE);
+    }
+    
     // 跳转到用户信息页面
     function handleUserInfo() {
         console.log("跳转到用户信息页面");
         stateManager.setState(StateManager.STATE_USER_INFO);
     }
     
-    // 从用户信息页面返回主菜单
+    // 从各个子页面返回主菜单
     function handleBackToMainMenu() {
         console.log("返回主菜单");
         stateManager.setState(StateManager.STATE_MAIN_MENU);
