@@ -14,15 +14,19 @@ Item {
     // StateManager 引用
     property var stateManager: null
     
-    // DataManager 实例
+    // 重新启用DataManager实例
     DataManager {
         id: dataManager
     }
     
-    // 筛选后的商品模型
+    // 商品模型 - 用于显示商品数据
     ListModel {
-        id: filteredModel
+        id: productModel
     }
+    
+    // 搜索和分类相关属性（暂时保留，但不使用筛选功能）
+    property string currentSearchText: ""
+    property string currentCategory: "全部"
     
     // 背景渐变
     Rectangle {
@@ -106,7 +110,7 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                 }
                 
-                // 搜索框
+                // 搜索框 - 保留UI，暂时不实现筛选功能
                 Rectangle {
                     Layout.preferredWidth: 250
                     Layout.preferredHeight: 40
@@ -134,7 +138,11 @@ Item {
                             color: "#495057"
                             background: Item {}
                             
-                            onTextChanged: filterProducts()
+                            // 暂时不实现筛选功能，只记录搜索文本
+                            onTextChanged: {
+                                currentSearchText = text
+                                console.log("搜索文本变更:", text, "- 筛选功能暂未实现")
+                            }
                         }
                     }
                 }
@@ -147,7 +155,7 @@ Item {
             Layout.fillHeight: true
             spacing: 20
             
-            // 左侧分类筛选
+            // 左侧分类筛选 - 保留UI，暂时不实现筛选功能
             Rectangle {
                 Layout.preferredWidth: 200
                 Layout.fillHeight: true
@@ -192,12 +200,12 @@ Item {
                         color: "#dee2e6"
                     }
                     
-                    // 分类按钮组
+                    // 分类按钮组 - 保留UI结构
                     ButtonGroup {
                         id: categoryGroup
                     }
                     
-                    // 动态生成分类按钮
+                    // 动态生成分类按钮 - 暂时不实现筛选功能
                     Repeater {
                         model: ["全部", "手机", "电脑", "耳机", "平板", "手表"]
                         
@@ -207,8 +215,12 @@ Item {
                             checked: index === 0
                             ButtonGroup.group: categoryGroup
                             
+                            // 暂时不实现筛选功能，只记录选择的分类
                             onCheckedChanged: {
-                                if (checked) filterProducts()
+                                if (checked) {
+                                    currentCategory = text
+                                    console.log("分类选择:", text, "- 筛选功能暂未实现")
+                                }
                             }
                             
                             indicator: Rectangle {
@@ -246,7 +258,7 @@ Item {
                 }
             }
             
-            // 右侧商品展示区域
+            // 右侧商品展示区域 - 显示所有商品
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -282,7 +294,7 @@ Item {
                         id: productGrid
                         cellWidth: 280
                         cellHeight: 400
-                        model: filteredModel
+                        model: productModel
                         
                         delegate: Item {
                             width: productGrid.cellWidth - 10
@@ -321,7 +333,7 @@ Item {
                                     hoverEnabled: true
                                     
                                     onClicked: {
-                                        console.log("点击了商品:", model.name)
+                                        console.log("点击了商品:", model.name, "ID:", model.productId)
                                     }
                                 }
                                 
@@ -380,7 +392,7 @@ Item {
                                                 color: "#ffc107"
                                                 font.pixelSize: 14
                                             }
-                                            
+                            
                                             Text {
                                                 text: (model.avgRating || 0).toFixed(1) + " (" + (model.reviewers || 0) + ")"
                                                 font.pixelSize: 12
@@ -434,7 +446,7 @@ Item {
                                             }
                                             
                                             onClicked: {
-                                                console.log("查看商品详情:", model.name)
+                                                console.log("查看商品详情:", model.name, "ID:", model.productId)
                                                 // TODO: 跳转到商品详情页面
                                             }
                                         }
@@ -451,53 +463,62 @@ Item {
                     text: "未找到相关商品"
                     font.pixelSize: 16
                     color: "#6c757d"
-                    visible: filteredModel.count === 0
+                    visible: productModel.count === 0
                 }
             }
         }
     }
     
-    // 筛选函数
-    function filterProducts() {
-        filteredModel.clear()
+    // 从DataManager加载商品数据并填充到模型中
+    function loadAllProducts() {
+        console.log("开始加载商品数据...")
         
-        var searchText = searchField.text.toLowerCase()
-        var selectedCategory = ""
+        // 清空当前模型
+        productModel.clear()
         
-        // 获取选中的分类
-        var categoryButtons = categoryGroup.buttons
-        for (var i = 0; i < categoryButtons.length; i++) {
-            if (categoryButtons[i].checked) {
-                selectedCategory = categoryButtons[i].text
-                break
-            }
-        }
+        // 确保DataManager已经加载了数据
+        dataManager.loadProductsFromJson()
         
-        // 从 DataManager 获取商品数据
+        // 获取所有商品数据
         var products = dataManager.getProducts()
         
-        for (var j = 0; j < products.length; j++) {
-            var product = products[j]
-            var matchesSearch = searchText === "" || product.name.toLowerCase().indexOf(searchText) !== -1
-            var matchesCategory = selectedCategory === "全部" || selectedCategory === "" || product.category === selectedCategory
-            
-            if (matchesSearch && matchesCategory) {
-                filteredModel.append({
-                    "productId": product.productId,
-                    "name": product.name,
-                    "price": product.price,
-                    "stock": product.stock,
-                    "category": product.category,
-                    "avgRating": product.avgRating,
-                    "reviewers": product.reviewers
-                })
-            }
+        console.log("从DataManager获取到", products.length, "个商品")
+        
+        // 将商品数据添加到模型中
+        for (var i = 0; i < products.length; i++) {
+            var product = products[i]
+            productModel.append({
+                "productId": product.productId,
+                "name": product.name,
+                "price": product.price,
+                "stock": product.stock,
+                "category": product.category,
+                "avgRating": product.avgRating,  // 注意：DataManager中使用avgRating字段
+                "reviewers": product.reviewers
+            })
         }
+        
+        console.log("商品数据加载完成，共", productModel.count, "个商品显示在界面上")
+    }
+    
+    // 刷新商品列表
+    function refreshProductList() {
+        console.log("刷新商品列表...")
+        loadAllProducts()
+    }
+    
+    // 清空商品列表
+    function clearProductList() {
+        console.log("清空商品列表")
+        productModel.clear()
     }
     
     Component.onCompleted: {
-        // 页面加载完成后加载商品数据
-        dataManager.loadProductsFromJson()
-        filterProducts()
+        console.log("商品浏览页面初始化...")
+        
+        // 页面加载完成后立即加载商品数据
+        loadAllProducts()
+        
+        console.log("商品浏览页面初始化完成")
     }
 }
