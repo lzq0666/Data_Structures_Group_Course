@@ -5,7 +5,7 @@ DataManager::DataManager() {
     // 初始化时尝试加载数据
     loadUsersFromJson();
     loadProductsFromJson();
-    
+
     // 如果商品数据为空，创建示例数据
     if (products.empty()) {
         createSampleProducts();
@@ -45,14 +45,15 @@ bool DataManager::loadUsersFromJson() {
 
         // 把数据存到users容器
         if (j.contains("users") && j["users"].is_array()) {
-            for (const auto &userJson: j["users"]) {
+            for (const auto& userJson : j["users"]) {
                 users.push_back(jsonToUser(userJson));
             }
         }
 
         qDebug() << "成功加载 " << users.size() << " 个用户数据";
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         qDebug() << "加载用户数据时发生错误: " << e.what();
         return false;
     }
@@ -65,7 +66,7 @@ bool DataManager::saveUsersToJson() {
         json usersArray = json::array();
 
         // 把users容器的数据序列化为json对象
-        for (const auto &user: users) {
+        for (const auto& user : users) {
             usersArray.push_back(userToJson(user));
         }
 
@@ -89,14 +90,15 @@ bool DataManager::saveUsersToJson() {
 
         qDebug() << "成功保存 " << users.size() << " 个用户数据";
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "保存用户数据时发生错误: " << e.what() << std::endl;
         return false;
     }
 }
 
 // 添加用户
-bool DataManager::addUser(const UserData &user) {
+bool DataManager::addUser(const UserData& user) {
     // 检查用户是否已存在
     if (findUser(user.username) != nullptr) {
         std::cerr << "用户已存在: " << user.username << std::endl;
@@ -109,11 +111,11 @@ bool DataManager::addUser(const UserData &user) {
 }
 
 // 删除用户
-bool DataManager::removeUser(const std::string &username) {
+bool DataManager::removeUser(const std::string& username) {
     auto it = std::find_if(users.begin(), users.end(),
-                           [&username](const UserData &user) {
-                               return user.username == username;
-                           });
+        [&username](const UserData& user) {
+            return user.username == username;
+        });
 
     if (it != users.end()) {
         users.erase(it);
@@ -126,17 +128,17 @@ bool DataManager::removeUser(const std::string &username) {
 }
 
 // 查找用户
-UserData *DataManager::findUser(const std::string &username) {
+UserData* DataManager::findUser(const std::string& username) {
     auto it = std::find_if(users.begin(), users.end(),
-                           [&username](const UserData &user) {
-                               return user.username == username;
-                           });
+        [&username](const UserData& user) {
+            return user.username == username;
+        });
 
     return (it != users.end()) ? &(*it) : nullptr;
 }
 
 // 获取所有用户
-std::vector<UserData> &DataManager::getUsers() {
+std::vector<UserData>& DataManager::getUsers() {
     return users;
 }
 
@@ -165,14 +167,15 @@ bool DataManager::loadProductsFromJson() {
 
         // 把数据存到products容器
         if (j.contains("products") && j["products"].is_array()) {
-            for (const auto &productJson: j["products"]) {
+            for (const auto& productJson : j["products"]) {
                 products.push_back(jsonToProduct(productJson));
             }
         }
 
         qDebug() << "成功加载 " << products.size() << " 个商品数据";
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "加载商品数据时发生错误: " << e.what() << std::endl;
         return false;
     }
@@ -184,7 +187,7 @@ bool DataManager::saveProductsToJson() {
         json productsArray = json::array();
 
         // JSON 结构序列化逻辑
-        for (const auto &product: products) {
+        for (const auto& product : products) {
             productsArray.push_back(productToJson(product));
         }
 
@@ -208,13 +211,14 @@ bool DataManager::saveProductsToJson() {
 
         qDebug() << "成功保存 " << products.size() << " 个商品数据";
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "保存商品数据时发生错误: " << e.what() << std::endl;
         return false;
     }
 }
 
-bool DataManager::addProduct(const ProductData &product) {
+bool DataManager::addProduct(const ProductData& product) {
     // 检查商品是否已存在
     if (findProduct(product.productId) != nullptr) {
         std::cerr << "商品已存在，ID: " << product.productId << std::endl;
@@ -228,9 +232,9 @@ bool DataManager::addProduct(const ProductData &product) {
 
 bool DataManager::removeProduct(int productId) {
     auto it = std::find_if(products.begin(), products.end(),
-                           [productId](const ProductData &product) {
-                               return product.productId == productId;
-                           });
+        [productId](const ProductData& product) {
+            return product.productId == productId;
+        });
 
     if (it != products.end()) {
         qDebug() << "成功删除商品: " << it->name << " (ID: " << productId << ")";
@@ -242,16 +246,16 @@ bool DataManager::removeProduct(int productId) {
     return false;
 }
 
-ProductData *DataManager::findProduct(int productId) {
+ProductData* DataManager::findProduct(int productId) {
     auto it = std::find_if(products.begin(), products.end(),
-                           [productId](const ProductData &product) {
-                               return product.productId == productId;
-                           });
+        [productId](const ProductData& product) {
+            return product.productId == productId;
+        });
 
     return (it != products.end()) ? &(*it) : nullptr;
 }
 
-std::vector<ProductData> &DataManager::getProducts() {
+std::vector<ProductData>& DataManager::getProducts() {
     return products;
 }
 
@@ -267,40 +271,40 @@ void DataManager::clearAllData() {
 // 创建示例商品数据
 void DataManager::createSampleProducts() {
     qDebug() << "创建示例商品数据...";
-    
+
     std::vector<ProductData> sampleProducts = {
         {1001, "iPhone 15 Pro", 8999.00, 50, "手机", 4.8, 156},
         {1002, "小米14 Ultra", 5999.00, 80, "手机", 4.6, 89},
         {1003, "华为Mate60 Pro", 6999.00, 35, "手机", 4.7, 234},
         {1004, "OPPO Find X7", 4599.00, 60, "手机", 4.5, 67},
-        
+
         {2001, "MacBook Pro M3", 16999.00, 25, "电脑", 4.9, 78},
         {2002, "ThinkPad X1 Carbon", 12999.00, 40, "电脑", 4.6, 92},
         {2003, "Surface Laptop 5", 9999.00, 30, "电脑", 4.4, 45},
         {2004, "华为MateBook X Pro", 8999.00, 20, "电脑", 4.5, 56},
-        
+
         {3001, "AirPods Pro", 1999.00, 100, "耳机", 4.7, 289},
         {3002, "Sony WH-1000XM5", 2399.00, 75, "耳机", 4.8, 167},
         {3003, "Bose QC45", 2299.00, 60, "耳机", 4.6, 123},
         {3004, "森海塞尔 HD660S", 3299.00, 25, "耳机", 4.9, 34},
-        
+
         {4001, "iPad Pro 12.9", 8599.00, 45, "平板", 4.8, 145},
         {4002, "华为MatePad Pro", 3999.00, 55, "平板", 4.5, 78},
         {4003, "小米平板6", 1999.00, 80, "平板", 4.4, 156},
         {4004, "Surface Pro 9", 7999.00, 30, "平板", 4.6, 67},
-        
+
         {5001, "Apple Watch Ultra 2", 6299.00, 35, "手表", 4.7, 234},
         {5002, "华为Watch GT 4", 1688.00, 70, "手表", 4.5, 189},
         {5003, "小米Watch S1", 999.00, 90, "手表", 4.3, 267},
         {5004, "OPPO Watch 3", 1299.00, 50, "手表", 4.4, 98}
     };
-    
+
     for (const auto& product : sampleProducts) {
         products.push_back(product);
     }
-    
+
     qDebug() << "成功创建 " << sampleProducts.size() << " 个示例商品";
-    
+
     // 保存到文件
     saveProductsToJson();
 }
@@ -308,7 +312,7 @@ void DataManager::createSampleProducts() {
 // ============== 私有函数 ==============
 
 // 用户数据结构体序列化为 JSON 对象
-json DataManager::userToJson(const UserData &user) {
+json DataManager::userToJson(const UserData& user) {
     return json{
         {"userId", user.userId},
         {"username", user.username},
@@ -322,7 +326,7 @@ json DataManager::userToJson(const UserData &user) {
 }
 
 // JSON 对象转为用户数据结构体
-UserData DataManager::jsonToUser(const json &j) {
+UserData DataManager::jsonToUser(const json& j) {
     UserData user;
 
     // 使用 value() 方法提供默认值，避免字段不存在时的错误
@@ -339,7 +343,7 @@ UserData DataManager::jsonToUser(const json &j) {
 }
 
 // 商品数据结构体转为 JSON 对象
-json DataManager::productToJson(const ProductData &product) {
+json DataManager::productToJson(const ProductData& product) {
     //商品结构体调整 JSON 序列化
     return json{
         {"productId", product.productId},
@@ -347,13 +351,13 @@ json DataManager::productToJson(const ProductData &product) {
         {"price", product.price},
         {"stock", product.stock},
         {"category", product.category},
-        {"avgRating", product.avg_rating},  // 修改为avgRating匹配QML
+        {"avgRating", product.avg_rating},  // 统一使用 avgRating 字段名
         {"reviewers", product.reviewers}
     };
 }
 
 // JSON 对象转为商品数据结构体
-ProductData DataManager::jsonToProduct(const json &j) {
+ProductData DataManager::jsonToProduct(const json& j) {
     ProductData product;
 
     // 使用 value() 方法提供默认值，避免字段不存在时的错误
@@ -365,7 +369,8 @@ ProductData DataManager::jsonToProduct(const json &j) {
     // 支持两种字段名：avgRating (新) 和 avg_rating (旧)
     if (j.contains("avgRating")) {
         product.avg_rating = j.value("avgRating", 0.0);
-    } else {
+    }
+    else {
         product.avg_rating = j.value("avg_rating", 0.0);
     }
     product.reviewers = j.value("reviewers", 0);
@@ -374,13 +379,13 @@ ProductData DataManager::jsonToProduct(const json &j) {
 }
 
 // 判断文件是否存在
-bool DataManager::fileExists(const std::string &filename) {
+bool DataManager::fileExists(const std::string& filename) {
     std::ifstream file(filename);
     return file.good();
 }
 
 // 创建空的 JSON 文件（用户或商品）
-bool DataManager::createEmptyJsonFile(const std::string &filename) {
+bool DataManager::createEmptyJsonFile(const std::string& filename) {
     try {
         json emptyJson;
         std::time_t t = std::time(nullptr); // 获取当前时间
@@ -395,7 +400,8 @@ bool DataManager::createEmptyJsonFile(const std::string &filename) {
                     }
                 }
             };
-        } else if (filename == PRODUCT_DATA_FILE) {
+        }
+        else if (filename == PRODUCT_DATA_FILE) {
             emptyJson = {
                 {"products", json::array()},
                 {
@@ -419,7 +425,8 @@ bool DataManager::createEmptyJsonFile(const std::string &filename) {
 
         qDebug() << "成功创建空的 JSON 文件: " << filename;
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "创建 JSON 文件时发生错误: " << e.what() << std::endl;
         return false;
     }

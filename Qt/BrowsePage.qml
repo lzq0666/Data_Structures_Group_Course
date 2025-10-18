@@ -15,7 +15,7 @@ Item {
     // StateManager 引用
     property var stateManager: null
     
-    // 重新启用DataManager实例
+    // DataManager实例 - 用于商品数据操作
     DataManager {
         id: dataManager
     }
@@ -25,7 +25,7 @@ Item {
         id: productModel
     }
     
-    // 搜索和分类相关属性
+    // 搜索和分类相关属性（暂时不实现功能）
     property string currentSearchText: ""
     property string currentCategory: "全部"
     
@@ -49,8 +49,8 @@ Item {
     // 主容器 - 与其他界面保持一致的设计
     Rectangle {
         anchors.centerIn: parent
-        width: Math.min(parent.width * 0.98, 1600)  // 增加宽度利用率
-        height: Math.min(parent.height * 0.98, 1000) // 增加高度利用率
+        width: Math.min(parent.width * 0.98, 1600)
+        height: Math.min(parent.height * 0.98, 1000)
         radius: 20
         color: "white"
         opacity: 0.98
@@ -59,13 +59,13 @@ Item {
         
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 25  // 稍微减少边距
+            anchors.margins: 25
             spacing: 20
             
-            // 优化顶部导航栏布局
+            // 顶部导航栏
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 75  // 稍微减少高度
+                Layout.preferredHeight: 75
                 radius: 15
                 color: "#ffffff"
                 border.color: "#ecf0f1"
@@ -85,7 +85,7 @@ Item {
                     anchors.margins: 18
                     spacing: 25
                     
-                    // 优化返回按钮布局
+                    // 返回按钮
                     Rectangle {
                         id: backButton
                         Layout.preferredWidth: 110
@@ -126,7 +126,7 @@ Item {
                         }
                     }
                     
-                    // 优化标题区域布局
+                    // 标题区域
                     ColumnLayout {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignCenter
@@ -157,7 +157,7 @@ Item {
                         }
                     }
                     
-                    // 优化搜索框布局
+                    // 搜索框（暂时不实现搜索功能）
                     Rectangle {
                         Layout.preferredWidth: 280
                         Layout.preferredHeight: 40
@@ -182,16 +182,17 @@ Item {
                             TextField {
                                 id: searchField
                                 Layout.fillWidth: true
-                                placeholderText: "搜索您想要的商品..."
+                                placeholderText: "搜索您想要的商品... (功能暂未开放)"
                                 font.pixelSize: 13
                                 color: "#2c3e50"
                                 placeholderTextColor: "#bdc3c7"
                                 background: Item {}
                                 verticalAlignment: TextInput.AlignVCenter
+                                enabled: false  // 暂时禁用搜索功能
                                 
                                 onTextChanged: {
                                     currentSearchText = text
-                                    console.log("搜索文本变更:", text, "- 筛选功能暂未实现")
+                                    console.log("搜索文本变更:", text, "- 搜索功能暂未实现")
                                 }
                             }
                         }
@@ -199,15 +200,15 @@ Item {
                 }
             }
             
-            // 优化中间内容区域布局
+            // 中间内容区域
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: 20
                 
-                // 优化左侧分类面板 - 减少宽度，增加内容密度
+                // 左侧分类面板（暂时不实现筛选功能）
                 Rectangle {
-                    Layout.preferredWidth: 220  // 减少宽度
+                    Layout.preferredWidth: 220
                     Layout.fillHeight: true
                     radius: 15
                     color: "#ffffff"
@@ -225,10 +226,10 @@ Item {
                     
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 20  // 减少边距
-                        spacing: 15  // 减少间距
+                        anchors.margins: 20
+                        spacing: 15
                         
-                        // 优化分类标题布局
+                        // 分类标题
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 8
@@ -270,7 +271,7 @@ Item {
                         
                         ButtonGroup { id: categoryGroup }
                         
-                        // 优化分类按钮布局
+                        // 分类按钮（暂时不实现筛选功能）
                         Repeater {
                             model: [
                                 {text: "全部", icon: "🏪", color: "#3498db"},
@@ -283,7 +284,7 @@ Item {
                             
                             Rectangle {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 50  // 减少高度
+                                Layout.preferredHeight: 50
                                 radius: 10
                                 
                                 property bool isSelected: categoryBtn.checked
@@ -303,6 +304,7 @@ Item {
                                     text: modelData.text
                                     checked: index === 0
                                     ButtonGroup.group: categoryGroup
+                                    enabled: false  // 暂时禁用分类功能
                                     
                                     indicator: Item {}
                                     
@@ -336,6 +338,7 @@ Item {
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
+                                    enabled: false  // 暂时禁用分类功能
                                     onClicked: categoryBtn.checked = true
                                 }
                             }
@@ -345,7 +348,7 @@ Item {
                     }
                 }
                 
-                // 优化右侧商品展示区域 - 使用固定网格配置
+                // 右侧商品展示区域
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -365,10 +368,10 @@ Item {
                     
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 20  // 减少边距
+                        anchors.margins: 20
                         spacing: 15
                         
-                        // 优化商品区域标题
+                        // 商品区域标题 - 删除了刷新按钮
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 12
@@ -404,9 +407,11 @@ Item {
                             }
                             
                             Item { Layout.fillWidth: true }
+                            
+                            // 删除了刷新按钮及其相关代码
                         }
                         
-                        // 使用固定配置的商品网格 - 避免动态计算
+                        // 商品网格
                         ScrollView {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
@@ -428,9 +433,8 @@ Item {
                             GridView {
                                 id: productGrid
                                 
-                                // 使用固定的网格配置 - 避免运行时计算问题
-                                cellWidth: 300   // 固定单元格宽度
-                                cellHeight: 400  // 固定单元格高度
+                                cellWidth: 300
+                                cellHeight: 400
                                 model: productModel
                                 
                                 delegate: Item {
@@ -442,25 +446,28 @@ Item {
                                         anchors.fill: parent
                                         radius: 14
                                         color: "#ffffff"
-                                        border.color: cardArea.containsMouse ? "#3498db" : "#ecf0f1"
-                                        border.width: cardArea.containsMouse ? 2 : 1
+                                        border.color: "#ecf0f1"  // 固定边框颜色，不再变化
+                                        border.width: 1  // 固定边框宽度
                                         
-                                        scale: cardArea.containsMouse ? 1.02 : 1.0
+                                        // 删除了缩放动画效果
+                                        // scale: cardArea.containsMouse ? 1.02 : 1.0
                                         
-                                        Behavior on border.color { ColorAnimation { duration: 200 } }
-                                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuad } }
+                                        // 删除了边框和缩放的动画效果
+                                        // Behavior on border.color { ColorAnimation { duration: 200 } }
+                                        // Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuad } }
                                         
                                         Rectangle {
                                             anchors.fill: parent
-                                            anchors.topMargin: cardArea.containsMouse ? 4 : 2
-                                            anchors.leftMargin: cardArea.containsMouse ? 4 : 2
-                                            color: cardArea.containsMouse ? "#12000000" : "#06000000"
+                                            anchors.topMargin: 2  // 固定阴影位置
+                                            anchors.leftMargin: 2  // 固定阴影位置
+                                            color: "#06000000"  // 固定阴影颜色
                                             radius: parent.radius
                                             z: -1
                                             
-                                            Behavior on anchors.topMargin { NumberAnimation { duration: 200 } }
-                                            Behavior on anchors.leftMargin { NumberAnimation { duration: 200 } }
-                                            Behavior on color { ColorAnimation { duration: 200 } }
+                                            // 删除了阴影的动画效果
+                                            // Behavior on anchors.topMargin { NumberAnimation { duration: 200 } }
+                                            // Behavior on anchors.leftMargin { NumberAnimation { duration: 200 } }
+                                            // Behavior on color { ColorAnimation { duration: 200 } }
                                         }
                                         
                                         MouseArea {
@@ -479,10 +486,10 @@ Item {
                                             anchors.margins: 16
                                             spacing: 12
                                             
-                                            // 优化商品图片区域
+                                            // 商品图片区域
                                             Rectangle {
                                                 Layout.fillWidth: true
-                                                Layout.preferredHeight: 150  // 固定高度
+                                                Layout.preferredHeight: 150
                                                 radius: 10
                                                 color: "#f8f9fa"
                                                 border.color: "#e9ecef"
@@ -517,15 +524,15 @@ Item {
                                                 }
                                             }
                                             
-                                            // 优化商品信息区域
+                                            // 商品信息区域
                                             ColumnLayout {
                                                 Layout.fillWidth: true
                                                 spacing: 6
                                                 
-                                                // 商品名称 - 固定高度避免布局跳跃
+                                                // 商品名称
                                                 Rectangle {
                                                     Layout.fillWidth: true
-                                                    Layout.preferredHeight: 36  // 固定高度
+                                                    Layout.preferredHeight: 36
                                                     color: "transparent"
                                                     
                                                     Text {
@@ -541,7 +548,7 @@ Item {
                                                     }
                                                 }
                                                 
-                                                // 优化评分和库存信息布局
+                                                // 评分和库存信息
                                                 RowLayout {
                                                     Layout.fillWidth: true
                                                     spacing: 8
@@ -592,7 +599,7 @@ Item {
                                             
                                             Item { Layout.fillHeight: true }
                                             
-                                            // 优化价格和按钮区域
+                                            // 价格和按钮区域
                                             ColumnLayout {
                                                 Layout.fillWidth: true
                                                 spacing: 10
@@ -606,12 +613,12 @@ Item {
                                                     color: "#e74c3c"
                                                 }
                                                 
-                                                // 优化操作按钮布局
+                                                // 操作按钮
                                                 RowLayout {
                                                     Layout.fillWidth: true
                                                     spacing: 8
                                                     
-                                                    // 查看详情按钮
+                                                    // 查看详情按钮 - 删除了表情符号
                                                     Rectangle {
                                                         Layout.fillWidth: true
                                                         Layout.preferredHeight: 34
@@ -623,21 +630,12 @@ Item {
                                                         Behavior on color { ColorAnimation { duration: 200 } }
                                                         Behavior on scale { NumberAnimation { duration: 100 } }
                                                         
-                                                        RowLayout {
+                                                        Text {
                                                             anchors.centerIn: parent
-                                                            spacing: 4
-                                                            
-                                                            Text {
-                                                                text: "👁️"
-                                                                font.pixelSize: 13
-                                                            }
-                                                            
-                                                            Text {
-                                                                text: "查看"
-                                                                color: "white"
-                                                                font.pixelSize: 12
-                                                                font.bold: true
-                                                            }
+                                                            text: "查看"  // 删除了👁️表情符号
+                                                            color: "white"
+                                                            font.pixelSize: 12
+                                                            font.bold: true
                                                         }
                                                         
                                                         MouseArea {
@@ -780,43 +778,52 @@ Item {
         }
     }
     
+    // === 使用 DataManager 的商品数据操作函数 ===
+    
     // 从DataManager加载商品数据并填充到模型中
     function loadAllProducts() {
-        console.log("开始加载商品数据...")
+        console.log("开始使用DataManager加载商品数据...")
         
-        // 清空当前模型
-        productModel.clear()
-        
-        // 确保DataManager已经加载了数据
-        dataManager.loadProductsFromJson()
-        
-        // 获取所有商品数据
-        var products = dataManager.getProducts()
-        
-        console.log("从DataManager获取到", products.length, "个商品")
-        
-        // 将商品数据添加到模型中
-        for (var i = 0; i < products.length; i++) {
-            var product = products[i]
-            productModel.append({
-                "productId": product.productId,
-                "name": product.name,
-                "price": product.price,
-                "stock": product.stock,
-                "category": product.category,
-                "avgRating": product.avgRating,
-                "reviewers": product.reviewers
-            })
+        try {
+            // 清空当前模型
+            productModel.clear()
+            
+            // 调用DataManager的loadProductsFromJson()函数从JSON文件加载数据
+            var loadSuccess = dataManager.loadProductsFromJson()
+            if (!loadSuccess) {
+                console.error("从JSON文件加载商品数据失败")
+                return false
+            }
+            
+            // 调用DataManager的getProducts()函数获取所有商品数据
+            var products = dataManager.getProducts()
+            
+            console.log("从DataManager获取到", products.length, "个商品")
+            
+            // 将商品数据添加到QML模型中，注意字段名映射
+            for (var i = 0; i < products.length; i++) {
+                var product = products[i]
+                productModel.append({
+                    "productId": product.productId,
+                    "name": product.name,
+                    "price": product.price,
+                    "stock": product.stock,
+                    "category": product.category,
+                    "avgRating": product.avgRating,  // 使用统一的字段名
+                    "reviewers": product.reviewers
+                })
+            }
+            
+            console.log("商品数据加载完成，共", productModel.count, "个商品显示在界面上")
+            return true
+            
+        } catch (error) {
+            console.error("加载商品数据时发生错误:", error)
+            return false
         }
-        
-        console.log("商品数据加载完成，共", productModel.count, "个商品显示在界面上")
     }
     
-    // 刷新商品列表
-    function refreshProductList() {
-        console.log("刷新商品列表...")
-        loadAllProducts()
-    }
+    // 删除了 refreshProductList() 函数，因为刷新按钮已被移除
     
     // 清空商品列表
     function clearProductList() {
@@ -824,12 +831,41 @@ Item {
         productModel.clear()
     }
     
+    // 获取商品总数 - 使用DataManager
+    function getProductCount() {
+        var products = dataManager.getProducts()
+        return products.length
+    }
+    
+    // 根据ID查找商品 - 使用DataManager的findProduct函数
+    function findProductById(productId) {
+        try {
+            var product = dataManager.findProduct(productId)
+            if (product) {
+                console.log("找到商品:", product.name, "价格:", product.price)
+                return product
+            } else {
+                console.log("未找到ID为", productId, "的商品")
+                return null
+            }
+        } catch (error) {
+            console.error("查找商品时发生错误:", error)
+            return null
+        }
+    }
+    
+    // 页面组件完成初始化后的处理
     Component.onCompleted: {
         console.log("商品浏览页面初始化...")
+        console.log("DataManager实例已创建，开始加载商品数据")
         
-        // 页面加载完成后立即加载商品数据
-        loadAllProducts()
+        // 页面加载完成后立即使用DataManager函数加载商品数据
+        var success = loadAllProducts()
         
-        console.log("商品浏览页面初始化完成")
+        if (success) {
+            console.log("商品浏览页面初始化完成，商品数据加载成功")
+        } else {
+            console.error("商品浏览页面初始化完成，但商品数据加载失败")
+        }
     }
 }
