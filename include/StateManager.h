@@ -18,7 +18,7 @@ enum AppState {
     STATE_EXIT = 5,
     STATE_USER_INFO = 6,
     STATE_CHANGE_PASSWORD = 7,
-    STATE_RECOMMENDATION = 8  // 新增个性化推荐状态
+    STATE_RECOMMENDATION = 8  
 };
 
 // 全局状态变量

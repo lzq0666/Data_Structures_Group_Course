@@ -51,7 +51,7 @@ ApplicationWindow {
                 case StateManager.STATE_CHANGE_PASSWORD:  
                     source = "qrc:/Qt/ChangePasswordPage.qml"
                     break
-                case StateManager.STATE_RECOMMENDATION:  // 新增推荐页面状态
+                case StateManager.STATE_RECOMMENDATION:  
                     source = "qrc:/Qt/RecommendationPage.qml"
                     break
                 default: 
@@ -277,6 +277,14 @@ ApplicationWindow {
     function handlePersonalRecommend() {
         console.log("跳转到个性化推荐页面");
         stateManager.setState(StateManager.STATE_RECOMMENDATION);
+    }
+
+    // 跳转到购物车页面 
+    function handleShoppingCart() {
+        console.log("跳转到购物车页面");
+        // TODO: 需要创建购物车页面或者实现购物车功能
+        // 目前暂时显示提示信息
+        console.log("购物车功能正在开发中...");
     }
     
     // 跳转到用户信息页面
