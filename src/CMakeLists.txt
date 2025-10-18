@@ -9,7 +9,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Quick)
+# 添加缺失的 Qml 组件
+find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml)
 
 # 添加资源文件
 set(RESOURCES ${PROJECT_SOURCE_DIR}/resources.qrc)

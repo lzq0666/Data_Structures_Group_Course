@@ -51,6 +51,9 @@ ApplicationWindow {
                 case StateManager.STATE_CHANGE_PASSWORD:  
                     source = "qrc:/Qt/ChangePasswordPage.qml"
                     break
+                case StateManager.STATE_RECOMMENDATION:  // 新增推荐页面状态
+                    source = "qrc:/Qt/RecommendationPage.qml"
+                    break
                 default: 
                     source = "qrc:/Qt/LoginPage.qml"
                     break
@@ -100,6 +103,16 @@ ApplicationWindow {
                 // 连接主菜单的商品浏览信号
                 if (typeof item.browseProductsRequested !== "undefined") {
                     item.browseProductsRequested.connect(handleBrowseProducts);
+                }
+                
+                // 连接主菜单的个性化推荐信号 - 新增
+                if (typeof item.personalRecommendRequested !== "undefined") {
+                    item.personalRecommendRequested.connect(handlePersonalRecommend);
+                }
+                
+                // 连接主菜单的购物车信号 - 新增
+                if (typeof item.shoppingCartRequested !== "undefined") {
+                    item.shoppingCartRequested.connect(handleShoppingCart);
                 }
                 
                 // 连接主菜单的用户信息信号
@@ -260,6 +273,12 @@ ApplicationWindow {
         stateManager.setState(StateManager.STATE_BROWSE);
     }
     
+    // 跳转到个性化推荐页面
+    function handlePersonalRecommend() {
+        console.log("跳转到个性化推荐页面");
+        stateManager.setState(StateManager.STATE_RECOMMENDATION);
+    }
+    
     // 跳转到用户信息页面
     function handleUserInfo() {
         console.log("跳转到用户信息页面");
@@ -338,7 +357,6 @@ ApplicationWindow {
     function handleUserManagement() {
         console.log("打开用户管理");
         // TODO: 实现用户管理功能
-        // 可以切换到用户管理页面或打开对话框
     }
     
     function handleProductManagement() {
@@ -346,13 +364,4 @@ ApplicationWindow {
         // TODO: 实现商品管理功能
     }
     
-    function handleOrderManagement() {
-        console.log("打开订单管理");
-        // TODO: 实现订单管理功能
-    }
-    
-    function handleSystemSettings() {
-        console.log("打开系统设置");
-        // TODO: 实现系统设置功能
-    }
 }

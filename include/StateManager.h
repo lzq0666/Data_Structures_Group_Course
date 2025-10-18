@@ -17,7 +17,8 @@ enum AppState {
     STATE_ADMIN = 4,
     STATE_EXIT = 5,
     STATE_USER_INFO = 6,
-    STATE_CHANGE_PASSWORD = 7
+    STATE_CHANGE_PASSWORD = 7,
+    STATE_RECOMMENDATION = 8  // 新增个性化推荐状态
 };
 
 // 全局状态变量
@@ -31,7 +32,7 @@ void initializeApp();
 void setState(AppState newState);
 
 AppState getCurrentState();
-bool loginWithStateUpdate(const std::string &username, const std::string &password);
+bool loginWithStateUpdate(const std::string& username, const std::string& password);
 
 void logout();
 
