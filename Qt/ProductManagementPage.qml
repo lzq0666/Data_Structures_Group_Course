@@ -412,22 +412,12 @@ Item {
                                 spacing: 0
                                 
                                 Text {
-                                    Layout.preferredWidth: 80
-                                    text: "商品ID"
-                                    font.pixelSize: 13
-                                    font.bold: true
-                                    color: "#2c3e50"
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                
-                                Text {
-                                    Layout.preferredWidth: 200
+                                    Layout.preferredWidth: 250
                                     text: "商品名称"
                                     font.pixelSize: 13
                                     font.bold: true
                                     color: "#2c3e50"
-                                    horizontalAlignment: Text.AlignHCenter
+                                    horizontalAlignment: Text.AlignLeft
                                     verticalAlignment: Text.AlignVCenter
                                 }
                                 
@@ -541,30 +531,20 @@ Item {
                                         anchors.rightMargin: 20
                                         spacing: 0
                                         
-                                        // 商品ID列
-                                        Text {
-                                            Layout.preferredWidth: 80
-                                            text: "#" + model.productId
-                                            font.pixelSize: 14
-                                            font.bold: true
-                                            color: "#2c3e50"
-                                            horizontalAlignment: Text.AlignHCenter
-                                            verticalAlignment: Text.AlignVCenter
-                                        }
-                                        
-                                        // 商品名称列
+                                        // 商品名称列 - 完全左对齐
                                         Item {
-                                            Layout.preferredWidth: 200
+                                            Layout.preferredWidth: 250
                                             Layout.preferredHeight: parent.height
                                             
-                                            RowLayout {
-                                                anchors.centerIn: parent
-                                                spacing: 8
+                                            Row {
+                                                anchors.left: parent.left
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                spacing: 12
                                                 
                                                 Rectangle {
-                                                    Layout.preferredWidth: 40
-                                                    Layout.preferredHeight: 40
-                                                    radius: 20
+                                                    width: 45
+                                                    height: 45
+                                                    radius: 22.5
                                                     color: getCategoryColor(model.category)
                                                     
                                                     Text {
@@ -575,11 +555,11 @@ Item {
                                                 }
                                                 
                                                 Column {
-                                                    spacing: 2
+                                                    spacing: 3
                                                     
                                                     Text {
                                                         text: model.name
-                                                        font.pixelSize: 13
+                                                        font.pixelSize: 14
                                                         color: "#2c3e50"
                                                         font.bold: true
                                                         elide: Text.ElideRight
@@ -587,8 +567,8 @@ Item {
                                                     }
                                                     
                                                     Text {
-                                                        text: "ID: " + model.productId
-                                                        font.pixelSize: 10
+                                                        text: "分类: " + model.category
+                                                        font.pixelSize: 11
                                                         color: "#7f8c8d"
                                                     }
                                                 }
