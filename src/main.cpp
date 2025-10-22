@@ -20,7 +20,8 @@ public:
         STATE_USER_INFO = 6,
         STATE_CHANGE_PASSWORD = 7,
         STATE_RECOMMENDATION = 8,
-        STATE_USER_MANAGEMENT = 9
+        STATE_USER_MANAGEMENT = 9,
+        STATE_PRODUCT_MANAGEMENT = 10
     };
 
     Q_ENUM(State)

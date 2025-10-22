@@ -12,28 +12,70 @@ Item {
     property bool showError: false
     property bool showSuccess: false
     
-    // 用户数据模型 - 包含购物车数量和浏览数
+    // 商品数据模型 - 示例数据结构
     ListModel {
-        id: userModel
+        id: productModel
         Component.onCompleted: {
-            // 示例数据 - 根据 users.json 结构设计
+            // 示例商品数据
             append({
-                "userId": 1,
-                "username": "user",
-                "userType": "普通用户",
-                "isAdmin": false,
-                "cartItemCount": 5,
-                "browseCount": 128,
-                "registerDate": "2023-10-20"
+                "productId": 1,
+                "name": "iPhone 15 Pro",
+                "price": 7999.0,
+                "stock": 50,
+                "category": "手机",
+                "avgRating": 4.8,
+                "reviewers": 1200,
+                "status": "在售"
             })
             append({
-                "userId": 2,
-                "username": "admin", 
-                "userType": "管理员",
-                "isAdmin": true,
-                "cartItemCount": 2,
-                "browseCount": 56,
-                "registerDate": "2023-09-01"
+                "productId": 2,
+                "name": "MacBook Pro M3",
+                "price": 12999.0,
+                "stock": 30,
+                "category": "电脑",
+                "avgRating": 4.9,
+                "reviewers": 800,
+                "status": "在售"
+            })
+            append({
+                "productId": 3,
+                "name": "AirPods Pro",
+                "price": 1899.0,
+                "stock": 0,
+                "category": "耳机",
+                "avgRating": 4.7,
+                "reviewers": 2500,
+                "status": "缺货"
+            })
+            append({
+                "productId": 4,
+                "name": "iPad Air",
+                "price": 4399.0,
+                "stock": 80,
+                "category": "平板",
+                "avgRating": 4.6,
+                "reviewers": 1800,
+                "status": "在售"
+            })
+            append({
+                "productId": 5,
+                "name": "Apple Watch Series 9",
+                "price": 2899.0,
+                "stock": 60,
+                "category": "手表",
+                "avgRating": 4.5,
+                "reviewers": 1500,
+                "status": "在售"
+            })
+            append({
+                "productId": 6,
+                "name": "Samsung Galaxy S24",
+                "price": 6999.0,
+                "stock": 45,
+                "category": "手机",
+                "avgRating": 4.6,
+                "reviewers": 900,
+                "status": "在售"
             })
         }
     }
@@ -163,17 +205,17 @@ Item {
                                     Layout.preferredWidth: 35
                                     Layout.preferredHeight: 35
                                     radius: 17
-                                    color: "#3498db"
+                                    color: "#e74c3c"
                                     
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "👥"
+                                        text: "📦"
                                         font.pixelSize: 18
                                     }
                                 }
                                 
                                 Text {
-                                    text: "用户管理"
+                                    text: "商品管理"
                                     font.pixelSize: 24
                                     font.bold: true
                                     color: "#2c3e50"
@@ -267,7 +309,7 @@ Item {
                             Layout.preferredWidth: 30
                             Layout.preferredHeight: 30
                             radius: 15
-                            color: "#2ecc71"
+                            color: "#e74c3c"
                             
                             Text {
                                 anchors.centerIn: parent
@@ -281,14 +323,14 @@ Item {
                             spacing: 2
                             
                             Text {
-                                text: "用户统计"
+                                text: "商品统计"
                                 font.pixelSize: 14
                                 font.bold: true
                                 color: "#2c3e50"
                             }
                             
                             Text {
-                                text: "总计: " + userModel.count + " 人"
+                                text: "总计: " + productModel.count + " 件商品"
                                 font.pixelSize: 12
                                 color: "#7f8c8d"
                             }
@@ -296,14 +338,14 @@ Item {
                         
                         Item { Layout.fillWidth: true }
                         
-                        // 新增用户按钮
+                        // 新增商品按钮
                         Rectangle {
                             Layout.preferredWidth: 100
                             Layout.preferredHeight: 35
                             radius: 8
-                            color: addUserArea.containsMouse ? "#27ae60" : "#2ecc71"
+                            color: addProductArea.containsMouse ? "#e74c3c" : "#ec7063"
                             
-                            scale: addUserArea.containsMouse ? 1.02 : 1.0
+                            scale: addProductArea.containsMouse ? 1.02 : 1.0
                             
                             Behavior on color { ColorAnimation { duration: 200 } }
                             Behavior on scale { NumberAnimation { duration: 150 } }
@@ -320,7 +362,7 @@ Item {
                                 }
                                 
                                 Text {
-                                    text: "新增用户"
+                                    text: "新增商品"
                                     color: "white"
                                     font.pixelSize: 12
                                     font.bold: true
@@ -328,19 +370,19 @@ Item {
                             }
                             
                             MouseArea {
-                                id: addUserArea
+                                id: addProductArea
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    showMessage("新增用户功能界面即将开发", false)
+                                    showMessage("新增商品功能界面即将开发", false)
                                 }
                             }
                         }
                     }
                 }
 
-                // 用户列表主体
+                // 商品列表主体
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -354,7 +396,7 @@ Item {
                         anchors.margins: 20
                         spacing: 15
                         
-                        // 表格标题行 - 精确调整列宽度
+                        // 表格标题行
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 50
@@ -369,40 +411,9 @@ Item {
                                 anchors.rightMargin: 20
                                 spacing: 0
                                 
-                                // 精确调整每列宽度，确保标题和内容对齐
                                 Text {
-                                    Layout.preferredWidth: 250
-                                    text: "用户名"
-                                    font.pixelSize: 13
-                                    font.bold: true
-                                    color: "#2c3e50"
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                
-                                Text {
-                                    Layout.preferredWidth: 150
-                                    text: "用户类型"
-                                    font.pixelSize: 13
-                                    font.bold: true
-                                    color: "#2c3e50"
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                
-                                Text {
-                                    Layout.preferredWidth: 120
-                                    text: "购物车"
-                                    font.pixelSize: 13
-                                    font.bold: true
-                                    color: "#2c3e50"
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                
-                                Text {
-                                    Layout.preferredWidth: 120
-                                    text: "浏览数"
+                                    Layout.preferredWidth: 80
+                                    text: "商品ID"
                                     font.pixelSize: 13
                                     font.bold: true
                                     color: "#2c3e50"
@@ -412,6 +423,66 @@ Item {
                                 
                                 Text {
                                     Layout.preferredWidth: 200
+                                    text: "商品名称"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    color: "#2c3e50"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                
+                                Text {
+                                    Layout.preferredWidth: 100
+                                    text: "价格"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    color: "#2c3e50"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                
+                                Text {
+                                    Layout.preferredWidth: 80
+                                    text: "库存"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    color: "#2c3e50"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                
+                                Text {
+                                    Layout.preferredWidth: 100
+                                    text: "分类"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    color: "#2c3e50"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                
+                                Text {
+                                    Layout.preferredWidth: 120
+                                    text: "评分/评价数"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    color: "#2c3e50"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                
+                                Text {
+                                    Layout.preferredWidth: 80
+                                    text: "状态"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    color: "#2c3e50"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                
+                                Text {
+                                    Layout.preferredWidth: 140
                                     text: "操作"
                                     font.pixelSize: 13
                                     font.bold: true
@@ -442,16 +513,16 @@ Item {
                             }
                             
                             ListView {
-                                id: userListView
-                                model: userModel
+                                id: productListView
+                                model: productModel
                                 spacing: 12
                                 
                                 delegate: Rectangle {
-                                    width: userListView.width
+                                    width: productListView.width
                                     height: 80
                                     radius: 10
                                     color: "#ffffff"
-                                    border.color: "#e8f5e8"
+                                    border.color: "#ffeaa7"
                                     border.width: 2
                                     
                                     // 添加轻微的阴影效果
@@ -470,67 +541,114 @@ Item {
                                         anchors.rightMargin: 20
                                         spacing: 0
                                         
-                                        // 用户名列 - 精确对齐标题
+                                        // 商品ID列
+                                        Text {
+                                            Layout.preferredWidth: 80
+                                            text: "#" + model.productId
+                                            font.pixelSize: 14
+                                            font.bold: true
+                                            color: "#2c3e50"
+                                            horizontalAlignment: Text.AlignHCenter
+                                            verticalAlignment: Text.AlignVCenter
+                                        }
+                                        
+                                        // 商品名称列
                                         Item {
-                                            Layout.preferredWidth: 250
+                                            Layout.preferredWidth: 200
                                             Layout.preferredHeight: parent.height
                                             
                                             RowLayout {
                                                 anchors.centerIn: parent
-                                                spacing: 12
+                                                spacing: 8
                                                 
                                                 Rectangle {
-                                                    Layout.preferredWidth: 45
-                                                    Layout.preferredHeight: 45
-                                                    radius: 22.5
-                                                    color: getUserTypeColor(model.userType)
+                                                    Layout.preferredWidth: 40
+                                                    Layout.preferredHeight: 40
+                                                    radius: 20
+                                                    color: getCategoryColor(model.category)
                                                     
                                                     Text {
                                                         anchors.centerIn: parent
-                                                        text: model.username.charAt(0).toUpperCase()
-                                                        color: "white"
+                                                        text: getCategoryIcon(model.category)
                                                         font.pixelSize: 16
-                                                        font.bold: true
                                                     }
                                                 }
                                                 
                                                 Column {
-                                                    Layout.alignment: Qt.AlignVCenter
-                                                    spacing: 3
+                                                    spacing: 2
                                                     
                                                     Text {
-                                                        text: model.username
-                                                        font.pixelSize: 14
+                                                        text: model.name
+                                                        font.pixelSize: 13
                                                         color: "#2c3e50"
                                                         font.bold: true
+                                                        elide: Text.ElideRight
+                                                        maximumLineCount: 1
                                                     }
                                                     
                                                     Text {
-                                                        text: "注册: " + model.registerDate
-                                                        font.pixelSize: 11
+                                                        text: "ID: " + model.productId
+                                                        font.pixelSize: 10
                                                         color: "#7f8c8d"
                                                     }
                                                 }
                                             }
                                         }
                                         
-                                        // 用户类型列 - 精确对齐标题
+                                        // 价格列
                                         Item {
-                                            Layout.preferredWidth: 150
+                                            Layout.preferredWidth: 100
+                                            Layout.preferredHeight: parent.height
+                                            
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: "¥" + model.price.toFixed(0)
+                                                font.pixelSize: 14
+                                                font.bold: true
+                                                color: "#e74c3c"
+                                                horizontalAlignment: Text.AlignHCenter
+                                            }
+                                        }
+                                        
+                                        // 库存列
+                                        Item {
+                                            Layout.preferredWidth: 80
                                             Layout.preferredHeight: parent.height
                                             
                                             Rectangle {
                                                 anchors.centerIn: parent
-                                                width: Math.min(typeLabel.implicitWidth + 20, 120)
-                                                height: 30
-                                                radius: 15
-                                                color: getUserTypeColor(model.userType)
+                                                width: 50
+                                                height: 28
+                                                radius: 14
+                                                color: getStockColor(model.stock)
                                                 
                                                 Text {
-                                                    id: typeLabel
                                                     anchors.centerIn: parent
-                                                    text: model.userType
+                                                    text: model.stock
                                                     font.pixelSize: 12
+                                                    color: "white"
+                                                    font.bold: true
+                                                }
+                                            }
+                                        }
+                                        
+                                        // 分类列
+                                        Item {
+                                            Layout.preferredWidth: 100
+                                            Layout.preferredHeight: parent.height
+                                            
+                                            Rectangle {
+                                                anchors.centerIn: parent
+                                                width: Math.min(categoryLabel.implicitWidth + 16, 80)
+                                                height: 28
+                                                radius: 14
+                                                color: getCategoryColor(model.category)
+                                                
+                                                Text {
+                                                    id: categoryLabel
+                                                    anchors.centerIn: parent
+                                                    text: model.category
+                                                    font.pixelSize: 11
                                                     color: "white"
                                                     font.bold: true
                                                     elide: Text.ElideRight
@@ -538,66 +656,77 @@ Item {
                                             }
                                         }
                                         
-                                        // 购物车商品数列 - 精确对齐标题
+                                        // 评分/评价数列
                                         Item {
                                             Layout.preferredWidth: 120
                                             Layout.preferredHeight: parent.height
                                             
-                                            RowLayout {
+                                            Column {
                                                 anchors.centerIn: parent
-                                                spacing: 6
+                                                spacing: 2
                                                 
-                                                Text {
-                                                    text: "🛒"
-                                                    font.pixelSize: 16
+                                                RowLayout {
+                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                    spacing: 3
+                                                    
+                                                    Text {
+                                                        text: "⭐"
+                                                        font.pixelSize: 14
+                                                    }
+                                                    
+                                                    Text {
+                                                        text: model.avgRating.toFixed(1)
+                                                        font.pixelSize: 13
+                                                        font.bold: true
+                                                        color: "#f39c12"
+                                                    }
                                                 }
                                                 
                                                 Text {
-                                                    text: model.cartItemCount + " 件"
-                                                    font.pixelSize: 13
-                                                    font.bold: true
-                                                    color: model.cartItemCount > 0 ? "#e67e22" : "#95a5a6"
+                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                    text: model.reviewers + " 评价"
+                                                    font.pixelSize: 10
+                                                    color: "#7f8c8d"
                                                 }
                                             }
                                         }
                                         
-                                        // 浏览数列 - 精确对齐标题
+                                        // 状态列
                                         Item {
-                                            Layout.preferredWidth: 120
+                                            Layout.preferredWidth: 80
                                             Layout.preferredHeight: parent.height
                                             
-                                            RowLayout {
+                                            Rectangle {
                                                 anchors.centerIn: parent
-                                                spacing: 6
+                                                width: 60
+                                                height: 28
+                                                radius: 14
+                                                color: getStatusColor(model.status)
                                                 
                                                 Text {
-                                                    text: "👁"
-                                                    font.pixelSize: 14
-                                                }
-                                                
-                                                Text {
-                                                    text: model.browseCount + " 次"
-                                                    font.pixelSize: 13
+                                                    anchors.centerIn: parent
+                                                    text: model.status
+                                                    font.pixelSize: 11
+                                                    color: "white"
                                                     font.bold: true
-                                                    color: getBrowseCountColor(model.browseCount)
                                                 }
                                             }
                                         }
                                         
-                                        // 操作列 - 精确对齐标题
+                                        // 操作列
                                         Item {
-                                            Layout.preferredWidth: 200
+                                            Layout.preferredWidth: 140
                                             Layout.preferredHeight: parent.height
                                             
                                             RowLayout {
                                                 anchors.centerIn: parent
-                                                spacing: 15
+                                                spacing: 12
                                                 
                                                 // 编辑按钮
                                                 Rectangle {
-                                                    Layout.preferredWidth: 40
-                                                    Layout.preferredHeight: 40
-                                                    radius: 20
+                                                    Layout.preferredWidth: 36
+                                                    Layout.preferredHeight: 36
+                                                    radius: 18
                                                     color: editArea.containsMouse ? "#f39c12" : "#ecf0f1"
                                                     border.color: "#f39c12"
                                                     border.width: 1
@@ -610,7 +739,7 @@ Item {
                                                     Text {
                                                         anchors.centerIn: parent
                                                         text: "✏"
-                                                        font.pixelSize: 15
+                                                        font.pixelSize: 14
                                                         color: editArea.containsMouse ? "white" : "#f39c12"
                                                     }
                                                     
@@ -620,28 +749,27 @@ Item {
                                                         hoverEnabled: true
                                                         cursorShape: Qt.PointingHandCursor
                                                         onClicked: {
-                                                            showMessage("编辑用户 " + model.username + " 的信息", false)
+                                                            showMessage("编辑商品 " + model.name + " 的信息", false)
                                                         }
                                                     }
                                                     
                                                     ToolTip {
                                                         visible: editArea.containsMouse
-                                                        text: "编辑用户"
+                                                        text: "编辑商品"
                                                         delay: 500
                                                     }
                                                 }
                                                 
                                                 // 删除按钮
                                                 Rectangle {
-                                                    Layout.preferredWidth: 40
-                                                    Layout.preferredHeight: 40
-                                                    radius: 20
-                                                    color: model.isAdmin ? "#95a5a6" : (deleteArea.containsMouse ? "#e74c3c" : "#ecf0f1")
-                                                    border.color: model.isAdmin ? "#95a5a6" : "#e74c3c"
+                                                    Layout.preferredWidth: 36
+                                                    Layout.preferredHeight: 36
+                                                    radius: 18
+                                                    color: deleteArea.containsMouse ? "#e74c3c" : "#ecf0f1"
+                                                    border.color: "#e74c3c"
                                                     border.width: 1
-                                                    opacity: model.isAdmin ? 0.6 : 1.0
                                                     
-                                                    scale: (!model.isAdmin && deleteArea.containsMouse) ? 1.1 : 1.0
+                                                    scale: deleteArea.containsMouse ? 1.1 : 1.0
                                                     
                                                     Behavior on color { ColorAnimation { duration: 200 } }
                                                     Behavior on scale { NumberAnimation { duration: 150 } }
@@ -649,26 +777,23 @@ Item {
                                                     Text {
                                                         anchors.centerIn: parent
                                                         text: "🗑"
-                                                        font.pixelSize: 15
-                                                        color: model.isAdmin ? "#ffffff" : (deleteArea.containsMouse ? "white" : "#e74c3c")
+                                                        font.pixelSize: 14
+                                                        color: deleteArea.containsMouse ? "white" : "#e74c3c"
                                                     }
                                                     
                                                     MouseArea {
                                                         id: deleteArea
                                                         anchors.fill: parent
-                                                        hoverEnabled: !model.isAdmin
-                                                        cursorShape: model.isAdmin ? Qt.ArrowCursor : Qt.PointingHandCursor
-                                                        enabled: !model.isAdmin
+                                                        hoverEnabled: true
+                                                        cursorShape: Qt.PointingHandCursor
                                                         onClicked: {
-                                                            if (!model.isAdmin) {
-                                                                showMessage("确认删除用户 " + model.username + "?", true)
-                                                            }
+                                                            showMessage("确认删除商品 " + model.name + "?", true)
                                                         }
                                                     }
                                                     
                                                     ToolTip {
-                                                        visible: deleteArea.containsMouse && !model.isAdmin
-                                                        text: model.isAdmin ? "管理员不能删除" : "删除用户"
+                                                        visible: deleteArea.containsMouse
+                                                        text: "删除商品"
                                                         delay: 500
                                                     }
                                                 }
@@ -687,18 +812,41 @@ Item {
     property StateManager stateManager: null
     
     // 辅助函数
-    function getUserTypeColor(userType) {
-        switch(userType) {
-            case "管理员": return "#e74c3c"
-            case "普通用户": return "#3498db"
+    function getCategoryColor(category) {
+        switch(category) {
+            case "手机": return "#3498db"
+            case "电脑": return "#9b59b6"
+            case "耳机": return "#e67e22"
+            case "平板": return "#2ecc71"
+            case "手表": return "#e74c3c"
             default: return "#95a5a6"
         }
     }
     
-    function getBrowseCountColor(count) {
-        if (count > 200) return "#e74c3c"  // 红色 - 高活跃
-        if (count > 100) return "#f39c12"  // 橙色 - 中活跃
-        if (count > 50) return "#2ecc71"   // 绿色 - 一般活跃
-        return "#95a5a6"                   // 灰色 - 低活跃
+    function getCategoryIcon(category) {
+        switch(category) {
+            case "手机": return "📱"
+            case "电脑": return "💻"
+            case "耳机": return "🎧"
+            case "平板": return "📱"
+            case "手表": return "⌚"
+            default: return "📦"
+        }
+    }
+    
+    function getStockColor(stock) {
+        if (stock === 0) return "#e74c3c"        // 红色 - 缺货
+        if (stock < 20) return "#f39c12"         // 橙色 - 库存低
+        if (stock < 50) return "#f1c40f"         // 黄色 - 库存中等
+        return "#2ecc71"                         // 绿色 - 库存充足
+    }
+    
+    function getStatusColor(status) {
+        switch(status) {
+            case "在售": return "#2ecc71"        // 绿色
+            case "缺货": return "#e74c3c"        // 红色
+            case "下架": return "#95a5a6"        // 灰色
+            default: return "#3498db"            // 蓝色
+        }
     }
 }
