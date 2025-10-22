@@ -54,6 +54,9 @@ ApplicationWindow {
                 case StateManager.STATE_RECOMMENDATION:  
                     source = "qrc:/Qt/RecommendationPage.qml"
                     break
+                case StateManager.STATE_USER_MANAGEMENT: 
+                    source = "qrc:/Qt/UserManagementPage.qml"
+                    break
                 default: 
                     source = "qrc:/Qt/LoginPage.qml"
                     break
@@ -125,6 +128,11 @@ ApplicationWindow {
                     item.backToMainMenuRequested.connect(handleBackToMainMenu);
                 }
                 
+                // 连接返回管理员页面信号（从用户管理页面）
+                if (typeof item.backToAdminRequested !== "undefined") {
+                    item.backToAdminRequested.connect(handleBackToAdmin);
+                }
+                
                 // 连接用户信息页面的修改密码信号
                 if (typeof item.changePasswordRequested !== "undefined") {
                     item.changePasswordRequested.connect(handleChangePassword);
@@ -148,14 +156,6 @@ ApplicationWindow {
                 
                 if (typeof item.productManagementRequested !== "undefined") {
                     item.productManagementRequested.connect(handleProductManagement);
-                }
-                
-                if (typeof item.orderManagementRequested !== "undefined") {
-                    item.orderManagementRequested.connect(handleOrderManagement);
-                }
-                
-                if (typeof item.systemSettingsRequested !== "undefined") {
-                    item.systemSettingsRequested.connect(handleSystemSettings);
                 }
             }
         }
@@ -299,6 +299,12 @@ ApplicationWindow {
         stateManager.setState(StateManager.STATE_MAIN_MENU);
     }
     
+    // 从用户管理页面返回管理员页面
+    function handleBackToAdmin() {
+        console.log("返回管理员页面");
+        stateManager.setState(StateManager.STATE_ADMIN);
+    }
+    
     // 跳转到修改密码页面
     function handleChangePassword() {
         console.log("跳转到修改密码页面");
@@ -364,12 +370,11 @@ ApplicationWindow {
     // 管理员页面功能处理函数
     function handleUserManagement() {
         console.log("打开用户管理");
-        // TODO: 实现用户管理功能
+        stateManager.setState(StateManager.STATE_USER_MANAGEMENT);
     }
     
     function handleProductManagement() {
         console.log("打开商品管理");
         // TODO: 实现商品管理功能
     }
-    
 }

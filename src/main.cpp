@@ -19,7 +19,8 @@ public:
         STATE_EXIT = 5,
         STATE_USER_INFO = 6,
         STATE_CHANGE_PASSWORD = 7,
-        STATE_RECOMMENDATION = 8  
+        STATE_RECOMMENDATION = 8,
+        STATE_USER_MANAGEMENT = 9
     };
 
     Q_ENUM(State)

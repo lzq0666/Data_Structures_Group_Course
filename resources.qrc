@@ -11,5 +11,6 @@
         <file>Qt/BrowsePage.qml</file>
         <file>Qt/ProductCard.qml</file>
         <file>Qt/RecommendationPage.qml</file>
+        <file>Qt/UserManagementPage.qml</file>
     </qresource>
 </RCC>
