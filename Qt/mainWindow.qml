@@ -13,8 +13,8 @@ ApplicationWindow {
     StateManager {
         id: stateManager
         
-        // 监听状态变化信号
-        onStateChanged: {
+        // 监听状态变化信号 - 使用函数形式而不是参数注入
+        onStateChanged: function(newState) {
             console.log("状态变化信号接收到，新状态:", newState)
             contentLoader.updateSource()
         }
@@ -39,12 +39,21 @@ ApplicationWindow {
                 case StateManager.STATE_MAIN_MENU: 
                     source = "qrc:/Qt/MainMenu.qml"
                     break
+                case StateManager.STATE_BROWSE: 
+                    source = "qrc:/Qt/BrowsePage.qml"
+                    break
                 case StateManager.STATE_ADMIN: 
                     source = "qrc:/Qt/adminPage.qml"
                     break
-                //case StateManager.STATE_BROWSE: 
-                //    source = "qrc:/Qt/BrowsePage.qml"
-                //    break
+                case StateManager.STATE_USER_INFO:
+                    source = "qrc:/Qt/UserInfoPage.qml"
+                    break
+                case StateManager.STATE_CHANGE_PASSWORD:  
+                    source = "qrc:/Qt/ChangePasswordPage.qml"
+                    break
+                case StateManager.STATE_RECOMMENDATION:  
+                    source = "qrc:/Qt/RecommendationPage.qml"
+                    break
                 default: 
                     source = "qrc:/Qt/LoginPage.qml"
                     break
@@ -89,6 +98,47 @@ ApplicationWindow {
                 // 连接主菜单退出信号
                 if (typeof item.logoutRequested !== "undefined") {
                     item.logoutRequested.connect(handleLogout);
+                }
+                
+                // 连接主菜单的商品浏览信号
+                if (typeof item.browseProductsRequested !== "undefined") {
+                    item.browseProductsRequested.connect(handleBrowseProducts);
+                }
+                
+                // 连接主菜单的个性化推荐信号 - 新增
+                if (typeof item.personalRecommendRequested !== "undefined") {
+                    item.personalRecommendRequested.connect(handlePersonalRecommend);
+                }
+                
+                // 连接主菜单的购物车信号 - 新增
+                if (typeof item.shoppingCartRequested !== "undefined") {
+                    item.shoppingCartRequested.connect(handleShoppingCart);
+                }
+                
+                // 连接主菜单的用户信息信号
+                if (typeof item.userInfoRequested !== "undefined") {
+                    item.userInfoRequested.connect(handleUserInfo);
+                }
+                
+                // 连接返回主菜单信号（从各个子页面）
+                if (typeof item.backToMainMenuRequested !== "undefined") {
+                    item.backToMainMenuRequested.connect(handleBackToMainMenu);
+                }
+                
+                // 连接用户信息页面的修改密码信号
+                if (typeof item.changePasswordRequested !== "undefined") {
+                    item.changePasswordRequested.connect(handleChangePassword);
+                }
+                
+                // 连接修改密码页面的返回用户信息信号
+                if (typeof item.backToUserInfoRequested !== "undefined") {
+                    item.backToUserInfoRequested.connect(handleBackToUserInfo);
+                }
+                
+                // 连接修改密码页面的修改密码信号 - 修复这里的重复绑定
+                var currentStateValue = stateManager.getCurrentState();
+                if (typeof item.changePasswordRequested !== "undefined" && currentStateValue === StateManager.STATE_CHANGE_PASSWORD) {
+                    item.changePasswordRequested.connect(handleChangePasswordSubmit);
                 }
                 
                 // 连接管理员页面的信号
@@ -217,11 +267,104 @@ ApplicationWindow {
         stateManager.logout();  
     }
     
+    // 跳转到商品浏览页面
+    function handleBrowseProducts() {
+        console.log("跳转到商品浏览页面");
+        stateManager.setState(StateManager.STATE_BROWSE);
+    }
+    
+    // 跳转到个性化推荐页面
+    function handlePersonalRecommend() {
+        console.log("跳转到个性化推荐页面");
+        stateManager.setState(StateManager.STATE_RECOMMENDATION);
+    }
+
+    // 跳转到购物车页面 
+    function handleShoppingCart() {
+        console.log("跳转到购物车页面");
+        // TODO: 需要创建购物车页面或者实现购物车功能
+        // 目前暂时显示提示信息
+        console.log("购物车功能正在开发中...");
+    }
+    
+    // 跳转到用户信息页面
+    function handleUserInfo() {
+        console.log("跳转到用户信息页面");
+        stateManager.setState(StateManager.STATE_USER_INFO);
+    }
+    
+    // 从各个子页面返回主菜单
+    function handleBackToMainMenu() {
+        console.log("返回主菜单");
+        stateManager.setState(StateManager.STATE_MAIN_MENU);
+    }
+    
+    // 跳转到修改密码页面
+    function handleChangePassword() {
+        console.log("跳转到修改密码页面");
+        stateManager.setState(StateManager.STATE_CHANGE_PASSWORD);
+    }
+    
+    // 从修改密码页面返回用户信息页面
+    function handleBackToUserInfo() {
+        console.log("返回用户信息页面");
+        stateManager.setState(StateManager.STATE_USER_INFO);
+    }
+    
+    // 处理修改密码提交
+    function handleChangePasswordSubmit(oldPassword, newPassword, confirmPassword) {
+        console.log("正在尝试修改密码");
+        
+        // 验证输入
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("请填写完整的密码信息");
+            }
+            return;
+        }
+        
+        // 验证新密码长度
+        if (newPassword.length < 6) {
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("新密码长度至少需要6位字符");
+            }
+            return;
+        }
+        
+        // 验证两次新密码是否一致
+        if (newPassword !== confirmPassword) {
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("两次输入的新密码不一致");
+            }
+            return;
+        }
+        
+        // 验证新密码与旧密码是否相同
+        if (oldPassword === newPassword) {
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("新密码不能与原密码相同");
+            }
+            return;
+        }
+        
+        // 尝试修改密码
+        if (stateManager.changePassword(oldPassword, newPassword)) {
+            console.log("密码修改成功");
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordSuccess === "function") {
+                contentLoader.item.showChangePasswordSuccess("密码修改成功！即将返回用户信息页面...");
+            }
+        } else {
+            console.log("密码修改失败");
+            if (contentLoader.item && typeof contentLoader.item.showChangePasswordError === "function") {
+                contentLoader.item.showChangePasswordError("密码修改失败，请检查原密码是否正确");
+            }
+        }
+    }
+    
     // 管理员页面功能处理函数
     function handleUserManagement() {
         console.log("打开用户管理");
         // TODO: 实现用户管理功能
-        // 可以切换到用户管理页面或打开对话框
     }
     
     function handleProductManagement() {
@@ -229,13 +372,4 @@ ApplicationWindow {
         // TODO: 实现商品管理功能
     }
     
-    function handleOrderManagement() {
-        console.log("打开订单管理");
-        // TODO: 实现订单管理功能
-    }
-    
-    function handleSystemSettings() {
-        console.log("打开系统设置");
-        // TODO: 实现系统设置功能
-    }
 }

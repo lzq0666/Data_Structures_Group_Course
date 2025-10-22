@@ -10,12 +10,15 @@
 
 // 程序状态枚举
 enum AppState {
-    STATE_LOGIN,
-    STATE_REGISTER,
-    STATE_MAIN_MENU,
-    STATE_BROWSE,
-    STATE_ADMIN,
-    STATE_EXIT
+    STATE_LOGIN = 0,
+    STATE_REGISTER = 1,
+    STATE_MAIN_MENU = 2,
+    STATE_BROWSE = 3,
+    STATE_ADMIN = 4,
+    STATE_EXIT = 5,
+    STATE_USER_INFO = 6,
+    STATE_CHANGE_PASSWORD = 7,
+    STATE_RECOMMENDATION = 8  
 };
 
 // 全局状态变量
@@ -29,7 +32,7 @@ void initializeApp();
 void setState(AppState newState);
 
 AppState getCurrentState();
-bool loginWithStateUpdate(const std::string &username, const std::string &password);
+bool loginWithStateUpdate(const std::string& username, const std::string& password);
 
 void logout();
 

@@ -10,7 +10,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 //用户数据结构体
 struct UserData {
@@ -94,6 +94,9 @@ private:
     bool fileExists(const std::string &filename);
 
     bool createEmptyJsonFile(const std::string &filename);
+    
+    // 创建示例商品数据
+    void createSampleProducts();
 };
 
 #endif // DATAMANAGER_H
