@@ -5,25 +5,16 @@
 #include <unordered_map>
 #include <utility>
 
-// 前向声明
-struct UserData;
-struct ProductData;
+std::vector<ProductData*> products;					// 存储商品结构体指针
+std::vector<UserData*> users;						// 存储用户结构体指针
+std::unordered_map<int, int> productIdToIndex;		// 商品ID -> 数组索引映射
+std::vector<std::vector<double>> coOccurrenceMatrix;// 共现矩阵
+std::vector<std::vector<double>> similarityMatrix;	// 相似度矩阵
 
-namespace Recommender
-{
-    // 全局变量声明（使用 extern）
-    extern std::vector<ProductData *> g_products;
-    extern std::vector<UserData *> g_users;
-    extern std::unordered_map<int, int> g_productIdToIndex;
-    extern std::vector<std::vector<double>> g_coOccurrenceMatrix;
-    extern std::vector<std::vector<double>> g_similarityMatrix;
+void initMapping();									// 初始化商品ID到索引的映射
+std::vector<std::pair<int, double>> calculateInterestScore(UserData* user);	// 计算用户对所有商品的兴趣分数，返回{商品ID, 兴趣值}
+void buildCoOccurrenceMatrix();						// 构建共现矩阵
+void buildSimilarityMatrix();						// 构建相似度矩阵
+std::vector<std::pair<int, double>> recommendProducts(int userId, int topK);	// 为指定用户推荐物品
 
-    // 函数声明
-    void initMapping();
-    std::vector<std::pair<int, double>> calculateInterestScore(UserData *user);
-    void buildCoOccurrenceMatrix();
-    void buildSimilarityMatrix();
-    std::vector<std::pair<int, double>> recommendProducts(int userId, int topK);
-}
-
-#endif
+#endif // !RECOMMENDER_H
