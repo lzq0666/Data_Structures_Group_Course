@@ -55,18 +55,19 @@ struct PriceRange {
     double minPrice;
     double maxPrice;
 
-    PriceRange(double min = 0.0, double max = 99999.0) : minPrice(min), maxPrice(max) {}
+    explicit PriceRange(double min = 0.0, double max = 99999.0) : minPrice(min), maxPrice(max) {
+    }
 };
 
 // 排序类型枚举
 enum class SortType {
-    NONE,           // 不排序（默认顺序）
-    PRICE_ASC,      // 价格升序
-    PRICE_DESC,     // 价格降序
-    RATING_ASC,     // 评分升序
-    RATING_DESC,    // 评分降序
-    NAME_ASC,       // 名称升序
-    NAME_DESC       // 名称降序
+    NONE, // 不排序（默认顺序）
+    PRICE_ASC, // 价格升序
+    PRICE_DESC, // 价格降序
+    RATING_ASC, // 评分升序
+    RATING_DESC, // 评分降序
+    NAME_ASC, // 名称升序
+    NAME_DESC // 名称降序
 };
 
 class DataManager {
@@ -82,61 +83,71 @@ public:
 
     bool saveUsersToJson();
 
-    bool addUser(const UserData& user);
+    bool addUser(const UserData &user);
 
-    bool removeUser(const std::string& username);
+    bool removeUser(const std::string &username);
 
-    UserData* findUser(const std::string& username);
+    UserData *findUser(const std::string &username);
 
-    std::vector<UserData>& getUsers();
+    std::vector<UserData> &getUsers();
 
     // 商品数据操作
     bool loadProductsFromJson();
 
     bool saveProductsToJson();
 
-    bool addProduct(const ProductData& product);
+    bool addProduct(const ProductData &product);
 
     bool removeProduct(int productId);
 
-    ProductData* findProduct(int productId);
+    ProductData *findProduct(int productId);
 
-    std::vector<ProductData>& getProducts();
+    std::vector<ProductData> &getProducts();
 
     // 新增：商品筛选与搜索功能
-    std::vector<ProductData> searchProducts(const std::string& keyword) const;
-    std::vector<ProductData> filterByCategory(const std::string& category) const;
-    std::vector<ProductData> filterByPriceRange(const PriceRange& priceRange) const;
-    std::vector<ProductData> filterInStock() const;
-    std::vector<ProductData> filterByRating(double minRating) const;
+    [[nodiscard]] std::vector<ProductData> searchProducts(const std::string &keyword) const;
+
+    [[nodiscard]] std::vector<ProductData> filterByCategory(const std::string &category) const;
+
+    [[nodiscard]] std::vector<ProductData> filterByPriceRange(const PriceRange &priceRange) const;
+
+    [[nodiscard]] std::vector<ProductData> filterInStock() const;
+
+    [[nodiscard]] std::vector<ProductData> filterByRating(double minRating) const;
 
     // 综合筛选功能
-    std::vector<ProductData> filterProducts(
-        const std::string& keyword = "",
-        const std::string& category = "",
-        const PriceRange& priceRange = PriceRange(),
+    [[nodiscard]] std::vector<ProductData> filterProducts(
+        const std::string &keyword = "",
+        const std::string &category = "",
+        const PriceRange &priceRange = PriceRange(),
         bool onlyInStock = false,
         double minRating = 0.0,
         SortType sortBy = SortType::NONE
     ) const;
 
     // 获取所有可用分类
-    std::vector<std::string> getAllCategories() const;
+    [[nodiscard]] std::vector<std::string> getAllCategories() const;
 
     // 排序功能
-    std::vector<ProductData> sortProducts(const std::vector<ProductData>& products, SortType sortType) const;
+    [[nodiscard]] std::vector<ProductData> sortProducts(const std::vector<ProductData> &products,
+                                                        SortType sortType) const;
 
     // 购物车相关
-    std::vector<CartItemDetails> getShoppingCartDetails(const std::string& username, double& totalPrice,
-        int& totalQuantity);
+    std::vector<CartItemDetails> getShoppingCartDetails(const std::string &username, double &totalPrice,
+                                                        int &totalQuantity);
 
     // 新增：用户行为相关方法
-    bool addToCart(const std::string& username, int productId, int quantity);
-    bool removeFromCart(const std::string& username, int productId);
-    bool updateCartQuantity(const std::string& username, int productId, int newQuantity);
-    bool addViewHistory(const std::string& username, int productId);
-    bool addToFavorites(const std::string& username, int productId, int rating);
-    bool removeFromFavorites(const std::string& username, int productId);
+    bool addToCart(const std::string &username, int productId, int quantity);
+
+    bool removeFromCart(const std::string &username, int productId);
+
+    bool updateCartQuantity(const std::string &username, int productId, int newQuantity);
+
+    bool addViewHistory(const std::string &username, int productId);
+
+    bool addToFavorites(const std::string &username, int productId, int rating);
+
+    bool removeFromFavorites(const std::string &username, int productId);
 
     // 工具函数
     void clearAllData();
@@ -146,31 +157,34 @@ private:
     std::vector<UserData> users;
     std::vector<ProductData> products;
 
-    // 文件路径
-    const std::string USER_DATA_FILE = "./users.json";
-    const std::string PRODUCT_DATA_FILE = "./products.json";
+    // JSON 文件路径解析（统一定位到程序目录或上级 bin 目录）
+    [[nodiscard]] std::string userFile() const;
+
+    [[nodiscard]] std::string productFile() const;
 
     // JSON 转换函数
-    json userToJson(const UserData& user);
+    json userToJson(const UserData &user);
 
-    UserData jsonToUser(const json& j);
+    UserData jsonToUser(const json &j);
 
-    json productToJson(const ProductData& product);
+    json productToJson(const ProductData &product);
 
-    ProductData jsonToProduct(const json& j);
+    ProductData jsonToProduct(const json &j);
 
     // 文件操作辅助函数
-    bool fileExists(const std::string& filename);
+    bool fileExists(const std::string &filename);
 
-    bool createEmptyJsonFile(const std::string& filename);
+    bool createEmptyJsonFile(const std::string &filename);
 
     // 辅助函数：在二维数组中查找并更新项目
-    bool updateItemInVector(std::vector<std::vector<int>>& vec, int productId, int newValue);
-    bool removeItemFromVector(std::vector<std::vector<int>>& vec, int productId);
+    bool updateItemInVector(std::vector<std::vector<int> > &vec, int productId, int newValue);
+
+    bool removeItemFromVector(std::vector<std::vector<int> > &vec, int productId);
 
     // 新增：搜索与筛选辅助函数
-    std::string toLowercase(const std::string& str) const;
-    bool containsKeyword(const std::string& text, const std::string& keyword) const;
+    [[nodiscard]] std::string toLowercase(const std::string &str) const;
+
+    [[nodiscard]] bool containsKeyword(const std::string &text, const std::string &keyword) const;
 };
 
 #endif // DATAMANAGER_H

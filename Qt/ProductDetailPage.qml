@@ -684,8 +684,8 @@ Item {
         
         return descriptions[product.name] || "这是一款优质的" + product.category + "产品，具有出色的性能和设计。"
     }
-    
-    // 设置当前商品 - 修正版本，确保保存浏览历史
+
+    // 设置当前商品 - 同时记录浏览历史并保存（以详情页加载为准）
     function setCurrentProduct(productId) {
         console.log("设置当前商品ID:", productId)
         currentProductId = productId
@@ -696,24 +696,17 @@ Item {
         if (currentProduct) {
             console.log("找到商品:", currentProduct.name, "价格:", currentProduct.price)
             selectedQuantity = 1  // 重置数量选择
-            
-            // 添加浏览历史
+
+            // 添加浏览历史，并立即保存
             if (stateManager && stateManager.getCurrentUsername) {
                 var currentUser = stateManager.getCurrentUsername()
                 if (currentUser) {
-                    console.log("正在为用户添加浏览历史:", currentUser, "商品ID:", productId)
-                    var success = dataManager.addViewHistory(currentUser, productId)
-                    if (success) {
-                        console.log("浏览历史添加成功")
-                        // 重要：保存用户数据到JSON文件
-                        var saveSuccess = dataManager.saveUsersToJson()
-                        if (saveSuccess) {
-                            console.log("用户数据（包含浏览历史）已保存到文件")
-                        } else {
-                            console.error("保存用户数据失败")
-                        }
+                    var added = dataManager.addViewHistory(currentUser, productId)
+                    if (added) {
+                        var saved = dataManager.saveUsersToJson()
+                        console.log("浏览历史记录", added ? "成功" : "失败", ", 保存到文件", saved ? "成功" : "失败")
                     } else {
-                        console.error("添加浏览历史失败")
+                        console.warn("添加浏览历史失败，可能用户或商品不存在")
                     }
                 }
             }
