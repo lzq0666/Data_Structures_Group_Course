@@ -1,4 +1,7 @@
 #include "DataManager.h"
+#include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
 
 // 构造函数，初始化时加载用户和商品数据
 DataManager::DataManager() {
@@ -7,11 +10,40 @@ DataManager::DataManager() {
     loadProductsFromJson();
 }
 
-// 析构函数，销毁对象时保存用户和商品数据
+// 析构函数，销毁对象时不再自动保存，避免多个实例按退出顺序覆盖文件
 DataManager::~DataManager() {
-    // 析构时保存数据
-    saveUsersToJson();
-    saveProductsToJson();
+    // 不在析构中保存，统一由显式的 saveUsersToJson/saveProductsToJson 调用持久化
+}
+
+// 新增：返回用户/商品 JSON 文件的绝对路径（相对于程序目录）
+std::string DataManager::userFile() const {
+    QString appDir = QCoreApplication::applicationDirPath();
+    // 1) 项目根/bin/users.json（常见目录结构：<root>/cmake-build-*/ 可执行; <root>/bin 数据）
+    QString parentBin = QDir(QDir(appDir).filePath("../bin")).absoluteFilePath("users.json");
+    // 2) 可执行同目录/bin/users.json（如果可执行和 bin 在同级）
+    QString inBinSame = QDir(appDir).filePath("bin/users.json");
+    // 3) 可执行同目录/users.json
+    QString primary = QDir(appDir).filePath("users.json");
+
+    if (QFileInfo::exists(parentBin)) return parentBin.toStdString();
+    if (QFileInfo::exists(inBinSame)) return inBinSame.toStdString();
+    if (QFileInfo::exists(primary)) return primary.toStdString();
+
+    // 文件不存在时，优先创建在项目根/bin 下（如果能创建目录）
+    return parentBin.toStdString();
+}
+
+std::string DataManager::productFile() const {
+    QString appDir = QCoreApplication::applicationDirPath();
+    QString parentBin = QDir(QDir(appDir).filePath("../bin")).absoluteFilePath("products.json");
+    QString inBinSame = QDir(appDir).filePath("bin/products.json");
+    QString primary = QDir(appDir).filePath("products.json");
+
+    if (QFileInfo::exists(parentBin)) return parentBin.toStdString();
+    if (QFileInfo::exists(inBinSame)) return inBinSame.toStdString();
+    if (QFileInfo::exists(primary)) return primary.toStdString();
+
+    return parentBin.toStdString();
 }
 
 // ============== 用户数据操作 ==============
@@ -19,16 +51,17 @@ DataManager::~DataManager() {
 // 从 JSON 文件加载用户数据
 bool DataManager::loadUsersFromJson() {
     try {
+        const std::string path = userFile();
         // 如果用户数据文件不存在，则创建新文件
-        if (!fileExists(USER_DATA_FILE)) {
-            qDebug() << "用户数据文件不存在，创建新文件: " << USER_DATA_FILE;
-            return createEmptyJsonFile(USER_DATA_FILE);
+        if (!fileExists(path)) {
+            qDebug() << "用户数据文件不存在，创建新文件: " << QString::fromStdString(path);
+            return createEmptyJsonFile(path);
         }
 
         // 打开用户数据文件
-        std::ifstream file(USER_DATA_FILE);
+        std::ifstream file(path);
         if (!file.is_open()) {
-            qDebug() << "无法打开用户数据文件: " << USER_DATA_FILE;
+            std::cerr << "无法打开用户数据文件: " << path << std::endl;
             return false;
         }
 
@@ -56,6 +89,7 @@ bool DataManager::loadUsersFromJson() {
 // 保存用户数据到 JSON 文件
 bool DataManager::saveUsersToJson() {
     try {
+        const std::string path = userFile();
         json j;
         json usersArray = json::array();
 
@@ -72,17 +106,21 @@ bool DataManager::saveUsersToJson() {
             {"totalUsers", users.size()}
         };
 
+        // 确保目录存在
+        QFileInfo fi(QString::fromStdString(path));
+        QDir().mkpath(fi.absolutePath());
+
         // 打开文件进行写入
-        std::ofstream file(USER_DATA_FILE);
+        std::ofstream file(path);
         if (!file.is_open()) {
-            qDebug() << "无法打开用户数据文件进行写入: " << USER_DATA_FILE;
+            std::cerr << "无法打开用户数据文件进行写入: " << path << std::endl;
             return false;
         }
 
         file << j.dump(4); // 格式化输出，缩进4个空格
         file.close();
 
-        qDebug() << "成功保存 " << users.size() << " 个用户数据";
+        qDebug() << "成功保存 " << users.size() << " 个用户数据 => " << QString::fromStdString(path);
         return true;
     } catch (const std::exception &e) {
         qDebug() << "保存用户数据时发生错误: " << e.what();
@@ -139,16 +177,17 @@ std::vector<UserData> &DataManager::getUsers() {
 
 bool DataManager::loadProductsFromJson() {
     try {
+        const std::string path = productFile();
         // 如果商品数据文件不存在，则创建新文件
-        if (!fileExists(PRODUCT_DATA_FILE)) {
-            qDebug() << "商品数据文件不存在，创建新文件: " << PRODUCT_DATA_FILE;
-            return createEmptyJsonFile(PRODUCT_DATA_FILE);
+        if (!fileExists(path)) {
+            qDebug() << "商品数据文件不存在，创建新文件: " << QString::fromStdString(path);
+            return createEmptyJsonFile(path);
         }
 
         // 打开商品数据文件
-        std::ifstream file(PRODUCT_DATA_FILE);
+        std::ifstream file(path);
         if (!file.is_open()) {
-            qDebug() << "无法打开商品数据文件: " << PRODUCT_DATA_FILE;
+            std::cerr << "无法打开商品数据文件: " << path << std::endl;
             return false;
         }
 
@@ -175,6 +214,7 @@ bool DataManager::loadProductsFromJson() {
 
 bool DataManager::saveProductsToJson() {
     try {
+        const std::string path = productFile();
         json j;
         json productsArray = json::array();
 
@@ -191,17 +231,21 @@ bool DataManager::saveProductsToJson() {
             {"totalProducts", products.size()}
         };
 
+        // 确保目录存在
+        QFileInfo fi(QString::fromStdString(path));
+        QDir().mkpath(fi.absolutePath());
+
         // 打开文件进行写入
-        std::ofstream file(PRODUCT_DATA_FILE);
+        std::ofstream file(path);
         if (!file.is_open()) {
-            qDebug() << "无法打开商品数据文件进行写入: " << PRODUCT_DATA_FILE;
+            std::cerr << "无法打开商品数据文件进行写入: " << path << std::endl;
             return false;
         }
 
         file << j.dump(4); // 格式化输出，缩进4个空格
         file.close();
 
-        qDebug() << "成功保存 " << products.size() << " 个商品数据";
+        qDebug() << "成功保存 " << products.size() << " 个商品数据 => " << QString::fromStdString(path);
         return true;
     } catch (const std::exception &e) {
         qDebug() << "保存商品数据时发生错误: " << e.what();
@@ -250,6 +294,448 @@ std::vector<ProductData> &DataManager::getProducts() {
     return products;
 }
 
+// ============== 新增：商品筛选与搜索功能 ==============
+
+// 关键词搜索
+std::vector<ProductData> DataManager::searchProducts(const std::string &keyword) const {
+    std::vector<ProductData> results;
+
+    if (keyword.empty()) {
+        return products; // 如果没有关键词，返回所有商品
+    }
+
+    std::string lowercaseKeyword = toLowercase(keyword);
+
+    for (const auto &product: products) {
+        if (containsKeyword(product.name, lowercaseKeyword) ||
+            containsKeyword(product.category, lowercaseKeyword)) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "关键词搜索 '" << QString::fromStdString(keyword) << "' 找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 按分类筛选
+std::vector<ProductData> DataManager::filterByCategory(const std::string &category) const {
+    std::vector<ProductData> results;
+
+    if (category.empty() || category == "全部") {
+        return products; // 如果没有指定分类或选择全部，返回所有商品
+    }
+
+    for (const auto &product: products) {
+        if (product.category == category) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "分类筛选 '" << QString::fromStdString(category) << "' 找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 按价格范围筛选
+std::vector<ProductData> DataManager::filterByPriceRange(const PriceRange &priceRange) const {
+    std::vector<ProductData> results;
+
+    for (const auto &product: products) {
+        if (product.price >= priceRange.minPrice && product.price <= priceRange.maxPrice) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "价格筛选 [" << priceRange.minPrice << " - " << priceRange.maxPrice << "] 找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 筛选有库存的商品
+std::vector<ProductData> DataManager::filterInStock() const {
+    std::vector<ProductData> results;
+
+    for (const auto &product: products) {
+        if (product.stock > 0) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "有库存筛选找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 按评分筛选
+std::vector<ProductData> DataManager::filterByRating(double minRating) const {
+    std::vector<ProductData> results;
+
+    for (const auto &product: products) {
+        if (product.avgRating >= minRating) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "评分筛选 (>=" << minRating << ") 找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 综合筛选功能
+std::vector<ProductData> DataManager::filterProducts(
+    const std::string &keyword,
+    const std::string &category,
+    const PriceRange &priceRange,
+    bool onlyInStock,
+    double minRating,
+    SortType sortBy
+) const {
+    std::vector<ProductData> results = products; // 从所有商品开始
+
+    // 关键词搜索
+    if (!keyword.empty()) {
+        std::vector<ProductData> temp;
+        std::string lowercaseKeyword = toLowercase(keyword);
+
+        for (const auto &product: results) {
+            if (containsKeyword(product.name, lowercaseKeyword) ||
+                containsKeyword(product.category, lowercaseKeyword)) {
+                temp.push_back(product);
+            }
+        }
+        results = temp;
+    }
+
+    // 分类筛选
+    if (!category.empty() && category != "全部") {
+        std::vector<ProductData> temp;
+        for (const auto &product: results) {
+            if (product.category == category) {
+                temp.push_back(product);
+            }
+        }
+        results = temp;
+    }
+
+    // 价格范围筛选
+    std::vector<ProductData> temp;
+    for (const auto &product: results) {
+        if (product.price >= priceRange.minPrice && product.price <= priceRange.maxPrice) {
+            temp.push_back(product);
+        }
+    }
+    results = temp;
+
+    // 库存筛选
+    if (onlyInStock) {
+        temp.clear();
+        for (const auto &product: results) {
+            if (product.stock > 0) {
+                temp.push_back(product);
+            }
+        }
+        results = temp;
+    }
+
+    // 评分筛选
+    if (minRating > 0.0) {
+        temp.clear();
+        for (const auto &product: results) {
+            if (product.avgRating >= minRating) {
+                temp.push_back(product);
+            }
+        }
+        results = temp;
+    }
+
+    // 排序
+    if (sortBy != SortType::NONE) {
+        results = sortProducts(results, sortBy);
+    }
+
+    qDebug() << "综合筛选完成，找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 获取所有可用分类
+std::vector<std::string> DataManager::getAllCategories() const {
+    std::vector<std::string> categories;
+    categories.push_back("全部"); // 添加"全部"选项
+
+    for (const auto &product: products) {
+        // 检查分类是否已存在
+        if (std::find(categories.begin(), categories.end(), product.category) == categories.end()) {
+            categories.push_back(product.category);
+        }
+    }
+
+    return categories;
+}
+
+// 排序功能
+std::vector<ProductData> DataManager::sortProducts(const std::vector<ProductData> &productsToSort,
+                                                   SortType sortType) const {
+    std::vector<ProductData> sortedProducts = productsToSort;
+
+    switch (sortType) {
+        case SortType::PRICE_ASC:
+            std::sort(sortedProducts.begin(), sortedProducts.end(),
+                      [](const ProductData &a, const ProductData &b) {
+                          return a.price < b.price;
+                      });
+            break;
+
+        case SortType::PRICE_DESC:
+            std::sort(sortedProducts.begin(), sortedProducts.end(),
+                      [](const ProductData &a, const ProductData &b) {
+                          return a.price > b.price;
+                      });
+            break;
+
+        case SortType::RATING_ASC:
+            std::sort(sortedProducts.begin(), sortedProducts.end(),
+                      [](const ProductData &a, const ProductData &b) {
+                          return a.avgRating < b.avgRating;
+                      });
+            break;
+
+        case SortType::RATING_DESC:
+            std::sort(sortedProducts.begin(), sortedProducts.end(),
+                      [](const ProductData &a, const ProductData &b) {
+                          return a.avgRating > b.avgRating;
+                      });
+            break;
+
+        case SortType::NAME_ASC:
+            std::sort(sortedProducts.begin(), sortedProducts.end(),
+                      [](const ProductData &a, const ProductData &b) {
+                          return a.name < b.name;
+                      });
+            break;
+
+        case SortType::NAME_DESC:
+            std::sort(sortedProducts.begin(), sortedProducts.end(),
+                      [](const ProductData &a, const ProductData &b) {
+                          return a.name > b.name;
+                      });
+            break;
+
+        case SortType::NONE:
+        default:
+            // 不进行排序
+            break;
+    }
+
+    return sortedProducts;
+}
+
+std::vector<CartItemDetails> DataManager::
+getShoppingCartDetails(const std::string &username, double &totalPrice, int &totalQuantity) {
+    totalPrice = 0.0;
+    totalQuantity = 0;
+    std::vector<CartItemDetails> items;
+
+    UserData *user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return items;
+    }
+
+    for (const auto &entry: user->shoppingCart) {
+        if (entry.size() < 2) {
+            continue;
+        }
+
+        int productId = entry[0];
+        int quantity = entry[1];
+        if (quantity <= 0) {
+            continue;
+        }
+
+        CartItemDetails item{};
+        item.productId = productId;
+        item.quantity = quantity;
+
+        ProductData *product = findProduct(productId);
+        if (product) {
+            item.name = product->name;
+            item.unitPrice = product->price;
+        } else {
+            item.name = "未知商品";
+            item.unitPrice = 0.0;
+            qDebug() << "购物车中存在未找到的商品ID:" << productId;
+        }
+
+        item.subtotal = item.unitPrice * static_cast<double>(item.quantity);
+
+        totalPrice += item.subtotal;
+        totalQuantity += item.quantity;
+
+        items.push_back(item);
+    }
+
+    return items;
+}
+
+// ============== 用户行为相关方法 ==============
+
+bool DataManager::addToCart(const std::string &username, int productId, int quantity) {
+    UserData *user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    // 检查商品是否存在
+    if (!findProduct(productId)) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 检查购物车中是否已有该商品
+    bool found = false;
+    for (auto &entry: user->shoppingCart) {
+        if (entry.size() >= 2 && entry[0] == productId) {
+            entry[1] += quantity; // 累加数量而不是替换
+            found = true;
+            qDebug() << "更新购物车商品数量，用户:" << QString::fromStdString(username)
+                    << "商品ID:" << productId << "新数量:" << entry[1];
+            break;
+        }
+    }
+
+    if (!found) {
+        // 添加新商品到购物车
+        user->shoppingCart.push_back({productId, quantity});
+        qDebug() << "添加商品到购物车，用户:" << QString::fromStdString(username)
+                << "商品ID:" << productId << "数量:" << quantity;
+    }
+
+    return true;
+}
+
+bool DataManager::removeFromCart(const std::string &username, int productId) {
+    UserData *user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    if (removeItemFromVector(user->shoppingCart, productId)) {
+        qDebug() << "从购物车移除商品，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+        return true;
+    }
+
+    qDebug() << "购物车中未找到商品，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+    return false;
+}
+
+bool DataManager::updateCartQuantity(const std::string &username, int productId, int newQuantity) {
+    if (newQuantity <= 0) {
+        return removeFromCart(username, productId);
+    }
+
+    UserData *user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    // 检查商品是否存在
+    if (!findProduct(productId)) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 直接设置新数量（不累加）
+    if (updateItemInVector(user->shoppingCart, productId, newQuantity)) {
+        qDebug() << "更新购物车商品数量（直接设置），用户:" << QString::fromStdString(username)
+                << "商品ID:" << productId << "数量:" << newQuantity;
+        return true;
+    } else {
+        // 如果商品不在购物车中，添加新商品
+        user->shoppingCart.push_back({productId, newQuantity});
+        qDebug() << "添加商品到购物车（通过更新数量），用户:" << QString::fromStdString(username)
+                << "商品ID:" << productId << "数量:" << newQuantity;
+        return true;
+    }
+}
+
+bool DataManager::addViewHistory(const std::string &username, int productId) {
+    UserData *user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    // 检查商品是否存在
+    if (!findProduct(productId)) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 查找是否已有浏览记录
+    bool found = false;
+    for (auto &entry: user->viewHistory) {
+        if (entry.size() >= 2 && entry[0] == productId) {
+            entry[1]++; // 增加浏览次数
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        // 添加新的浏览记录
+        user->viewHistory.push_back({productId, 1});
+    }
+
+    qDebug() << "添加浏览历史，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+    return true;
+}
+
+bool DataManager::addToFavorites(const std::string &username, int productId, int rating) {
+    UserData *user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    // 检查商品是否存在
+    if (!findProduct(productId)) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 检查评分有效性（假设1-5分）
+    if (rating < 1 || rating > 5) {
+        qDebug() << "评分无效:" << rating;
+        return false;
+    }
+
+    // 检查收藏中是否已有该商品
+    if (updateItemInVector(user->favorites, productId, rating)) {
+        qDebug() << "更新收藏商品评分，用户:" << QString::fromStdString(username) << "商品ID:" << productId << "评分:" << rating;
+    } else {
+        // 添加新商品到收藏
+        user->favorites.push_back({productId, rating});
+        qDebug() << "添加商品到收藏，用户:" << QString::fromStdString(username) << "商品ID:" << productId << "评分:" << rating;
+    }
+
+    return true;
+}
+
+bool DataManager::removeFromFavorites(const std::string &username, int productId) {
+    UserData *user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    if (removeItemFromVector(user->favorites, productId)) {
+        qDebug() << "从收藏移除商品，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+        return true;
+    }
+
+    qDebug() << "收藏中未找到商品，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+    return false;
+}
+
 // ============== 工具函数 ==============
 
 // 清空所有数据（用户和商品）
@@ -257,6 +743,51 @@ void DataManager::clearAllData() {
     users.clear(); // 清空用户列表
     products.clear(); // 清空商品列表
     qDebug() << "已清空所有数据";
+}
+
+// 辅助函数：在二维数组中查找并更新项目
+bool DataManager::updateItemInVector(std::vector<std::vector<int> > &vec, int productId, int newValue) {
+    for (auto &entry: vec) {
+        if (entry.size() >= 2 && entry[0] == productId) {
+            entry[1] = newValue;
+            return true;
+        }
+    }
+    return false;
+}
+
+// 辅助函数：从二维数组中移除项目
+bool DataManager::removeItemFromVector(std::vector<std::vector<int> > &vec, int productId) {
+    auto it = std::find_if(vec.begin(), vec.end(),
+                           [productId](const std::vector<int> &entry) {
+                               return entry.size() >= 2 && entry[0] == productId;
+                           });
+
+    if (it != vec.end()) {
+        vec.erase(it);
+        return true;
+    }
+    return false;
+}
+
+// ============== 新增：搜索与筛选辅助函数 ==============
+
+// 转换为小写字母
+std::string DataManager::toLowercase(const std::string &str) const {
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return result;
+}
+
+// 检查文本是否包含关键词（不区分大小写）
+bool DataManager::containsKeyword(const std::string &text, const std::string &keyword) const {
+    if (keyword.empty()) {
+        return true;
+    }
+
+    std::string lowercaseText = toLowercase(text);
+    return lowercaseText.find(keyword) != std::string::npos;
 }
 
 // ============== 私有函数 ==============
@@ -285,23 +816,23 @@ UserData DataManager::jsonToUser(const json &j) {
     user.userId = j.value("userId", 0);
     user.isAdmin = j.value("isAdmin", false);
     user.salt = j.value("salt", "");
-    user.shoppingCart = j.at("shoppingCart").get<std::vector<std::vector<int> > >();
-    user.viewHistory = j.at("viewHistory").get<std::vector<std::vector<int> > >();
-    user.favorites = j.at("favorites").get<std::vector<std::vector<int> > >();
-    //json数据需要以"favorites": [[商品编号，值],...]的形式储存
+    user.shoppingCart = j.value("shoppingCart", std::vector<std::vector<int> >());
+    user.viewHistory = j.value("viewHistory", std::vector<std::vector<int> >());
+    user.favorites = j.value("favorites", std::vector<std::vector<int> >());
+
     return user;
 }
 
 // 商品数据结构体转为 JSON 对象
 json DataManager::productToJson(const ProductData &product) {
-    //商品结构体调整 JSON 序列化
+    // 统一使用 avgRating 字段名与JSON保持一致
     return json{
         {"productId", product.productId},
         {"name", product.name},
         {"price", product.price},
         {"stock", product.stock},
         {"category", product.category},
-        {"avg_rating", product.avg_rating},
+        {"avgRating", product.avgRating}, // 使用修正后的字段名
         {"reviewers", product.reviewers}
     };
 }
@@ -316,7 +847,8 @@ ProductData DataManager::jsonToProduct(const json &j) {
     product.price = j.value("price", 0.0);
     product.stock = j.value("stock", 0);
     product.category = j.value("category", "");
-    product.avg_rating = j.value("avg_rating", 0.0);
+    // 统一使用 avgRating 字段名
+    product.avgRating = j.value("avgRating", 0.0);
     product.reviewers = j.value("reviewers", 0);
 
     return product;
@@ -333,29 +865,29 @@ bool DataManager::createEmptyJsonFile(const std::string &filename) {
     try {
         json emptyJson;
         std::time_t t = std::time(nullptr); // 获取当前时间
-        if (filename == USER_DATA_FILE) {
+
+        QFileInfo fi(QString::fromStdString(filename));
+        QString base = fi.fileName();
+        if (base.compare("users.json", Qt::CaseInsensitive) == 0) {
             emptyJson = {
                 {"users", json::array()},
-                {
-                    "metadata", {
-                        {"version", "1.0"},
-                        {"lastUpdated", t},
-                        {"totalUsers", 0}
-                    }
-                }
+                {"metadata", {{"version", "1.0"}, {"lastUpdated", t}, {"totalUsers", 0}}}
             };
-        } else if (filename == PRODUCT_DATA_FILE) {
+        } else if (base.compare("products.json", Qt::CaseInsensitive) == 0) {
             emptyJson = {
                 {"products", json::array()},
-                {
-                    "metadata", {
-                        {"version", "1.0"},
-                        {"lastUpdated", t},
-                        {"totalProducts", 0}
-                    }
-                }
+                {"metadata", {{"version", "1.0"}, {"lastUpdated", t}, {"totalProducts", 0}}}
+            };
+        } else {
+            // 默认按 users 结构
+            emptyJson = {
+                {"users", json::array()},
+                {"metadata", {{"version", "1.0"}, {"lastUpdated", t}, {"totalUsers", 0}}}
             };
         }
+
+        // 确保目录存在
+        QDir().mkpath(fi.absolutePath());
 
         std::ofstream file(filename);
         if (!file.is_open()) {
@@ -366,7 +898,7 @@ bool DataManager::createEmptyJsonFile(const std::string &filename) {
         file << emptyJson.dump(4);
         file.close();
 
-        qDebug() << "成功创建空的 JSON 文件: " << filename;
+        qDebug() << "成功创建空的 JSON 文件: " << QString::fromStdString(filename);
         return true;
     } catch (const std::exception &e) {
         qDebug() << "创建 JSON 文件时发生错误: " << e.what();
