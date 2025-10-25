@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <utility>
 
-// Forward declarations
+// 前置声明
 struct ProductData;
 struct UserData;
 
