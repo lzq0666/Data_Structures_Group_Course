@@ -254,6 +254,236 @@ std::vector<ProductData>& DataManager::getProducts() {
     return products;
 }
 
+// ============== 新增：商品筛选与搜索功能 ==============
+
+// 关键词搜索
+std::vector<ProductData> DataManager::searchProducts(const std::string& keyword) const {
+    std::vector<ProductData> results;
+
+    if (keyword.empty()) {
+        return products; // 如果没有关键词，返回所有商品
+    }
+
+    std::string lowercaseKeyword = toLowercase(keyword);
+
+    for (const auto& product : products) {
+        if (containsKeyword(product.name, lowercaseKeyword) ||
+            containsKeyword(product.category, lowercaseKeyword)) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "关键词搜索 '" << QString::fromStdString(keyword) << "' 找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 按分类筛选
+std::vector<ProductData> DataManager::filterByCategory(const std::string& category) const {
+    std::vector<ProductData> results;
+
+    if (category.empty() || category == "全部") {
+        return products; // 如果没有指定分类或选择全部，返回所有商品
+    }
+
+    for (const auto& product : products) {
+        if (product.category == category) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "分类筛选 '" << QString::fromStdString(category) << "' 找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 按价格范围筛选
+std::vector<ProductData> DataManager::filterByPriceRange(const PriceRange& priceRange) const {
+    std::vector<ProductData> results;
+
+    for (const auto& product : products) {
+        if (product.price >= priceRange.minPrice && product.price <= priceRange.maxPrice) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "价格筛选 [" << priceRange.minPrice << " - " << priceRange.maxPrice << "] 找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 筛选有库存的商品
+std::vector<ProductData> DataManager::filterInStock() const {
+    std::vector<ProductData> results;
+
+    for (const auto& product : products) {
+        if (product.stock > 0) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "有库存筛选找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 按评分筛选
+std::vector<ProductData> DataManager::filterByRating(double minRating) const {
+    std::vector<ProductData> results;
+
+    for (const auto& product : products) {
+        if (product.avgRating >= minRating) {
+            results.push_back(product);
+        }
+    }
+
+    qDebug() << "评分筛选 (>=" << minRating << ") 找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 综合筛选功能
+std::vector<ProductData> DataManager::filterProducts(
+    const std::string& keyword,
+    const std::string& category,
+    const PriceRange& priceRange,
+    bool onlyInStock,
+    double minRating,
+    SortType sortBy
+) const {
+    std::vector<ProductData> results = products; // 从所有商品开始
+
+    // 关键词搜索
+    if (!keyword.empty()) {
+        std::vector<ProductData> temp;
+        std::string lowercaseKeyword = toLowercase(keyword);
+
+        for (const auto& product : results) {
+            if (containsKeyword(product.name, lowercaseKeyword) ||
+                containsKeyword(product.category, lowercaseKeyword)) {
+                temp.push_back(product);
+            }
+        }
+        results = temp;
+    }
+
+    // 分类筛选
+    if (!category.empty() && category != "全部") {
+        std::vector<ProductData> temp;
+        for (const auto& product : results) {
+            if (product.category == category) {
+                temp.push_back(product);
+            }
+        }
+        results = temp;
+    }
+
+    // 价格范围筛选
+    std::vector<ProductData> temp;
+    for (const auto& product : results) {
+        if (product.price >= priceRange.minPrice && product.price <= priceRange.maxPrice) {
+            temp.push_back(product);
+        }
+    }
+    results = temp;
+
+    // 库存筛选
+    if (onlyInStock) {
+        temp.clear();
+        for (const auto& product : results) {
+            if (product.stock > 0) {
+                temp.push_back(product);
+            }
+        }
+        results = temp;
+    }
+
+    // 评分筛选
+    if (minRating > 0.0) {
+        temp.clear();
+        for (const auto& product : results) {
+            if (product.avgRating >= minRating) {
+                temp.push_back(product);
+            }
+        }
+        results = temp;
+    }
+
+    // 排序
+    if (sortBy != SortType::NONE) {
+        results = sortProducts(results, sortBy);
+    }
+
+    qDebug() << "综合筛选完成，找到 " << results.size() << " 个商品";
+    return results;
+}
+
+// 获取所有可用分类
+std::vector<std::string> DataManager::getAllCategories() const {
+    std::vector<std::string> categories;
+    categories.push_back("全部"); // 添加"全部"选项
+
+    for (const auto& product : products) {
+        // 检查分类是否已存在
+        if (std::find(categories.begin(), categories.end(), product.category) == categories.end()) {
+            categories.push_back(product.category);
+        }
+    }
+
+    return categories;
+}
+
+// 排序功能
+std::vector<ProductData> DataManager::sortProducts(const std::vector<ProductData>& productsToSort, SortType sortType) const {
+    std::vector<ProductData> sortedProducts = productsToSort;
+
+    switch (sortType) {
+    case SortType::PRICE_ASC:
+        std::sort(sortedProducts.begin(), sortedProducts.end(),
+            [](const ProductData& a, const ProductData& b) {
+                return a.price < b.price;
+            });
+        break;
+
+    case SortType::PRICE_DESC:
+        std::sort(sortedProducts.begin(), sortedProducts.end(),
+            [](const ProductData& a, const ProductData& b) {
+                return a.price > b.price;
+            });
+        break;
+
+    case SortType::RATING_ASC:
+        std::sort(sortedProducts.begin(), sortedProducts.end(),
+            [](const ProductData& a, const ProductData& b) {
+                return a.avgRating < b.avgRating;
+            });
+        break;
+
+    case SortType::RATING_DESC:
+        std::sort(sortedProducts.begin(), sortedProducts.end(),
+            [](const ProductData& a, const ProductData& b) {
+                return a.avgRating > b.avgRating;
+            });
+        break;
+
+    case SortType::NAME_ASC:
+        std::sort(sortedProducts.begin(), sortedProducts.end(),
+            [](const ProductData& a, const ProductData& b) {
+                return a.name < b.name;
+            });
+        break;
+
+    case SortType::NAME_DESC:
+        std::sort(sortedProducts.begin(), sortedProducts.end(),
+            [](const ProductData& a, const ProductData& b) {
+                return a.name > b.name;
+            });
+        break;
+
+    case SortType::NONE:
+    default:
+        // 不进行排序
+        break;
+    }
+
+    return sortedProducts;
+}
+
 std::vector<CartItemDetails> DataManager::
 getShoppingCartDetails(const std::string& username, double& totalPrice, int& totalQuantity) {
     totalPrice = 0.0;
@@ -324,17 +554,17 @@ bool DataManager::addToCart(const std::string& username, int productId, int quan
         if (entry.size() >= 2 && entry[0] == productId) {
             entry[1] += quantity; // 累加数量而不是替换
             found = true;
-            qDebug() << "更新购物车商品数量，用户:" << QString::fromStdString(username) 
-                     << "商品ID:" << productId << "新数量:" << entry[1];
+            qDebug() << "更新购物车商品数量，用户:" << QString::fromStdString(username)
+                << "商品ID:" << productId << "新数量:" << entry[1];
             break;
         }
     }
-    
+
     if (!found) {
         // 添加新商品到购物车
         user->shoppingCart.push_back({ productId, quantity });
-        qDebug() << "添加商品到购物车，用户:" << QString::fromStdString(username) 
-                 << "商品ID:" << productId << "数量:" << quantity;
+        qDebug() << "添加商品到购物车，用户:" << QString::fromStdString(username)
+            << "商品ID:" << productId << "数量:" << quantity;
     }
 
     return true;
@@ -360,7 +590,7 @@ bool DataManager::updateCartQuantity(const std::string& username, int productId,
     if (newQuantity <= 0) {
         return removeFromCart(username, productId);
     }
-    
+
     UserData* user = findUser(username);
     if (!user) {
         qDebug() << "未找到用户:" << QString::fromStdString(username);
@@ -375,14 +605,15 @@ bool DataManager::updateCartQuantity(const std::string& username, int productId,
 
     // 直接设置新数量（不累加）
     if (updateItemInVector(user->shoppingCart, productId, newQuantity)) {
-        qDebug() << "更新购物车商品数量（直接设置），用户:" << QString::fromStdString(username) 
-                 << "商品ID:" << productId << "数量:" << newQuantity;
+        qDebug() << "更新购物车商品数量（直接设置），用户:" << QString::fromStdString(username)
+            << "商品ID:" << productId << "数量:" << newQuantity;
         return true;
-    } else {
+    }
+    else {
         // 如果商品不在购物车中，添加新商品
         user->shoppingCart.push_back({ productId, newQuantity });
-        qDebug() << "添加商品到购物车（通过更新数量），用户:" << QString::fromStdString(username) 
-                 << "商品ID:" << productId << "数量:" << newQuantity;
+        qDebug() << "添加商品到购物车（通过更新数量），用户:" << QString::fromStdString(username)
+            << "商品ID:" << productId << "数量:" << newQuantity;
         return true;
     }
 }
@@ -499,6 +730,26 @@ bool DataManager::removeItemFromVector(std::vector<std::vector<int>>& vec, int p
         return true;
     }
     return false;
+}
+
+// ============== 新增：搜索与筛选辅助函数 ==============
+
+// 转换为小写字母
+std::string DataManager::toLowercase(const std::string& str) const {
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(),
+        [](unsigned char c) { return std::tolower(c); });
+    return result;
+}
+
+// 检查文本是否包含关键词（不区分大小写）
+bool DataManager::containsKeyword(const std::string& text, const std::string& keyword) const {
+    if (keyword.empty()) {
+        return true;
+    }
+
+    std::string lowercaseText = toLowercase(text);
+    return lowercaseText.find(keyword) != std::string::npos;
 }
 
 // ============== 私有函数 ==============

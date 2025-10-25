@@ -322,6 +322,44 @@ public:
         return categories;
     }
 
+    Q_INVOKABLE QVariantList searchProducts(const QString& keyword) {
+        QVariantList productList;
+        auto products = m_dataManager.searchProducts(keyword.toStdString());
+
+        for (const auto& product : products) {
+            QVariantMap productMap;
+            productMap["productId"] = product.productId;
+            productMap["name"] = QString::fromStdString(product.name);
+            productMap["price"] = product.price;
+            productMap["stock"] = product.stock;
+            productMap["category"] = QString::fromStdString(product.category);
+            productMap["avgRating"] = product.avgRating;
+            productMap["reviewers"] = product.reviewers;
+            productList.append(productMap);
+        }
+
+        return productList;
+    }
+
+    Q_INVOKABLE QVariantList filterByCategory(const QString& category) {
+        QVariantList productList;
+        auto products = m_dataManager.filterByCategory(category.toStdString());
+
+        for (const auto& product : products) {
+            QVariantMap productMap;
+            productMap["productId"] = product.productId;
+            productMap["name"] = QString::fromStdString(product.name);
+            productMap["price"] = product.price;
+            productMap["stock"] = product.stock;
+            productMap["category"] = QString::fromStdString(product.category);
+            productMap["avgRating"] = product.avgRating;
+            productMap["reviewers"] = product.reviewers;
+            productList.append(productMap);
+        }
+
+        return productList;
+    }
+
 private:
     DataManager m_dataManager;
 };

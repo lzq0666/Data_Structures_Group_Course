@@ -10,6 +10,8 @@
 #include <iostream>
 #include <QString>
 #include <nlohmann/json.hpp>
+#include <algorithm>
+#include <cctype>
 
 using json = nlohmann::ordered_json;
 
@@ -48,6 +50,25 @@ struct CartItemDetails {
     double subtotal;
 };
 
+// 价格范围结构体
+struct PriceRange {
+    double minPrice;
+    double maxPrice;
+
+    PriceRange(double min = 0.0, double max = 99999.0) : minPrice(min), maxPrice(max) {}
+};
+
+// 排序类型枚举
+enum class SortType {
+    NONE,           // 不排序（默认顺序）
+    PRICE_ASC,      // 价格升序
+    PRICE_DESC,     // 价格降序
+    RATING_ASC,     // 评分升序
+    RATING_DESC,    // 评分降序
+    NAME_ASC,       // 名称升序
+    NAME_DESC       // 名称降序
+};
+
 class DataManager {
 public:
     // 构造函数
@@ -81,6 +102,29 @@ public:
     ProductData* findProduct(int productId);
 
     std::vector<ProductData>& getProducts();
+
+    // 新增：商品筛选与搜索功能
+    std::vector<ProductData> searchProducts(const std::string& keyword) const;
+    std::vector<ProductData> filterByCategory(const std::string& category) const;
+    std::vector<ProductData> filterByPriceRange(const PriceRange& priceRange) const;
+    std::vector<ProductData> filterInStock() const;
+    std::vector<ProductData> filterByRating(double minRating) const;
+
+    // 综合筛选功能
+    std::vector<ProductData> filterProducts(
+        const std::string& keyword = "",
+        const std::string& category = "",
+        const PriceRange& priceRange = PriceRange(),
+        bool onlyInStock = false,
+        double minRating = 0.0,
+        SortType sortBy = SortType::NONE
+    ) const;
+
+    // 获取所有可用分类
+    std::vector<std::string> getAllCategories() const;
+
+    // 排序功能
+    std::vector<ProductData> sortProducts(const std::vector<ProductData>& products, SortType sortType) const;
 
     // 购物车相关
     std::vector<CartItemDetails> getShoppingCartDetails(const std::string& username, double& totalPrice,
@@ -123,6 +167,10 @@ private:
     // 辅助函数：在二维数组中查找并更新项目
     bool updateItemInVector(std::vector<std::vector<int>>& vec, int productId, int newValue);
     bool removeItemFromVector(std::vector<std::vector<int>>& vec, int productId);
+
+    // 新增：搜索与筛选辅助函数
+    std::string toLowercase(const std::string& str) const;
+    bool containsKeyword(const std::string& text, const std::string& keyword) const;
 };
 
 #endif // DATAMANAGER_H
