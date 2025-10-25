@@ -81,8 +81,7 @@ public:
     std::vector<ProductData> &getProducts();
 
     // 购物车相关
-    std::vector<CartItemDetails> getShoppingCartDetails(const std::string &username,
-                                                        double &totalPrice,
+    std::vector<CartItemDetails> getShoppingCartDetails(const std::string &username, double &totalPrice,
                                                         int &totalQuantity);
 
     // 工具函数
@@ -110,9 +109,6 @@ private:
     bool fileExists(const std::string &filename);
 
     bool createEmptyJsonFile(const std::string &filename);
-    
-    // 创建示例商品数据
-    void createSampleProducts();
 };
 
 #endif // DATAMANAGER_H

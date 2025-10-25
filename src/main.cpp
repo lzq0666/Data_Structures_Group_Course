@@ -29,7 +29,7 @@ public:
 
     Q_ENUM(State)
 
-        Q_INVOKABLE bool login(const QString& username, const QString& password) {
+        Q_INVOKABLE bool login(const QString &username, const QString &password) {
         bool result = ::loginWithStateUpdate(username.toStdString(), password.toStdString());
         if (result) {
             emit stateChanged(getCurrentState());
@@ -37,15 +37,15 @@ public:
         return result;
     }
 
-    Q_INVOKABLE bool registerUser(const QString& username, const QString& password) {
+    Q_INVOKABLE bool registerUser(const QString &username, const QString &password) {
         return ::registerUser(username.toStdString(), password.toStdString());
     }
 
-    Q_INVOKABLE bool userExists(const QString& username) {
+    Q_INVOKABLE bool userExists(const QString &username) {
         return ::userExists(username.toStdString());
     }
 
-    Q_INVOKABLE bool changePassword(const QString& oldPassword, const QString& newPassword) {
+    Q_INVOKABLE bool changePassword(const QString &oldPassword, const QString &newPassword) {
         QString currentUser = getCurrentUser();
         if (currentUser.isEmpty()) {
             return false;
@@ -83,7 +83,9 @@ public:
         return false;
     }
 
-signals:
+    signals:
+    
+
     void stateChanged(int newState);
 };
 
@@ -92,16 +94,16 @@ class DataManagerWrapper : public QObject {
     Q_OBJECT
 
 public:
-    explicit DataManagerWrapper(QObject* parent = nullptr) : QObject(parent) {
+    explicit DataManagerWrapper(QObject *parent = nullptr) : QObject(parent) {
         m_dataManager.loadUsersFromJson();
-        loadProductsFromJson();
+        m_dataManager.loadProductsFromJson();
     }
 
     Q_INVOKABLE QVariantList getProducts() {
         QVariantList productList;
         auto products = m_dataManager.getProducts();
 
-        for (const auto& product : products) {
+        for (const auto &product: products) {
             QVariantMap productMap;
             productMap["productId"] = product.productId;
             productMap["name"] = QString::fromStdString(product.name);
@@ -157,7 +159,7 @@ public:
         auto products = m_dataManager.getProducts();
         QSet<QString> categorySet;
 
-        for (const auto& product : products) {
+        for (const auto &product: products) {
             categorySet.insert(QString::fromStdString(product.category));
         }
 
@@ -167,33 +169,11 @@ public:
     }
 
     Q_INVOKABLE bool loadProductsFromJson() {
-        if (!m_dataManager.loadProductsFromJson()) {
-            // 如果加载失败，创建示例数据
-            createSampleProducts();
-            return true;
-        }
-        return true;
+        return m_dataManager.loadProductsFromJson();
     }
 
 private:
     DataManager m_dataManager;
-
-    void createSampleProducts() {
-        std::vector<ProductData> sampleProducts = {
-            {1, "iPhone 15 Pro", 7999.0, 50, "手机", 4.8, 1200},
-            {2, "MacBook Pro M3", 12999.0, 30, "电脑", 4.9, 800},
-            {3, "AirPods Pro", 1899.0, 100, "耳机", 4.7, 2500},
-            {4, "iPad Air", 4399.0, 80, "平板", 4.6, 1800},
-            {5, "Apple Watch Series 9", 2899.0, 60, "手表", 4.5, 1500},
-            {6, "Samsung Galaxy S24", 6999.0, 45, "手机", 4.6, 900},
-        };
-
-        for (const auto& product : sampleProducts) {
-            m_dataManager.addProduct(product);
-        }
-
-        m_dataManager.saveProductsToJson();
-    }
 };
 
 // UserManager 的 QML 包装器
@@ -306,7 +286,9 @@ public:
         emit dataChanged();
     }
 
-signals:
+    signals:
+    
+
     void userAdded(const QString &username);
 
     void userDeleted(int userId);
@@ -323,7 +305,7 @@ private:
     UserManager m_userManager;
 };
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
 
     // 初始化应用程序状态
