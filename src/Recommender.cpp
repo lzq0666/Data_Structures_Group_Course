@@ -10,7 +10,7 @@
 namespace Recommender
 {
     std::vector<ProductData *> g_products;
-    std::vector<UserData *> g_users;
+    std::vector<UserData> g_users;
     std::unordered_map<int, int> g_productIdToIndex;
     std::vector<std::vector<double>> g_coOccurrenceMatrix;
     std::vector<std::vector<double>> g_similarityMatrix;
@@ -39,14 +39,9 @@ namespace Recommender
      * - f_c: 是否加入购物车，加入购物车则为1，否则为0
      * - f_v: 浏览次数，f_v = 1 - exp(-0.2 * v)
      */
-    std::vector<std::pair<int, double>> calculateInterestScore(UserData *user)
+    std::vector<std::pair<int, double>> calculateInterestScore(const UserData &user)
     {
         std::vector<std::pair<int, double>> interestScores;
-
-        if (user == nullptr)
-        {
-            return interestScores;
-        }
 
         // 权重设置
         const double RATING_WEIGHT = 0.6; // 评分权重
@@ -60,7 +55,7 @@ namespace Recommender
 
         // 1. 处理收藏（favorites）数据，获取评分
         // favorites格式: [[商品ID, 评分], ...]
-        for (const auto &favorite : user->favorites)
+        for (const auto &favorite : user.favorites)
         {
             if (favorite.size() >= 2)
             {
@@ -72,7 +67,7 @@ namespace Recommender
 
         // 2. 处理购物车（shoppingCart）数据
         // shoppingCart格式: [[商品ID, 数量, ...], ...]
-        for (const auto &cartItem : user->shoppingCart)
+        for (const auto &cartItem : user.shoppingCart)
         {
             if (!cartItem.empty())
             {
@@ -83,7 +78,7 @@ namespace Recommender
 
         // 3. 处理浏览历史（viewHistory）数据
         // viewHistory格式: [[商品ID, 浏览次数, ...], ...]
-        for (const auto &viewItem : user->viewHistory)
+        for (const auto &viewItem : user.viewHistory)
         {
             if (viewItem.size() >= 2)
             {
@@ -269,11 +264,11 @@ namespace Recommender
 
         // 1. 查找用户
         UserData *targetUser = nullptr;
-        for (auto user : g_users)
+        for (auto &user : g_users)
         {
-            if (user->userId == userId)
+            if (user.userId == userId)
             {
-                targetUser = user;
+                targetUser = &user;
                 break;
             }
         }
@@ -285,7 +280,7 @@ namespace Recommender
         }
 
         // 2. 计算用户的兴趣分数
-        std::vector<std::pair<int, double>> interestScores = calculateInterestScore(targetUser);
+        std::vector<std::pair<int, double>> interestScores = calculateInterestScore(*targetUser);
 
         // 3. 创建用户已交互商品的集合
         std::unordered_map<int, double> interactedProducts;
