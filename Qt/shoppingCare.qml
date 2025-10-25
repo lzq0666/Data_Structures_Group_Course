@@ -25,13 +25,26 @@ Item {
     }
 
     function refreshCart() {
+        console.log("开始刷新购物车数据...")
+        
+        // 检查 StateManager 是否注入
         if (!cartPage.stateManager) {
             console.log("StateManager 未注入，无法加载购物车")
+            // 尝试清空数据显示
+            cartModel.clear()
+            cartPage.totalPrice = 0
+            cartPage.totalQuantity = 0
+            cartPage.totalPriceText = cartPage.formatPrice(0)
+            cartPage.currentUserName = ""
             return
         }
 
+        // 获取当前用户名
         cartPage.currentUserName = cartPage.stateManager.getCurrentUser()
+        console.log("当前用户:", cartPage.currentUserName)
+        
         if (!cartPage.currentUserName || cartPage.currentUserName.length === 0) {
+            console.log("用户未登录，清空购物车显示")
             cartModel.clear()
             cartPage.totalPrice = 0
             cartPage.totalQuantity = 0
@@ -39,25 +52,36 @@ Item {
             return
         }
 
+        // 调用 DataManager 获取购物车详情
         var result = dataManager.getShoppingCartDetails(cartPage.currentUserName)
+        console.log("购物车数据获取结果:", JSON.stringify(result))
+        
         cartModel.clear()
 
-        if (result && result.items) {
+        if (result && result.items && result.items.length > 0) {
+            console.log("找到购物车商品:", result.items.length, "个")
+            
             for (var i = 0; i < result.items.length; ++i) {
                 var item = result.items[i] || {}
+                console.log("添加商品:", item.name, "数量:", item.quantity, "单价:", item.unitPrice)
+                
                 cartModel.append({
-                    name: item.name || "",
+                    name: item.name || "未知商品",
                     quantity: item.quantity || 0,
                     unitPrice: item.unitPrice || 0,
                     subtotal: item.subtotal || 0,
-                    displayUnitPrice: cartPage.formatPrice(item.unitPrice),
-                    displaySubtotal: cartPage.formatPrice(item.subtotal)
+                    displayUnitPrice: cartPage.formatPrice(item.unitPrice || 0),
+                    displaySubtotal: cartPage.formatPrice(item.subtotal || 0)
                 })
             }
+            
             cartPage.totalPrice = result.totalPrice || 0
             cartPage.totalQuantity = result.totalQuantity || 0
             cartPage.totalPriceText = cartPage.formatPrice(cartPage.totalPrice)
+            
+            console.log("购物车总计: 商品数量", cartPage.totalQuantity, "总价", cartPage.totalPrice)
         } else {
+            console.log("购物车为空或无有效数据")
             cartPage.totalPrice = 0
             cartPage.totalQuantity = 0
             cartPage.totalPriceText = cartPage.formatPrice(0)
@@ -68,20 +92,36 @@ Item {
         return "\u00A5" + Number(value || 0).toFixed(2)
     }
 
+    // 监听状态管理器的状态变化
     Connections {
         target: cartPage.stateManager
+        enabled: cartPage.stateManager !== null
 
         function onStateChanged() {
+            console.log("购物车页面接收到状态变化信号")
             if (!cartPage.stateManager) {
                 return
             }
-            if (cartPage.stateManager.getCurrentState() === StateManager.STATE_SHOPPING_CART) {
+            
+            var currentState = cartPage.stateManager.getCurrentState()
+            console.log("当前状态:", currentState, "购物车状态:", StateManager.STATE_SHOPPING_CART)
+            
+            if (currentState === StateManager.STATE_SHOPPING_CART) {
+                console.log("状态切换到购物车，刷新数据")
                 cartPage.refreshCart()
             }
         }
     }
 
-    Component.onCompleted: cartPage.refreshCart()
+    // 组件完成时刷新购物车，并添加延时确保状态管理器已注入
+    Component.onCompleted: {
+        console.log("购物车组件加载完成")
+        // 延时调用以确保 stateManager 已经注入
+        Qt.callLater(function() {
+            console.log("延时刷新购物车, stateManager:", cartPage.stateManager)
+            cartPage.refreshCart()
+        })
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -154,17 +194,22 @@ Item {
                 }
 
                 ColumnLayout {
+                    Layout.alignment: Qt.AlignLeft
                     spacing: 4
                     Text {
                         text: qsTr("购物车")
                         font.pixelSize: 26
                         font.bold: true
                         color: "#2c3e50"
+                        horizontalAlignment: Text.AlignLeft
                     }
                     Text {
-                        text: cartPage.currentUserName ? qsTr("当前用户: ") + cartPage.currentUserName : qsTr("未登录用户")
+                        text: cartPage.currentUserName && cartPage.currentUserName.length > 0 ? 
+                              qsTr("当前用户: ") + cartPage.currentUserName : 
+                              qsTr("未登录用户")
                         font.pixelSize: 13
                         color: "#7f8c8d"
+                        horizontalAlignment: Text.AlignLeft
                     }
                 }
             }
@@ -187,16 +232,40 @@ Item {
                     spacing: 10
 
                     Text {
-                        Layout.preferredWidth: 420; text: qsTr("商品名称"); font.pixelSize: 14; font.bold: true; color: "#2c3e50"
+                        Layout.preferredWidth: 420
+                        Layout.alignment: Qt.AlignLeft
+                        text: qsTr("商品名称")
+                        font.pixelSize: 14
+                        font.bold: true
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignLeft
                     }
                     Text {
-                        Layout.preferredWidth: 120; text: qsTr("单价"); font.pixelSize: 14; font.bold: true; color: "#2c3e50"; horizontalAlignment: Text.AlignRight
+                        Layout.preferredWidth: 120
+                        Layout.alignment: Qt.AlignLeft
+                        text: qsTr("单价")
+                        font.pixelSize: 14
+                        font.bold: true
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignLeft
                     }
                     Text {
-                        Layout.preferredWidth: 100; text: qsTr("数量"); font.pixelSize: 14; font.bold: true; color: "#2c3e50"; horizontalAlignment: Text.AlignRight
+                        Layout.preferredWidth: 100
+                        Layout.alignment: Qt.AlignLeft
+                        text: qsTr("数量")
+                        font.pixelSize: 14
+                        font.bold: true
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignLeft
                     }
                     Text {
-                        Layout.preferredWidth: 150; text: qsTr("小计"); font.pixelSize: 14; font.bold: true; color: "#2c3e50"; horizontalAlignment: Text.AlignRight
+                        Layout.preferredWidth: 150
+                        Layout.alignment: Qt.AlignLeft
+                        text: qsTr("小计")
+                        font.pixelSize: 14
+                        font.bold: true
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignLeft
                     }
                 }
             }
@@ -227,34 +296,39 @@ Item {
 
                             Text {
                                 Layout.preferredWidth: 420
+                                Layout.alignment: Qt.AlignLeft
                                 text: model.name && model.name.length > 0 ? model.name : qsTr("未知商品")
                                 font.pixelSize: 14
                                 color: "#2c3e50"
                                 elide: Text.ElideRight
+                                horizontalAlignment: Text.AlignLeft
                             }
 
                             Text {
                                 Layout.preferredWidth: 120
-                                text: model.displayUnitPrice
+                                Layout.alignment: Qt.AlignLeft
+                                text: model.displayUnitPrice || "\u00A50.00"
                                 font.pixelSize: 14
                                 color: "#2c3e50"
-                                horizontalAlignment: Text.AlignRight
+                                horizontalAlignment: Text.AlignLeft
                             }
 
                             Text {
                                 Layout.preferredWidth: 100
-                                text: model.quantity
+                                Layout.alignment: Qt.AlignLeft
+                                text: model.quantity || 0
                                 font.pixelSize: 14
                                 color: "#2c3e50"
-                                horizontalAlignment: Text.AlignRight
+                                horizontalAlignment: Text.AlignLeft
                             }
 
                             Text {
                                 Layout.preferredWidth: 150
-                                text: model.displaySubtotal
+                                Layout.alignment: Qt.AlignLeft
+                                text: model.displaySubtotal || "\u00A50.00"
                                 font.pixelSize: 14
                                 color: "#e74c3c"
-                                horizontalAlignment: Text.AlignRight
+                                horizontalAlignment: Text.AlignLeft
                                 font.bold: true
                             }
                         }
@@ -276,12 +350,19 @@ Item {
                     spacing: 20
 
                     ColumnLayout {
+                        Layout.alignment: Qt.AlignLeft
                         spacing: 6
                         Text {
-                            text: qsTr("商品种类: ") + cartModel.count; font.pixelSize: 14; color: "#2c3e50"
+                            text: qsTr("商品种类: ") + cartModel.count
+                            font.pixelSize: 14
+                            color: "#2c3e50"
+                            horizontalAlignment: Text.AlignLeft
                         }
                         Text {
-                            text: qsTr("商品数量: ") + cartPage.totalQuantity; font.pixelSize: 14; color: "#2c3e50"
+                            text: qsTr("商品数量: ") + cartPage.totalQuantity
+                            font.pixelSize: 14
+                            color: "#2c3e50"
+                            horizontalAlignment: Text.AlignLeft
                         }
                     }
 
@@ -290,20 +371,21 @@ Item {
                     }
 
                     ColumnLayout {
+                        Layout.alignment: Qt.AlignLeft
                         spacing: 6
                         Text {
                             text: qsTr("总金额")
                             font.pixelSize: 16
                             font.bold: true
                             color: "#2c3e50"
-                            horizontalAlignment: Text.AlignRight
+                            horizontalAlignment: Text.AlignLeft
                         }
                         Text {
                             text: cartPage.totalPriceText
                             font.pixelSize: 28
                             font.bold: true
                             color: "#e74c3c"
-                            horizontalAlignment: Text.AlignRight
+                            horizontalAlignment: Text.AlignLeft
                         }
                     }
                 }
@@ -313,13 +395,15 @@ Item {
                 Layout.fillWidth: true; Layout.preferredHeight: 20
             }
         }
-    }
-
-    Text {
-        anchors.centerIn: parent
-        text: qsTr("购物车为空，快去挑选喜欢的商品吧！")
-        font.pixelSize: 18
-        color: "#7f8c8d"
-        visible: cartModel.count === 0
+        
+        // 购物车为空时的提示信息
+        Text {
+            anchors.centerIn: parent
+            text: qsTr("购物车为空，快去挑选喜欢的商品吧！")
+            font.pixelSize: 18
+            color: "#7f8c8d"
+            visible: cartModel.count === 0
+            horizontalAlignment: Text.AlignHCenter
+        }
     }
 }
