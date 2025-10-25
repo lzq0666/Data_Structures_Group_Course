@@ -29,7 +29,10 @@ public:
 
     Q_ENUM(State)
 
-        Q_INVOKABLE bool login(const QString &username, const QString &password) {
+        // 构造函数，初始化数据管理器
+        StateManagerWrapper(QObject* parent = nullptr) : QObject(parent) {}
+
+    Q_INVOKABLE bool login(const QString& username, const QString& password) {
         bool result = ::loginWithStateUpdate(username.toStdString(), password.toStdString());
         if (result) {
             emit stateChanged(getCurrentState());
@@ -37,15 +40,15 @@ public:
         return result;
     }
 
-    Q_INVOKABLE bool registerUser(const QString &username, const QString &password) {
+    Q_INVOKABLE bool registerUser(const QString& username, const QString& password) {
         return ::registerUser(username.toStdString(), password.toStdString());
     }
 
-    Q_INVOKABLE bool userExists(const QString &username) {
+    Q_INVOKABLE bool userExists(const QString& username) {
         return ::userExists(username.toStdString());
     }
 
-    Q_INVOKABLE bool changePassword(const QString &oldPassword, const QString &newPassword) {
+    Q_INVOKABLE bool changePassword(const QString& oldPassword, const QString& newPassword) {
         QString currentUser = getCurrentUser();
         if (currentUser.isEmpty()) {
             return false;
@@ -83,9 +86,118 @@ public:
         return false;
     }
 
-    signals:
-    
+    // 获取用户统计数据 - 修正浏览历史统计逻辑
+    Q_INVOKABLE QVariantMap getUserStats() {
+        QVariantMap stats;
+        QString currentUser = getCurrentUser();
 
+        if (currentUser.isEmpty()) {
+            stats["cartItemCount"] = 0;
+            stats["historyItemCount"] = 0;
+            stats["favoritesCount"] = 0;
+            return stats;
+        }
+
+        DataManager dataManager;
+        UserData* user = dataManager.findUser(currentUser.toStdString());
+
+        if (user) {
+            // 计算购物车商品数量（所有商品的数量总和）
+            int cartItemCount = 0;
+            for (const auto& entry : user->shoppingCart) {
+                if (entry.size() >= 2) {
+                    cartItemCount += entry[1];  // entry[1] 是数量
+                }
+            }
+
+            // 计算浏览历史总次数（累加每个商品的浏览次数）
+            int historyItemCount = 0;
+            for (const auto& entry : user->viewHistory) {
+                if (entry.size() >= 2) {
+                    historyItemCount += entry[1];  // entry[1] 是浏览次数
+                }
+            }
+
+            // 计算收藏商品数量
+            int favoritesCount = user->favorites.size();
+
+            stats["cartItemCount"] = cartItemCount;
+            stats["historyItemCount"] = historyItemCount;
+            stats["favoritesCount"] = favoritesCount;
+        }
+        else {
+            stats["cartItemCount"] = 0;
+            stats["historyItemCount"] = 0;
+            stats["favoritesCount"] = 0;
+        }
+
+        return stats;
+    }
+
+    // 添加购物车操作方法
+    Q_INVOKABLE bool addToCart(int productId, int quantity) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return false;
+        }
+
+        DataManager dataManager;
+        return dataManager.addToCart(currentUser.toStdString(), productId, quantity);
+    }
+
+    Q_INVOKABLE bool removeFromCart(int productId) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return false;
+        }
+
+        DataManager dataManager;
+        return dataManager.removeFromCart(currentUser.toStdString(), productId);
+    }
+
+    Q_INVOKABLE bool updateCartQuantity(int productId, int newQuantity) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return false;
+        }
+
+        DataManager dataManager;
+        return dataManager.updateCartQuantity(currentUser.toStdString(), productId, newQuantity);
+    }
+
+    // 添加浏览历史
+    Q_INVOKABLE bool addViewHistory(int productId) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return false;
+        }
+
+        DataManager dataManager;
+        return dataManager.addViewHistory(currentUser.toStdString(), productId);
+    }
+
+    // 收藏操作
+    Q_INVOKABLE bool addToFavorites(int productId, int rating) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return false;
+        }
+
+        DataManager dataManager;
+        return dataManager.addToFavorites(currentUser.toStdString(), productId, rating);
+    }
+
+    Q_INVOKABLE bool removeFromFavorites(int productId) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return false;
+        }
+
+        DataManager dataManager;
+        return dataManager.removeFromFavorites(currentUser.toStdString(), productId);
+    }
+
+signals:
     void stateChanged(int newState);
 };
 
@@ -94,7 +206,7 @@ class DataManagerWrapper : public QObject {
     Q_OBJECT
 
 public:
-    explicit DataManagerWrapper(QObject *parent = nullptr) : QObject(parent) {
+    explicit DataManagerWrapper(QObject* parent = nullptr) : QObject(parent) {
         m_dataManager.loadUsersFromJson();
         m_dataManager.loadProductsFromJson();
     }
@@ -103,14 +215,14 @@ public:
         QVariantList productList;
         auto products = m_dataManager.getProducts();
 
-        for (const auto &product: products) {
+        for (const auto& product : products) {
             QVariantMap productMap;
             productMap["productId"] = product.productId;
             productMap["name"] = QString::fromStdString(product.name);
             productMap["price"] = product.price;
             productMap["stock"] = product.stock;
             productMap["category"] = QString::fromStdString(product.category);
-            productMap["avgRating"] = product.avg_rating;
+            productMap["avgRating"] = product.avgRating; // 使用修正后的字段名
             productMap["reviewers"] = product.reviewers;
             productList.append(productMap);
         }
@@ -118,7 +230,7 @@ public:
         return productList;
     }
 
-    Q_INVOKABLE QVariantMap getShoppingCartDetails(const QString &username) {
+    Q_INVOKABLE QVariantMap getShoppingCartDetails(const QString& username) {
         QVariantMap result;
         QVariantList itemList;
 
@@ -137,7 +249,7 @@ public:
         int totalQuantity = 0;
         auto details = m_dataManager.getShoppingCartDetails(username.toStdString(), totalPrice, totalQuantity);
 
-        for (const auto &item: details) {
+        for (const auto& item : details) {
             QVariantMap itemMap;
             itemMap["productId"] = item.productId;
             itemMap["name"] = QString::fromStdString(item.name);
@@ -159,7 +271,7 @@ public:
         auto products = m_dataManager.getProducts();
         QSet<QString> categorySet;
 
-        for (const auto &product: products) {
+        for (const auto& product : products) {
             categorySet.insert(QString::fromStdString(product.category));
         }
 
@@ -181,7 +293,7 @@ class UserManagerWrapper : public QObject {
     Q_OBJECT
 
 public:
-    explicit UserManagerWrapper(QObject *parent = nullptr) : QObject(parent) {
+    explicit UserManagerWrapper(QObject* parent = nullptr) : QObject(parent) {
         // 由于 UserManager 不使用 Qt 信号系统，这里不需要连接信号槽
         qDebug() << "UserManagerWrapper 初始化完成";
     }
@@ -194,13 +306,14 @@ public:
     }
 
     // 添加用户
-    Q_INVOKABLE bool addUser(const QString &username, const QString &password, bool isAdmin = false) {
+    Q_INVOKABLE bool addUser(const QString& username, const QString& password, bool isAdmin = false) {
         bool result = m_userManager.addUser(username, password, isAdmin);
         if (result) {
             qDebug() << "UserManagerWrapper: 用户添加成功，发射信号";
             emit userAdded(username);
             emit dataChanged();
-        } else {
+        }
+        else {
             emit errorOccurred("添加用户失败: " + username);
         }
         return result;
@@ -213,20 +326,22 @@ public:
             qDebug() << "UserManagerWrapper: 用户删除成功，发射信号";
             emit userDeleted(userId);
             emit dataChanged();
-        } else {
+        }
+        else {
             emit errorOccurred("删除用户失败，ID: " + QString::number(userId));
         }
         return result;
     }
 
     // 更新用户信息
-    Q_INVOKABLE bool updateUser(int userId, const QString &username, bool isAdmin) {
+    Q_INVOKABLE bool updateUser(int userId, const QString& username, bool isAdmin) {
         bool result = m_userManager.updateUser(userId, username, isAdmin);
         if (result) {
             qDebug() << "UserManagerWrapper: 用户更新成功，发射信号";
             emit userUpdated(userId);
             emit dataChanged();
-        } else {
+        }
+        else {
             emit errorOccurred("更新用户失败，ID: " + QString::number(userId));
         }
         return result;
@@ -242,7 +357,7 @@ public:
     }
 
     // 根据用户名获取用户
-    Q_INVOKABLE QVariantMap getUserByName(const QString &username) {
+    Q_INVOKABLE QVariantMap getUserByName(const QString& username) {
         auto result = m_userManager.getUserByName(username);
         if (result.isEmpty()) {
             emit errorOccurred("未找到用户: " + username);
@@ -261,7 +376,8 @@ public:
         if (result) {
             qDebug() << "UserManagerWrapper: 数据保存成功";
             emit dataSaved();
-        } else {
+        }
+        else {
             emit errorOccurred("保存数据失败");
         }
         return result;
@@ -273,7 +389,8 @@ public:
         if (result) {
             qDebug() << "UserManagerWrapper: 数据加载成功";
             emit dataChanged();
-        } else {
+        }
+        else {
             emit errorOccurred("加载数据失败");
         }
         return result;
@@ -286,26 +403,19 @@ public:
         emit dataChanged();
     }
 
-    signals:
-    
-
-    void userAdded(const QString &username);
-
+signals:
+    void userAdded(const QString& username);
     void userDeleted(int userId);
-
     void userUpdated(int userId);
-
     void dataChanged();
-
     void dataSaved();
-
-    void errorOccurred(const QString &error);
+    void errorOccurred(const QString& error);
 
 private:
     UserManager m_userManager;
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     QGuiApplication app(argc, argv);
 
     // 初始化应用程序状态

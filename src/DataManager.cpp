@@ -40,14 +40,15 @@ bool DataManager::loadUsersFromJson() {
 
         // 把数据存到users容器
         if (j.contains("users") && j["users"].is_array()) {
-            for (const auto &userJson: j["users"]) {
+            for (const auto& userJson : j["users"]) {
                 users.push_back(jsonToUser(userJson));
             }
         }
 
         qDebug() << "成功加载 " << users.size() << " 个用户数据";
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         qDebug() << "加载用户数据时发生错误: " << e.what();
         return false;
     }
@@ -60,7 +61,7 @@ bool DataManager::saveUsersToJson() {
         json usersArray = json::array();
 
         // 把users容器的数据序列化为json对象
-        for (const auto &user: users) {
+        for (const auto& user : users) {
             usersArray.push_back(userToJson(user));
         }
 
@@ -84,14 +85,15 @@ bool DataManager::saveUsersToJson() {
 
         qDebug() << "成功保存 " << users.size() << " 个用户数据";
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "保存用户数据时发生错误: " << e.what() << std::endl;
         return false;
     }
 }
 
 // 添加用户
-bool DataManager::addUser(const UserData &user) {
+bool DataManager::addUser(const UserData& user) {
     // 检查用户是否已存在
     if (findUser(user.username) != nullptr) {
         std::cerr << "用户已存在: " << user.username << std::endl;
@@ -104,11 +106,11 @@ bool DataManager::addUser(const UserData &user) {
 }
 
 // 删除用户
-bool DataManager::removeUser(const std::string &username) {
+bool DataManager::removeUser(const std::string& username) {
     auto it = std::find_if(users.begin(), users.end(),
-                           [&username](const UserData &user) {
-                               return user.username == username;
-                           });
+        [&username](const UserData& user) {
+            return user.username == username;
+        });
 
     if (it != users.end()) {
         users.erase(it);
@@ -121,17 +123,17 @@ bool DataManager::removeUser(const std::string &username) {
 }
 
 // 查找用户
-UserData *DataManager::findUser(const std::string &username) {
+UserData* DataManager::findUser(const std::string& username) {
     auto it = std::find_if(users.begin(), users.end(),
-                           [&username](const UserData &user) {
-                               return user.username == username;
-                           });
+        [&username](const UserData& user) {
+            return user.username == username;
+        });
 
     return (it != users.end()) ? &(*it) : nullptr;
 }
 
 // 获取所有用户
-std::vector<UserData> &DataManager::getUsers() {
+std::vector<UserData>& DataManager::getUsers() {
     return users;
 }
 
@@ -160,14 +162,15 @@ bool DataManager::loadProductsFromJson() {
 
         // 把数据存到products容器
         if (j.contains("products") && j["products"].is_array()) {
-            for (const auto &productJson: j["products"]) {
+            for (const auto& productJson : j["products"]) {
                 products.push_back(jsonToProduct(productJson));
             }
         }
 
         qDebug() << "成功加载 " << products.size() << " 个商品数据";
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "加载商品数据时发生错误: " << e.what() << std::endl;
         return false;
     }
@@ -179,7 +182,7 @@ bool DataManager::saveProductsToJson() {
         json productsArray = json::array();
 
         // JSON 结构序列化逻辑
-        for (const auto &product: products) {
+        for (const auto& product : products) {
             productsArray.push_back(productToJson(product));
         }
 
@@ -203,13 +206,14 @@ bool DataManager::saveProductsToJson() {
 
         qDebug() << "成功保存 " << products.size() << " 个商品数据";
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "保存商品数据时发生错误: " << e.what() << std::endl;
         return false;
     }
 }
 
-bool DataManager::addProduct(const ProductData &product) {
+bool DataManager::addProduct(const ProductData& product) {
     // 检查商品是否已存在
     if (findProduct(product.productId) != nullptr) {
         std::cerr << "商品已存在，ID: " << product.productId << std::endl;
@@ -223,9 +227,9 @@ bool DataManager::addProduct(const ProductData &product) {
 
 bool DataManager::removeProduct(int productId) {
     auto it = std::find_if(products.begin(), products.end(),
-                           [productId](const ProductData &product) {
-                               return product.productId == productId;
-                           });
+        [productId](const ProductData& product) {
+            return product.productId == productId;
+        });
 
     if (it != products.end()) {
         qDebug() << "成功删除商品: " << it->name << " (ID: " << productId << ")";
@@ -237,32 +241,32 @@ bool DataManager::removeProduct(int productId) {
     return false;
 }
 
-ProductData *DataManager::findProduct(int productId) {
+ProductData* DataManager::findProduct(int productId) {
     auto it = std::find_if(products.begin(), products.end(),
-                           [productId](const ProductData &product) {
-                               return product.productId == productId;
-                           });
+        [productId](const ProductData& product) {
+            return product.productId == productId;
+        });
 
     return (it != products.end()) ? &(*it) : nullptr;
 }
 
-std::vector<ProductData> &DataManager::getProducts() {
+std::vector<ProductData>& DataManager::getProducts() {
     return products;
 }
 
 std::vector<CartItemDetails> DataManager::
-getShoppingCartDetails(const std::string &username, double &totalPrice, int &totalQuantity) {
+getShoppingCartDetails(const std::string& username, double& totalPrice, int& totalQuantity) {
     totalPrice = 0.0;
     totalQuantity = 0;
     std::vector<CartItemDetails> items;
 
-    UserData *user = findUser(username);
+    UserData* user = findUser(username);
     if (!user) {
         qDebug() << "未找到用户:" << QString::fromStdString(username);
         return items;
     }
 
-    for (const auto &entry: user->shoppingCart) {
+    for (const auto& entry : user->shoppingCart) {
         if (entry.size() < 2) {
             continue;
         }
@@ -277,11 +281,12 @@ getShoppingCartDetails(const std::string &username, double &totalPrice, int &tot
         item.productId = productId;
         item.quantity = quantity;
 
-        ProductData *product = findProduct(productId);
+        ProductData* product = findProduct(productId);
         if (product) {
             item.name = product->name;
             item.unitPrice = product->price;
-        } else {
+        }
+        else {
             item.name = "未知商品";
             item.unitPrice = 0.0;
             qDebug() << "购物车中存在未找到的商品ID:" << productId;
@@ -298,6 +303,137 @@ getShoppingCartDetails(const std::string &username, double &totalPrice, int &tot
     return items;
 }
 
+// ============== 用户行为相关方法 ==============
+
+bool DataManager::addToCart(const std::string& username, int productId, int quantity) {
+    UserData* user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    // 检查商品是否存在
+    if (!findProduct(productId)) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 检查购物车中是否已有该商品
+    if (updateItemInVector(user->shoppingCart, productId, quantity)) {
+        qDebug() << "更新购物车商品数量，用户:" << QString::fromStdString(username) << "商品ID:" << productId << "数量:" << quantity;
+    }
+    else {
+        // 添加新商品到购物车
+        user->shoppingCart.push_back({ productId, quantity });
+        qDebug() << "添加商品到购物车，用户:" << QString::fromStdString(username) << "商品ID:" << productId << "数量:" << quantity;
+    }
+
+    return true;
+}
+
+bool DataManager::removeFromCart(const std::string& username, int productId) {
+    UserData* user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    if (removeItemFromVector(user->shoppingCart, productId)) {
+        qDebug() << "从购物车移除商品，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+        return true;
+    }
+
+    qDebug() << "购物车中未找到商品，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+    return false;
+}
+
+bool DataManager::updateCartQuantity(const std::string& username, int productId, int newQuantity) {
+    if (newQuantity <= 0) {
+        return removeFromCart(username, productId);
+    }
+    return addToCart(username, productId, newQuantity);
+}
+
+bool DataManager::addViewHistory(const std::string& username, int productId) {
+    UserData* user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    // 检查商品是否存在
+    if (!findProduct(productId)) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 查找是否已有浏览记录
+    bool found = false;
+    for (auto& entry : user->viewHistory) {
+        if (entry.size() >= 2 && entry[0] == productId) {
+            entry[1]++; // 增加浏览次数
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        // 添加新的浏览记录
+        user->viewHistory.push_back({ productId, 1 });
+    }
+
+    qDebug() << "添加浏览历史，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+    return true;
+}
+
+bool DataManager::addToFavorites(const std::string& username, int productId, int rating) {
+    UserData* user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    // 检查商品是否存在
+    if (!findProduct(productId)) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 检查评分有效性（假设1-5分）
+    if (rating < 1 || rating > 5) {
+        qDebug() << "评分无效:" << rating;
+        return false;
+    }
+
+    // 检查收藏中是否已有该商品
+    if (updateItemInVector(user->favorites, productId, rating)) {
+        qDebug() << "更新收藏商品评分，用户:" << QString::fromStdString(username) << "商品ID:" << productId << "评分:" << rating;
+    }
+    else {
+        // 添加新商品到收藏
+        user->favorites.push_back({ productId, rating });
+        qDebug() << "添加商品到收藏，用户:" << QString::fromStdString(username) << "商品ID:" << productId << "评分:" << rating;
+    }
+
+    return true;
+}
+
+bool DataManager::removeFromFavorites(const std::string& username, int productId) {
+    UserData* user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    if (removeItemFromVector(user->favorites, productId)) {
+        qDebug() << "从收藏移除商品，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+        return true;
+    }
+
+    qDebug() << "收藏中未找到商品，用户:" << QString::fromStdString(username) << "商品ID:" << productId;
+    return false;
+}
+
 // ============== 工具函数 ==============
 
 // 清空所有数据（用户和商品）
@@ -307,10 +443,35 @@ void DataManager::clearAllData() {
     qDebug() << "已清空所有数据";
 }
 
+// 辅助函数：在二维数组中查找并更新项目
+bool DataManager::updateItemInVector(std::vector<std::vector<int>>& vec, int productId, int newValue) {
+    for (auto& entry : vec) {
+        if (entry.size() >= 2 && entry[0] == productId) {
+            entry[1] = newValue;
+            return true;
+        }
+    }
+    return false;
+}
+
+// 辅助函数：从二维数组中移除项目
+bool DataManager::removeItemFromVector(std::vector<std::vector<int>>& vec, int productId) {
+    auto it = std::find_if(vec.begin(), vec.end(),
+        [productId](const std::vector<int>& entry) {
+            return entry.size() >= 2 && entry[0] == productId;
+        });
+
+    if (it != vec.end()) {
+        vec.erase(it);
+        return true;
+    }
+    return false;
+}
+
 // ============== 私有函数 ==============
 
 // 用户数据结构体序列化为 JSON 对象
-json DataManager::userToJson(const UserData &user) {
+json DataManager::userToJson(const UserData& user) {
     return json{
         {"userId", user.userId},
         {"username", user.username},
@@ -324,7 +485,7 @@ json DataManager::userToJson(const UserData &user) {
 }
 
 // JSON 对象转为用户数据结构体
-UserData DataManager::jsonToUser(const json &j) {
+UserData DataManager::jsonToUser(const json& j) {
     UserData user;
 
     // 使用 value() 方法提供默认值，避免字段不存在时的错误
@@ -333,29 +494,29 @@ UserData DataManager::jsonToUser(const json &j) {
     user.userId = j.value("userId", 0);
     user.isAdmin = j.value("isAdmin", false);
     user.salt = j.value("salt", "");
-    user.shoppingCart = j.at("shoppingCart").get<std::vector<std::vector<int> > >();
-    user.viewHistory = j.at("viewHistory").get<std::vector<std::vector<int> > >();
-    user.favorites = j.at("favorites").get<std::vector<std::vector<int> > >();
-    //json数据需要以"favorites": [[商品编号，值],...]的形式储存
+    user.shoppingCart = j.value("shoppingCart", std::vector<std::vector<int>>());
+    user.viewHistory = j.value("viewHistory", std::vector<std::vector<int>>());
+    user.favorites = j.value("favorites", std::vector<std::vector<int>>());
+
     return user;
 }
 
 // 商品数据结构体转为 JSON 对象
-json DataManager::productToJson(const ProductData &product) {
-    //商品结构体调整 JSON 序列化
+json DataManager::productToJson(const ProductData& product) {
+    // 统一使用 avgRating 字段名与JSON保持一致
     return json{
         {"productId", product.productId},
         {"name", product.name},
         {"price", product.price},
         {"stock", product.stock},
         {"category", product.category},
-        {"avgRating", product.avg_rating}, // 统一使用 avgRating 字段名
+        {"avgRating", product.avgRating}, // 使用修正后的字段名
         {"reviewers", product.reviewers}
     };
 }
 
 // JSON 对象转为商品数据结构体
-ProductData DataManager::jsonToProduct(const json &j) {
+ProductData DataManager::jsonToProduct(const json& j) {
     ProductData product;
 
     // 使用 value() 方法提供默认值，避免字段不存在时的错误
@@ -364,25 +525,21 @@ ProductData DataManager::jsonToProduct(const json &j) {
     product.price = j.value("price", 0.0);
     product.stock = j.value("stock", 0);
     product.category = j.value("category", "");
-    // 支持两种字段名：avgRating (新) 和 avg_rating (旧)
-    if (j.contains("avgRating")) {
-        product.avg_rating = j.value("avgRating", 0.0);
-    } else {
-        product.avg_rating = j.value("avg_rating", 0.0);
-    }
+    // 统一使用 avgRating 字段名
+    product.avgRating = j.value("avgRating", 0.0);
     product.reviewers = j.value("reviewers", 0);
 
     return product;
 }
 
 // 判断文件是否存在
-bool DataManager::fileExists(const std::string &filename) {
+bool DataManager::fileExists(const std::string& filename) {
     std::ifstream file(filename);
     return file.good();
 }
 
 // 创建空的 JSON 文件（用户或商品）
-bool DataManager::createEmptyJsonFile(const std::string &filename) {
+bool DataManager::createEmptyJsonFile(const std::string& filename) {
     try {
         json emptyJson;
         std::time_t t = std::time(nullptr); // 获取当前时间
@@ -397,7 +554,8 @@ bool DataManager::createEmptyJsonFile(const std::string &filename) {
                     }
                 }
             };
-        } else if (filename == PRODUCT_DATA_FILE) {
+        }
+        else if (filename == PRODUCT_DATA_FILE) {
             emptyJson = {
                 {"products", json::array()},
                 {
@@ -421,7 +579,8 @@ bool DataManager::createEmptyJsonFile(const std::string &filename) {
 
         qDebug() << "成功创建空的 JSON 文件: " << filename;
         return true;
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "创建 JSON 文件时发生错误: " << e.what() << std::endl;
         return false;
     }
