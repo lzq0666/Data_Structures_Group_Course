@@ -9,7 +9,22 @@ QString g_currentUsername = "";
 // 初始化应用程序状态
 void initializeApp() {
 	loadAppState();
-	g_currentState = g_isLoggedIn ? STATE_MAIN_MENU : STATE_LOGIN;	// 根据是否已登录设置初始状态
+	
+	// 如果用户已登录，根据用户权限决定初始状态
+	if (g_isLoggedIn && !g_currentUsername.isEmpty()) {
+		// 检查用户是否为管理员
+		if (isCurrentUserAdmin(g_currentUsername.toStdString())) {
+			g_currentState = STATE_ADMIN;
+			qDebug() << "管理员" << g_currentUsername << "自动登录到管理页面";
+		} else {
+			g_currentState = STATE_MAIN_MENU;
+			qDebug() << "用户" << g_currentUsername << "自动登录到主菜单";
+		}
+	} else {
+		g_currentState = STATE_LOGIN;
+		qDebug() << "未登录，跳转到登录页面";
+	}
+	
 	qDebug() << "初始化应用程序...";
 }
 

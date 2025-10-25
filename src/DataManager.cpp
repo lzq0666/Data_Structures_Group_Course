@@ -33,7 +33,7 @@ bool DataManager::loadUsersFromJson() {
         // 打开用户数据文件
         std::ifstream file(USER_DATA_FILE);
         if (!file.is_open()) {
-            std::cerr << "无法打开用户数据文件: " << USER_DATA_FILE << std::endl;
+            qDebug() << "无法打开用户数据文件: " << USER_DATA_FILE;
             return false;
         }
 
@@ -81,7 +81,7 @@ bool DataManager::saveUsersToJson() {
         // 打开文件进行写入
         std::ofstream file(USER_DATA_FILE);
         if (!file.is_open()) {
-            std::cerr << "无法打开用户数据文件进行写入: " << USER_DATA_FILE << std::endl;
+            qDebug() << "无法打开用户数据文件进行写入: " << USER_DATA_FILE;
             return false;
         }
 
@@ -101,7 +101,7 @@ bool DataManager::saveUsersToJson() {
 bool DataManager::addUser(const UserData& user) {
     // 检查用户是否已存在
     if (findUser(user.username) != nullptr) {
-        std::cerr << "用户已存在: " << user.username << std::endl;
+        qDebug() << "用户已存在: " << user.username;
         return false;
     }
 
@@ -123,7 +123,7 @@ bool DataManager::removeUser(const std::string& username) {
         return true;
     }
 
-    std::cerr << "未找到用户: " << username << std::endl;
+    qDebug() << "未找到用户: " << username;
     return false;
 }
 
@@ -155,7 +155,7 @@ bool DataManager::loadProductsFromJson() {
         // 打开商品数据文件
         std::ifstream file(PRODUCT_DATA_FILE);
         if (!file.is_open()) {
-            std::cerr << "无法打开商品数据文件: " << PRODUCT_DATA_FILE << std::endl;
+            qDebug() << "无法打开商品数据文件: " << PRODUCT_DATA_FILE;
             return false;
         }
 
@@ -202,7 +202,7 @@ bool DataManager::saveProductsToJson() {
         // 打开文件进行写入
         std::ofstream file(PRODUCT_DATA_FILE);
         if (!file.is_open()) {
-            std::cerr << "无法打开商品数据文件进行写入: " << PRODUCT_DATA_FILE << std::endl;
+            qDebug() << "无法打开商品数据文件进行写入: " << PRODUCT_DATA_FILE;
             return false;
         }
 
@@ -221,7 +221,7 @@ bool DataManager::saveProductsToJson() {
 bool DataManager::addProduct(const ProductData& product) {
     // 检查商品是否已存在
     if (findProduct(product.productId) != nullptr) {
-        std::cerr << "商品已存在，ID: " << product.productId << std::endl;
+        qDebug() << "商品已存在，ID: " << product.productId;
         return false;
     }
 
@@ -242,7 +242,7 @@ bool DataManager::removeProduct(int productId) {
         return true;
     }
 
-    std::cerr << "未找到商品，ID: " << productId << std::endl;
+    qDebug() << "未找到商品，ID: " << productId;
     return false;
 }
 
@@ -416,7 +416,7 @@ bool DataManager::createEmptyJsonFile(const std::string& filename) {
 
         std::ofstream file(filename);
         if (!file.is_open()) {
-            std::cerr << "无法创建文件: " << filename << std::endl;
+            qDebug() << "无法创建文件: " << filename;
             return false;
         }
 

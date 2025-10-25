@@ -2,6 +2,7 @@
 #include <QtQml>
 #include "StateManager.h"
 #include "DataManager.h"
+#include "UserManager.h"
 #include "Login.h"
 
 // 将 C++ 状态管理函数封装为 QML 可调用的类
@@ -19,7 +20,9 @@ public:
         STATE_EXIT = 5,
         STATE_USER_INFO = 6,
         STATE_CHANGE_PASSWORD = 7,
-        STATE_RECOMMENDATION = 8  
+        STATE_RECOMMENDATION = 8,
+        STATE_USER_MANAGEMENT = 9,
+        STATE_PRODUCT_MANAGEMENT = 10
     };
 
     Q_ENUM(State)
@@ -154,6 +157,128 @@ private:
     }
 };
 
+// UserManager 的 QML 包装器
+class UserManagerWrapper : public QObject {
+    Q_OBJECT
+
+public:
+    explicit UserManagerWrapper(QObject* parent = nullptr) : QObject(parent) {
+        // 由于 UserManager 不使用 Qt 信号系统，这里不需要连接信号槽
+        qDebug() << "UserManagerWrapper 初始化完成";
+    }
+
+    // 获取所有用户列表
+    Q_INVOKABLE QVariantList getAllUsers() {
+        auto result = m_userManager.getAllUsers();
+        emit dataChanged(); // 手动发射信号通知 QML
+        return result;
+    }
+
+    // 添加用户
+    Q_INVOKABLE bool addUser(const QString& username, const QString& password, bool isAdmin = false) {
+        bool result = m_userManager.addUser(username, password, isAdmin);
+        if (result) {
+            qDebug() << "UserManagerWrapper: 用户添加成功，发射信号";
+            emit userAdded(username);
+            emit dataChanged();
+        } else {
+            emit errorOccurred("添加用户失败: " + username);
+        }
+        return result;
+    }
+
+    // 删除用户
+    Q_INVOKABLE bool deleteUser(int userId) {
+        bool result = m_userManager.deleteUser(userId);
+        if (result) {
+            qDebug() << "UserManagerWrapper: 用户删除成功，发射信号";
+            emit userDeleted(userId);
+            emit dataChanged();
+        } else {
+            emit errorOccurred("删除用户失败，ID: " + QString::number(userId));
+        }
+        return result;
+    }
+
+    // 更新用户信息
+    Q_INVOKABLE bool updateUser(int userId, const QString& username, bool isAdmin) {
+        bool result = m_userManager.updateUser(userId, username, isAdmin);
+        if (result) {
+            qDebug() << "UserManagerWrapper: 用户更新成功，发射信号";
+            emit userUpdated(userId);
+            emit dataChanged();
+        } else {
+            emit errorOccurred("更新用户失败，ID: " + QString::number(userId));
+        }
+        return result;
+    }
+
+    // 根据ID获取用户
+    Q_INVOKABLE QVariantMap getUserById(int userId) {
+        auto result = m_userManager.getUserById(userId);
+        if (result.isEmpty()) {
+            emit errorOccurred("未找到用户，ID: " + QString::number(userId));
+        }
+        return result;
+    }
+
+    // 根据用户名获取用户
+    Q_INVOKABLE QVariantMap getUserByName(const QString& username) {
+        auto result = m_userManager.getUserByName(username);
+        if (result.isEmpty()) {
+            emit errorOccurred("未找到用户: " + username);
+        }
+        return result;
+    }
+
+    // 获取用户统计信息
+    Q_INVOKABLE QVariantMap getUserStatistics() {
+        return m_userManager.getUserStatistics();
+    }
+
+    // 保存到文件
+    Q_INVOKABLE bool saveToFile() {
+        bool result = m_userManager.saveToFile();
+        if (result) {
+            qDebug() << "UserManagerWrapper: 数据保存成功";
+            emit dataSaved();
+        } else {
+            emit errorOccurred("保存数据失败");
+        }
+        return result;
+    }
+
+    // 从文件加载
+    Q_INVOKABLE bool loadFromFile() {
+        bool result = m_userManager.loadFromFile();
+        if (result) {
+            qDebug() << "UserManagerWrapper: 数据加载成功";
+            emit dataChanged();
+        } else {
+            emit errorOccurred("加载数据失败");
+        }
+        return result;
+    }
+
+    // 刷新数据
+    Q_INVOKABLE void refreshData() {
+        m_userManager.refreshData();
+        qDebug() << "UserManagerWrapper: 数据已刷新";
+        emit dataChanged();
+    }
+
+signals:
+    void userAdded(const QString& username);
+    void userDeleted(int userId);
+    void userUpdated(int userId);
+    void dataChanged();
+    void dataSaved();
+    void errorOccurred(const QString& error);
+
+private:
+    UserManager m_userManager;
+};
+
 int main(int argc, char* argv[]) {
     QGuiApplication app(argc, argv);
 
@@ -163,6 +288,7 @@ int main(int argc, char* argv[]) {
     // 注册类型到 QML
     qmlRegisterType<StateManagerWrapper>("StateManager", 1, 0, "StateManager");
     qmlRegisterType<DataManagerWrapper>("DataManager", 1, 0, "DataManager");
+    qmlRegisterType<UserManagerWrapper>("UserManager", 1, 0, "UserManager");
 
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:/Qt/mainWindow.qml")));
@@ -192,4 +318,4 @@ int main(int argc, char* argv[]) {
                    `=---='
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             佛祖保佑       永无BUG
-*/
+ */
