@@ -629,23 +629,38 @@ Item {
     // 工具函数
     function getCategoryIcon(category) {
         switch(category) {
-            case "手机": return "📱"
-            case "电脑": return "💻"
-            case "耳机": return "🎧"
-            case "平板": return "📲"
-            case "手表": return "⌚"
+            case "食品":
+                return "🍎"
+            case "日用品":
+                return "🧴"
+            case "电器":
+                return "🔌"
+            case "数码产品":
+                return "📱"
+            case "服装":
+                return "👗"
+            case "酒水":
+                return "🍷"
             default: return "📦"
         }
     }
     
     function getCategoryColor(category) {
         switch(category) {
-            case "手机": return "#e74c3c"
-            case "电脑": return "#9b59b6"
-            case "耳机": return "#f39c12"
-            case "平板": return "#2ecc71"
-            case "手表": return "#34495e"
-            default: return "#3498db"
+            case "食品":
+                return "#e74c3c"
+            case "日用品":
+                return "#9b59b6"
+            case "电器":
+                return "#f39c12"
+            case "数码产品":
+                return "#2ecc71"
+            case "服装":
+                return "#34495e"
+            case "酒水":
+                return "#3498db"
+            default:
+                return "#95a5a6"
         }
     }
     

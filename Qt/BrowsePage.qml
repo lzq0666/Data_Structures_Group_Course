@@ -276,11 +276,12 @@ Item {
                         Repeater {
                             model: [
                                 {text: "全部", icon: "🏪", color: "#3498db"},
-                                {text: "手机", icon: "📱", color: "#e74c3c"},
-                                {text: "电脑", icon: "💻", color: "#9b59b6"},
-                                {text: "耳机", icon: "🎧", color: "#f39c12"},
-                                {text: "平板", icon: "📲", color: "#2ecc71"},
-                                {text: "手表", icon: "⌚", color: "#34495e"}
+                                {text: "食品", icon: "🍎", color: "#e74c3c"},
+                                {text: "日用品", icon: "🧴", color: "#9b59b6"},
+                                {text: "电器", icon: "🔌", color: "#f39c12"},
+                                {text: "数码产品", icon: "📱", color: "#2ecc71"},
+                                {text: "服装", icon: "👗", color: "#34495e"},
+                                {text: "酒水", icon: "🍷", color: "#3498db"}
                             ]
                             
                             Rectangle {
@@ -748,11 +749,18 @@ Item {
     // 工具函数 - 获取分类图标
     function getCategoryIcon(category) {
         switch(category) {
-            case "手机": return "📱"
-            case "电脑": return "💻"
-            case "耳机": return "🎧"
-            case "平板": return "📲"
-            case "手表": return "⌚"
+            case "食品":
+                return "🍎"
+            case "日用品":
+                return "🧴"
+            case "电器":
+                return "🔌"
+            case "数码产品":
+                return "📱"
+            case "服装":
+                return "👗"
+            case "酒水":
+                return "🍷"
             default: return "📦"
         }
     }
@@ -760,11 +768,18 @@ Item {
     // 工具函数 - 获取分类颜色
     function getCategoryColor(category) {
         switch(category) {
-            case "手机": return "#e74c3c"
-            case "电脑": return "#9b59b6"
-            case "耳机": return "#f39c12"
-            case "平板": return "#2ecc71"
-            case "手表": return "#34495e"
+            case "食品":
+                return "#e74c3c"
+            case "日用品":
+                return "#9b59b6"
+            case "电器":
+                return "#f39c12"
+            case "数码产品":
+                return "#2ecc71"
+            case "服装":
+                return "#34495e"
+            case "酒水":
+                return "#3498db"
             default: return "#3498db"
         }
     }
