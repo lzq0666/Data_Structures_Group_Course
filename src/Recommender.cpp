@@ -9,7 +9,7 @@
 // 定义命名空间内的全局变量
 namespace Recommender
 {
-    std::vector<ProductData *> g_products;
+    std::vector<ProductData> g_products;
     std::vector<UserData> g_users;
     std::unordered_map<int, int> g_productIdToIndex;
     std::vector<std::vector<double>> g_coOccurrenceMatrix;
@@ -23,7 +23,7 @@ namespace Recommender
         g_productIdToIndex.clear();
         for (int i = 0; i < g_products.size(); i++)
         {
-            g_productIdToIndex[g_products[i]->productId] = i;
+            g_productIdToIndex[g_products[i].productId] = i;
         }
     }
 
@@ -294,7 +294,7 @@ namespace Recommender
 
         for (const auto &product : g_products)
         {
-            int productId = product->productId;
+            int productId = product.productId;
 
             // 跳过用户已交互的商品
             if (interactedProducts.find(productId) != interactedProducts.end())

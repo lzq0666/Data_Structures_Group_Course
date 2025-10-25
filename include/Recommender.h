@@ -11,7 +11,7 @@ struct UserData;
 
 namespace Recommender
 {
-    extern std::vector<ProductData*> g_products;					// 存储商品结构体指针
+    extern std::vector<ProductData> g_products;					// 存储商品结构体
     extern std::vector<UserData> g_users;				    // 存储用户结构体
     extern std::unordered_map<int, int> g_productIdToIndex;		// 商品ID -> 数组索引映射
     extern std::vector<std::vector<double>> g_coOccurrenceMatrix;   // 共现矩阵
