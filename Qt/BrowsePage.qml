@@ -10,7 +10,8 @@ Item {
     
     // 与主窗口通信的信号
     signal backToMainMenuRequested()
-    signal addToCartRequested(int productId, string productName, real price)
+    signal addToCartRequested(int productId, string productName, real price, int quantity)
+    signal showProductDetailRequested(int productId)
     
     // StateManager 引用
     property var stateManager: null
@@ -371,7 +372,7 @@ Item {
                         anchors.margins: 20
                         spacing: 15
                         
-                        // 商品区域标题 - 删除了刷新按钮
+                        // 商品区域标题 
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 12
@@ -408,7 +409,6 @@ Item {
                             
                             Item { Layout.fillWidth: true }
                             
-                            // 删除了刷新按钮及其相关代码
                         }
                         
                         // 商品网格
@@ -449,13 +449,6 @@ Item {
                                         border.color: "#ecf0f1"  // 固定边框颜色，不再变化
                                         border.width: 1  // 固定边框宽度
                                         
-                                        // 删除了缩放动画效果
-                                        // scale: cardArea.containsMouse ? 1.02 : 1.0
-                                        
-                                        // 删除了边框和缩放的动画效果
-                                        // Behavior on border.color { ColorAnimation { duration: 200 } }
-                                        // Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuad } }
-                                        
                                         Rectangle {
                                             anchors.fill: parent
                                             anchors.topMargin: 2  // 固定阴影位置
@@ -463,11 +456,7 @@ Item {
                                             color: "#06000000"  // 固定阴影颜色
                                             radius: parent.radius
                                             z: -1
-                                            
-                                            // 删除了阴影的动画效果
-                                            // Behavior on anchors.topMargin { NumberAnimation { duration: 200 } }
-                                            // Behavior on anchors.leftMargin { NumberAnimation { duration: 200 } }
-                                            // Behavior on color { ColorAnimation { duration: 200 } }
+                                          
                                         }
                                         
                                         MouseArea {
@@ -478,6 +467,7 @@ Item {
                                             
                                             onClicked: {
                                                 console.log("点击了商品:", model.name, "ID:", model.productId)
+                                                showProductDetailRequested(model.productId)
                                             }
                                         }
                                         
@@ -618,7 +608,7 @@ Item {
                                                     Layout.fillWidth: true
                                                     spacing: 8
                                                     
-                                                    // 查看详情按钮 - 删除了表情符号
+                                                    // 查看详情按钮 
                                                     Rectangle {
                                                         Layout.fillWidth: true
                                                         Layout.preferredHeight: 34
@@ -632,7 +622,7 @@ Item {
                                                         
                                                         Text {
                                                             anchors.centerIn: parent
-                                                            text: "查看"  // 删除了👁️表情符号
+                                                            text: "查看"  
                                                             color: "white"
                                                             font.pixelSize: 12
                                                             font.bold: true
@@ -646,6 +636,7 @@ Item {
                                                             
                                                             onClicked: {
                                                                 console.log("查看商品详情:", model.name, "ID:", model.productId)
+                                                                showProductDetailRequested(model.productId)
                                                             }
                                                         }
                                                     }
@@ -676,7 +667,7 @@ Item {
                                                             
                                                             onClicked: {
                                                                 console.log("添加到购物车:", model.name, "ID:", model.productId, "价格:", model.price)
-                                                                addToCartRequested(model.productId, model.name, model.price)
+                                                                addToCartRequested(model.productId, model.name, model.price, 1)
                                                                 cartFeedback.start()
                                                             }
                                                         }
@@ -822,8 +813,6 @@ Item {
             return false
         }
     }
-    
-    // 删除了 refreshProductList() 函数，因为刷新按钮已被移除
     
     // 清空商品列表
     function clearProductList() {

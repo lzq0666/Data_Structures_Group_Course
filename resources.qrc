@@ -12,5 +12,6 @@
         <file>Qt/ProductCard.qml</file>
         <file>Qt/RecommendationPage.qml</file>
         <file>Qt/shoppingCare.qml</file>
+        <file>Qt/ProductDetailPage.qml</file>
     </qresource>
 </RCC>

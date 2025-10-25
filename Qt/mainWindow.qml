@@ -2,6 +2,7 @@
 import QtQuick.Controls.Fusion 2.12
 import QtQuick.Dialogs
 import StateManager 1.0
+import DataManager 1.0
 
 ApplicationWindow {
     id: appWindow
@@ -19,6 +20,14 @@ ApplicationWindow {
             contentLoader.updateSource()
         }
     }
+    
+    // DataManager实例 - 用于购物车操作
+    DataManager {
+        id: dataManager
+    }
+    
+    // 当前查看的商品ID
+    property int currentProductId: -1
     
     // 根据状态显示不同内容
     Loader {
@@ -41,6 +50,9 @@ ApplicationWindow {
                     break
                 case StateManager.STATE_BROWSE: 
                     source = "qrc:/Qt/BrowsePage.qml"
+                    break
+                case StateManager.STATE_PRODUCT_DETAIL:
+                    source = "qrc:/Qt/ProductDetailPage.qml"
                     break
                 case StateManager.STATE_ADMIN: 
                     source = "qrc:/Qt/adminPage.qml"
@@ -137,6 +149,21 @@ ApplicationWindow {
                     item.backToMainMenuRequested.connect(handleBackToMainMenu);
                 }
                 
+                // 连接浏览页面的商品详情信号
+                if (typeof item.showProductDetailRequested !== "undefined") {
+                    item.showProductDetailRequested.connect(handleShowProductDetail);
+                }
+                
+                // 连接商品详情页面的返回浏览信号
+                if (typeof item.backToBrowseRequested !== "undefined") {
+                    item.backToBrowseRequested.connect(handleBackToBrowse);
+                }
+                
+                // 连接加入购物车信号
+                if (typeof item.addToCartRequested !== "undefined") {
+                    item.addToCartRequested.connect(handleAddToCart);
+                }
+                
                 // 连接用户信息页面的修改密码信号
                 if (typeof item.changePasswordRequested !== "undefined") {
                     item.changePasswordRequested.connect(handleChangePassword);
@@ -168,6 +195,11 @@ ApplicationWindow {
                 
                 if (typeof item.systemSettingsRequested !== "undefined") {
                     item.systemSettingsRequested.connect(handleSystemSettings);
+                }
+                
+                // 如果是商品详情页面，设置当前商品
+                if (currentStateValue === StateManager.STATE_PRODUCT_DETAIL && typeof item.setCurrentProduct === "function") {
+                    item.setCurrentProduct(currentProductId);
                 }
             }
         }
@@ -309,6 +341,47 @@ ApplicationWindow {
         stateManager.setState(StateManager.STATE_MAIN_MENU);
     }
     
+    // 跳转到商品详情页面
+    function handleShowProductDetail(productId) {
+        console.log("跳转到商品详情页面，商品ID:", productId);
+        currentProductId = productId;
+        stateManager.setState(StateManager.STATE_PRODUCT_DETAIL);
+    }
+    
+    // 从商品详情页面返回浏览页面
+    function handleBackToBrowse() {
+        console.log("返回商品浏览页面");
+        stateManager.setState(StateManager.STATE_BROWSE);
+    }
+    
+    // 处理加入购物车请求
+    function handleAddToCart(productId, productName, price, quantity) {
+        console.log("处理加入购物车请求:", productName, "数量:", quantity || 1);
+        
+        var currentUser = stateManager.getCurrentUsername();
+        if (!currentUser) {
+            console.error("用户未登录，无法添加到购物车");
+            return;
+        }
+        
+        var addQuantity = quantity || 1;
+        var success = dataManager.addToCart(currentUser, productId, addQuantity);
+        
+        if (success) {
+            console.log("成功添加到购物车:", productName, "数量:", addQuantity);
+            
+            // 保存用户数据到JSON文件
+            dataManager.saveUsersToJson();
+            
+            // 可以在这里添加成功提示
+            if (typeof appWindow.showCartSuccess === "function") {
+                appWindow.showCartSuccess(productName, addQuantity);
+            }
+        } else {
+            console.error("添加到购物车失败");
+        }
+    }
+    
     // 跳转到修改密码页面
     function handleChangePassword() {
         console.log("跳转到修改密码页面");
@@ -382,4 +455,9 @@ ApplicationWindow {
         // TODO: 实现商品管理功能
     }
     
+    // 成功添加到购物车的提示（可选实现）
+    function showCartSuccess(productName, quantity) {
+        console.log("商品已成功添加到购物车:", productName, "数量:", quantity);
+        // 这里可以实现一个全局的成功提示
+    }
 }

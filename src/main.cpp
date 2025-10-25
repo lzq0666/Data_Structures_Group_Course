@@ -24,7 +24,8 @@ public:
         STATE_USER_MANAGEMENT = 9,
         STATE_PRODUCT_MANAGEMENT = 10,
         STATE_DATA_IMPORT = 11,
-        STATE_SHOPPING_CART = 12
+        STATE_SHOPPING_CART = 12,
+        STATE_PRODUCT_DETAIL = 13
     };
 
     Q_ENUM(State)
@@ -66,6 +67,10 @@ public:
     }
 
     Q_INVOKABLE QString getCurrentUser() {
+        return ::getCurrentUser();
+    }
+
+    Q_INVOKABLE QString getCurrentUsername() {
         return ::getCurrentUser();
     }
 
@@ -230,6 +235,43 @@ public:
         return productList;
     }
 
+    Q_INVOKABLE QVariantMap findProduct(int productId) {
+        auto product = m_dataManager.findProduct(productId);
+        QVariantMap productMap;
+
+        if (product) {
+            productMap["productId"] = product->productId;
+            productMap["name"] = QString::fromStdString(product->name);
+            productMap["price"] = product->price;
+            productMap["stock"] = product->stock;
+            productMap["category"] = QString::fromStdString(product->category);
+            productMap["avgRating"] = product->avgRating;
+            productMap["reviewers"] = product->reviewers;
+        }
+
+        return productMap;
+    }
+
+    Q_INVOKABLE bool loadProductsFromJson() {
+        return m_dataManager.loadProductsFromJson();
+    }
+
+    Q_INVOKABLE bool saveUsersToJson() {
+        return m_dataManager.saveUsersToJson();
+    }
+
+    Q_INVOKABLE bool addToCart(const QString& username, int productId, int quantity) {
+        return m_dataManager.addToCart(username.toStdString(), productId, quantity);
+    }
+
+    Q_INVOKABLE bool updateCartQuantity(const QString& username, int productId, int newQuantity) {
+        return m_dataManager.updateCartQuantity(username.toStdString(), productId, newQuantity);
+    }
+
+    Q_INVOKABLE bool addViewHistory(const QString& username, int productId) {
+        return m_dataManager.addViewHistory(username.toStdString(), productId);
+    }
+
     Q_INVOKABLE QVariantMap getShoppingCartDetails(const QString& username) {
         QVariantMap result;
         QVariantList itemList;
@@ -280,15 +322,11 @@ public:
         return categories;
     }
 
-    Q_INVOKABLE bool loadProductsFromJson() {
-        return m_dataManager.loadProductsFromJson();
-    }
-
 private:
     DataManager m_dataManager;
 };
 
-// UserManager 的 QML 包装器
+// UserManager 的 QML 包装器 - 保持原有实现
 class UserManagerWrapper : public QObject {
     Q_OBJECT
 

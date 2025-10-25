@@ -319,13 +319,22 @@ bool DataManager::addToCart(const std::string& username, int productId, int quan
     }
 
     // 检查购物车中是否已有该商品
-    if (updateItemInVector(user->shoppingCart, productId, quantity)) {
-        qDebug() << "更新购物车商品数量，用户:" << QString::fromStdString(username) << "商品ID:" << productId << "数量:" << quantity;
+    bool found = false;
+    for (auto& entry : user->shoppingCart) {
+        if (entry.size() >= 2 && entry[0] == productId) {
+            entry[1] += quantity; // 累加数量而不是替换
+            found = true;
+            qDebug() << "更新购物车商品数量，用户:" << QString::fromStdString(username) 
+                     << "商品ID:" << productId << "新数量:" << entry[1];
+            break;
+        }
     }
-    else {
+    
+    if (!found) {
         // 添加新商品到购物车
         user->shoppingCart.push_back({ productId, quantity });
-        qDebug() << "添加商品到购物车，用户:" << QString::fromStdString(username) << "商品ID:" << productId << "数量:" << quantity;
+        qDebug() << "添加商品到购物车，用户:" << QString::fromStdString(username) 
+                 << "商品ID:" << productId << "数量:" << quantity;
     }
 
     return true;
@@ -351,7 +360,31 @@ bool DataManager::updateCartQuantity(const std::string& username, int productId,
     if (newQuantity <= 0) {
         return removeFromCart(username, productId);
     }
-    return addToCart(username, productId, newQuantity);
+    
+    UserData* user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    // 检查商品是否存在
+    if (!findProduct(productId)) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 直接设置新数量（不累加）
+    if (updateItemInVector(user->shoppingCart, productId, newQuantity)) {
+        qDebug() << "更新购物车商品数量（直接设置），用户:" << QString::fromStdString(username) 
+                 << "商品ID:" << productId << "数量:" << newQuantity;
+        return true;
+    } else {
+        // 如果商品不在购物车中，添加新商品
+        user->shoppingCart.push_back({ productId, newQuantity });
+        qDebug() << "添加商品到购物车（通过更新数量），用户:" << QString::fromStdString(username) 
+                 << "商品ID:" << productId << "数量:" << newQuantity;
+        return true;
+    }
 }
 
 bool DataManager::addViewHistory(const std::string& username, int productId) {
