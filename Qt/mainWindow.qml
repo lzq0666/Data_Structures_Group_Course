@@ -54,6 +54,18 @@ ApplicationWindow {
                 case StateManager.STATE_RECOMMENDATION:  
                     source = "qrc:/Qt/RecommendationPage.qml"
                     break
+                case StateManager.STATE_USER_MANAGEMENT:
+                    source = "qrc:/Qt/UserManagementPage.qml"
+                    break
+                case StateManager.STATE_PRODUCT_MANAGEMENT:
+                    source = "qrc:/Qt/ProductManagementPage.qml"
+                    break
+                case StateManager.STATE_DATA_IMPORT:
+                    source = "qrc:/Qt/DataImportPage.qml"
+                    break
+                case StateManager.STATE_SHOPPING_CART:
+                    source = "qrc:/Qt/shoppingCare.qml"
+                    break
                 default: 
                     source = "qrc:/Qt/LoginPage.qml"
                     break
@@ -282,9 +294,7 @@ ApplicationWindow {
     // 跳转到购物车页面 
     function handleShoppingCart() {
         console.log("跳转到购物车页面");
-        // TODO: 需要创建购物车页面或者实现购物车功能
-        // 目前暂时显示提示信息
-        console.log("购物车功能正在开发中...");
+        stateManager.setState(StateManager.STATE_SHOPPING_CART);
     }
     
     // 跳转到用户信息页面

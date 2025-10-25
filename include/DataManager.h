@@ -8,6 +8,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <QString>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::ordered_json;
@@ -22,6 +23,7 @@ struct UserData {
     std::vector<std::vector<int> > shoppingCart; // 购物车，二维数组
     std::vector<std::vector<int> > viewHistory; // 浏览历史，二维数组
     std::vector<std::vector<int> > favorites; // 显式评分，二维数组
+    //json数据需要以"favorites": [[商品编号，值],...]的形式储存
 };
 
 // 商品数据结构体
@@ -33,6 +35,15 @@ struct ProductData {
     std::string category;
     double avg_rating; // 平均评分
     int reviewers; // 评分人数
+};
+
+// 购物车展示项结构体
+struct CartItemDetails {
+    int productId;
+    std::string name;
+    int quantity;
+    double unitPrice;
+    double subtotal;
 };
 
 class DataManager {
@@ -68,6 +79,11 @@ public:
     ProductData *findProduct(int productId);
 
     std::vector<ProductData> &getProducts();
+
+    // 购物车相关
+    std::vector<CartItemDetails> getShoppingCartDetails(const std::string &username,
+                                                        double &totalPrice,
+                                                        int &totalQuantity);
 
     // 工具函数
     void clearAllData();

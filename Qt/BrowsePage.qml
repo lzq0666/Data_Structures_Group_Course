@@ -156,8 +156,8 @@ Item {
                             color: "#7f8c8d"
                         }
                     }
-                    
-                    // 搜索框（暂时不实现搜索功能）
+
+                    // TODO：搜索框（暂时不实现搜索功能）
                     Rectangle {
                         Layout.preferredWidth: 280
                         Layout.preferredHeight: 40
@@ -205,8 +205,8 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: 20
-                
-                // 左侧分类面板（暂时不实现筛选功能）
+
+                // TODO：左侧分类面板（暂时不实现筛选功能）
                 Rectangle {
                     Layout.preferredWidth: 220
                     Layout.fillHeight: true
@@ -270,8 +270,8 @@ Item {
                         }
                         
                         ButtonGroup { id: categoryGroup }
-                        
-                        // 分类按钮（暂时不实现筛选功能）
+
+                        // TODO：分类按钮（暂时不实现筛选功能）
                         Repeater {
                             model: [
                                 {text: "全部", icon: "🏪", color: "#3498db"},

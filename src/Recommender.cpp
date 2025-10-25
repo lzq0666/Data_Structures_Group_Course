@@ -1,4 +1,4 @@
-#include "Recommender.h"
+ï»¿#include "Recommender.h"
 #include "DataManager.h"
 #include <unordered_map>
 #include <vector>
@@ -6,150 +6,130 @@
 #include <cmath>
 #include <algorithm>
 
-// ¶¨ÒåÃüÃû¿Õ¼äÄÚµÄÈ«¾Ö±äÁ¿
-namespace Recommender
-{
+// å®šä¹‰å‘½åç©ºé—´å†…çš„å…¨å±€å˜é‡
+namespace Recommender {
     std::vector<ProductData *> g_products;
     std::vector<UserData *> g_users;
     std::unordered_map<int, int> g_productIdToIndex;
-    std::vector<std::vector<double>> g_coOccurrenceMatrix;
-    std::vector<std::vector<double>> g_similarityMatrix;
+    std::vector<std::vector<double> > g_coOccurrenceMatrix;
+    std::vector<std::vector<double> > g_similarityMatrix;
 
     /**
-     * @brief ³õÊ¼»¯ÉÌÆ·IDµ½Ë÷ÒıµÄÓ³Éä
+     * @brief åˆå§‹åŒ–å•†å“IDåˆ°ç´¢å¼•çš„æ˜ å°„
      */
-    void initMapping()
-    {
+    void initMapping() {
         g_productIdToIndex.clear();
-        for (int i = 0; i < g_products.size(); i++)
-        {
+        for (int i = 0; i < g_products.size(); i++) {
             g_productIdToIndex[g_products[i]->productId] = i;
         }
     }
 
     /**
-     * @brief ¼ÆËãÓÃ»§¶ÔËùÓĞÉÌÆ·µÄĞËÈ¤·ÖÊı
-     * @param user ÓÃ»§Êı¾İÖ¸Õë
-     * @return °üº¬{ÉÌÆ·ID, ĞËÈ¤Öµ}µÄpairÊı×é
+     * @brief è®¡ç®—ç”¨æˆ·å¯¹æ‰€æœ‰å•†å“çš„å…´è¶£åˆ†æ•°
+     * @param user ç”¨æˆ·æ•°æ®æŒ‡é’ˆ
+     * @return åŒ…å«{å•†å“ID, å…´è¶£å€¼}çš„pairæ•°ç»„
      *
-     * ĞËÈ¤Öµ¼ÆËã¹æÔò£º
+     * å…´è¶£å€¼è®¡ç®—è§„åˆ™ï¼š
      * I = 0.6 * f_r + 0.25 * f_c + 0.15 * f_v
      *
-     * - f_r: ÓÃ»§¶ÔÉÌÆ·µÄÆÀ·Ö£¬f_r = (r - 1) / 4£¬1 <= r <= 5
-     * - f_c: ÊÇ·ñ¼ÓÈë¹ºÎï³µ£¬¼ÓÈë¹ºÎï³µÔòÎª1£¬·ñÔòÎª0
-     * - f_v: ä¯ÀÀ´ÎÊı£¬f_v = 1 - exp(-0.2 * v)
+     * - f_r: ç”¨æˆ·å¯¹å•†å“çš„è¯„åˆ†ï¼Œf_r = (r - 1) / 4ï¼Œ1 <= r <= 5
+     * - f_c: æ˜¯å¦åŠ å…¥è´­ç‰©è½¦ï¼ŒåŠ å…¥è´­ç‰©è½¦åˆ™ä¸º1ï¼Œå¦åˆ™ä¸º0
+     * - f_v: æµè§ˆæ¬¡æ•°ï¼Œf_v = 1 - exp(-0.2 * v)
      */
-    std::vector<std::pair<int, double>> calculateInterestScore(UserData *user)
-    {
-        std::vector<std::pair<int, double>> interestScores;
+    std::vector<std::pair<int, double> > calculateInterestScore(UserData *user) {
+        std::vector<std::pair<int, double> > interestScores;
 
-        if (user == nullptr)
-        {
+        if (user == nullptr) {
             return interestScores;
         }
 
-        // È¨ÖØÉèÖÃ
-        const double RATING_WEIGHT = 0.6; // ÆÀ·ÖÈ¨ÖØ
-        const double CART_WEIGHT = 0.25;  // ¹ºÎï³µÈ¨ÖØ
-        const double VIEW_WEIGHT = 0.15;  // ä¯ÀÀ´ÎÊıÈ¨ÖØ
+        // æƒé‡è®¾ç½®
+        const double RATING_WEIGHT = 0.6; // è¯„åˆ†æƒé‡
+        const double CART_WEIGHT = 0.25; // è´­ç‰©è½¦æƒé‡
+        const double VIEW_WEIGHT = 0.15; // æµè§ˆæ¬¡æ•°æƒé‡
 
-        // ÎªÃ¿¸öÉÌÆ·¹¹½¨Ò»¸öÓ³Éä£¬¼ÇÂ¼ÆÀ·Ö¡¢ÊÇ·ñÔÚ¹ºÎï³µ¡¢ä¯ÀÀ´ÎÊı
-        std::unordered_map<int, double> ratings; // ÉÌÆ·ID -> ÆÀ·Ö
-        std::unordered_map<int, bool> inCart;    // ÉÌÆ·ID -> ÊÇ·ñÔÚ¹ºÎï³µ
-        std::unordered_map<int, int> viewCounts; // ÉÌÆ·ID -> ä¯ÀÀ´ÎÊı
+        // ä¸ºæ¯ä¸ªå•†å“æ„å»ºä¸€ä¸ªæ˜ å°„ï¼Œè®°å½•è¯„åˆ†ã€æ˜¯å¦åœ¨è´­ç‰©è½¦ã€æµè§ˆæ¬¡æ•°
+        std::unordered_map<int, double> ratings; // å•†å“ID -> è¯„åˆ†
+        std::unordered_map<int, bool> inCart; // å•†å“ID -> æ˜¯å¦åœ¨è´­ç‰©è½¦
+        std::unordered_map<int, int> viewCounts; // å•†å“ID -> æµè§ˆæ¬¡æ•°
 
-        // 1. ´¦ÀíÊÕ²Ø£¨favorites£©Êı¾İ£¬»ñÈ¡ÆÀ·Ö
-        // favorites¸ñÊ½: [[ÉÌÆ·ID, ÆÀ·Ö], ...]
-        for (const auto &favorite : user->favorites)
-        {
-            if (favorite.size() >= 2)
-            {
+        // 1. å¤„ç†æ”¶è—ï¼ˆfavoritesï¼‰æ•°æ®ï¼Œè·å–è¯„åˆ†
+        // favoritesæ ¼å¼: [[å•†å“ID, è¯„åˆ†], ...]
+        for (const auto &favorite: user->favorites) {
+            if (favorite.size() >= 2) {
                 int productId = favorite[0];
                 int rating = favorite[1];
                 ratings[productId] = rating;
             }
         }
 
-        // 2. ´¦Àí¹ºÎï³µ£¨shoppingCart£©Êı¾İ
-        // shoppingCart¸ñÊ½: [[ÉÌÆ·ID, ÊıÁ¿, ...], ...]
-        for (const auto &cartItem : user->shoppingCart)
-        {
-            if (!cartItem.empty())
-            {
+        // 2. å¤„ç†è´­ç‰©è½¦ï¼ˆshoppingCartï¼‰æ•°æ®
+        // shoppingCartæ ¼å¼: [[å•†å“ID, æ•°é‡, ...], ...]
+        for (const auto &cartItem: user->shoppingCart) {
+            if (!cartItem.empty()) {
                 int productId = cartItem[0];
                 inCart[productId] = true;
             }
         }
 
-        // 3. ´¦Àíä¯ÀÀÀúÊ·£¨viewHistory£©Êı¾İ
-        // viewHistory¸ñÊ½: [[ÉÌÆ·ID, ä¯ÀÀ´ÎÊı, ...], ...]
-        for (const auto &viewItem : user->viewHistory)
-        {
-            if (viewItem.size() >= 2)
-            {
+        // 3. å¤„ç†æµè§ˆå†å²ï¼ˆviewHistoryï¼‰æ•°æ®
+        // viewHistoryæ ¼å¼: [[å•†å“ID, æµè§ˆæ¬¡æ•°, ...], ...]
+        for (const auto &viewItem: user->viewHistory) {
+            if (viewItem.size() >= 2) {
                 int productId = viewItem[0];
                 int views = viewItem[1];
                 viewCounts[productId] = views;
-            }
-            else if (viewItem.size() == 1)
-            {
+            } else if (viewItem.size() == 1) {
                 int productId = viewItem[0];
-                viewCounts[productId] = 1; // Ä¬ÈÏä¯ÀÀ1´Î
+                viewCounts[productId] = 1; // é»˜è®¤æµè§ˆ1æ¬¡
             }
         }
 
-        // 4. ÊÕ¼¯ËùÓĞÓÃ»§ÓĞ½»»¥µÄÉÌÆ·ID
+        // 4. æ”¶é›†æ‰€æœ‰ç”¨æˆ·æœ‰äº¤äº’çš„å•†å“ID
         std::unordered_map<int, bool> interactedProducts;
-        for (const auto &pair : ratings)
-        {
+        for (const auto &pair: ratings) {
             int productId = pair.first;
             interactedProducts[productId] = true;
         }
-        for (const auto &pair : inCart)
-        {
+        for (const auto &pair: inCart) {
             int productId = pair.first;
             interactedProducts[productId] = true;
         }
-        for (const auto &pair : viewCounts)
-        {
+        for (const auto &pair: viewCounts) {
             int productId = pair.first;
             interactedProducts[productId] = true;
         }
 
-        // 5. ÎªÃ¿¸öÓĞ½»»¥µÄÉÌÆ·¼ÆËãĞËÈ¤Öµ
-        for (const auto &pair : interactedProducts)
-        {
+        // 5. ä¸ºæ¯ä¸ªæœ‰äº¤äº’çš„å•†å“è®¡ç®—å…´è¶£å€¼
+        for (const auto &pair: interactedProducts) {
             int productId = pair.first;
-            // ÆÀ·ÖÒòËØ f_r = (r - 1) / 4
+            // è¯„åˆ†å› ç´  f_r = (r - 1) / 4
             double f_r = 0.0;
-            if (ratings.find(productId) != ratings.end())
-            {
+            if (ratings.find(productId) != ratings.end()) {
                 double r = ratings[productId];
-                f_r = (r - 1.0) / 4.0; // ½«[1,5]Ó³Éäµ½[0,1]
+                f_r = (r - 1.0) / 4.0; // å°†[1,5]æ˜ å°„åˆ°[0,1]
             }
 
-            // ¹ºÎï³µÒòËØ f_c
+            // è´­ç‰©è½¦å› ç´  f_c
             double f_c = 0.0;
-            if (inCart.find(productId) != inCart.end() && inCart[productId])
-            {
+            if (inCart.find(productId) != inCart.end() && inCart[productId]) {
                 f_c = 1.0;
             }
 
-            // ä¯ÀÀ´ÎÊıÒòËØ Ê¹ÓÃ±¥ºÍº¯Êı f_v = 1 - exp(-0.2 * v)
+            // æµè§ˆæ¬¡æ•°å› ç´  ä½¿ç”¨é¥±å’Œå‡½æ•° f_v = 1 - exp(-0.2 * v)
             double f_v = 0.0;
-            if (viewCounts.find(productId) != viewCounts.end())
-            {
+            if (viewCounts.find(productId) != viewCounts.end()) {
                 int v = viewCounts[productId];
                 f_v = 1.0 - std::exp(-0.2 * v);
             }
 
-            // ¼ÆËã¼ÓÈ¨ĞËÈ¤Öµ
+            // è®¡ç®—åŠ æƒå…´è¶£å€¼
             double interestValue = RATING_WEIGHT * f_r + CART_WEIGHT * f_c + VIEW_WEIGHT * f_v;
 
-            // È·±£ĞËÈ¤ÖµÔÚ[0,1]·¶Î§ÄÚ
+            // ç¡®ä¿å…´è¶£å€¼åœ¨[0,1]èŒƒå›´å†…
             interestValue = std::max(0.0, std::min(1.0, interestValue));
 
-            // Ìí¼Óµ½½á¹ûÖĞ£º{ÉÌÆ·ID, ĞËÈ¤Öµ}
+            // æ·»åŠ åˆ°ç»“æœä¸­ï¼š{å•†å“ID, å…´è¶£å€¼}
             interestScores.push_back({productId, interestValue});
         }
 
@@ -157,43 +137,38 @@ namespace Recommender
     }
 
     /**
-     * @brief ¹¹½¨¹²ÏÖ¾ØÕó
+     * @brief æ„å»ºå…±ç°çŸ©é˜µ
      *
-     * ·ÖÎöÓÃ»§µÄĞĞÎª£¬Í³¼ÆÎïÆ·Ö®¼äµÄ¹²ÏÖ´ÎÊı
+     * åˆ†æç”¨æˆ·çš„è¡Œä¸ºï¼Œç»Ÿè®¡ç‰©å“ä¹‹é—´çš„å…±ç°æ¬¡æ•°
      */
-    void buildCoOccurrenceMatrix()
-    {
+    void buildCoOccurrenceMatrix() {
         int n = g_products.size();
-        // Îª¹²ÏÖ¾ØÕó·ÖÅä¿Õ¼ä²¢³õÊ¼»¯Îª 0
+        // ä¸ºå…±ç°çŸ©é˜µåˆ†é…ç©ºé—´å¹¶åˆå§‹åŒ–ä¸º 0
         g_coOccurrenceMatrix.resize(n, std::vector<double>(n, 0));
-        for (const auto &user : g_users)
-        {
-            // ¼ÆËãÓÃ»§µÄĞËÈ¤·ÖÊı
-            std::vector<std::pair<int, double>> interestScores = calculateInterestScore(user);
+        for (const auto &user: g_users) {
+            // è®¡ç®—ç”¨æˆ·çš„å…´è¶£åˆ†æ•°
+            std::vector<std::pair<int, double> > interestScores = calculateInterestScore(user);
 
-            for (size_t i = 0; i < interestScores.size(); i++)
-            {
-                for (size_t j = i; j < interestScores.size(); j++)
-                { // j ´Ó i ¿ªÊ¼£¬°üº¬¶Ô½ÇÏß
+            for (size_t i = 0; i < interestScores.size(); i++) {
+                for (size_t j = i; j < interestScores.size(); j++) {
+                    // j ä» i å¼€å§‹ï¼ŒåŒ…å«å¯¹è§’çº¿
                     int productAId = interestScores[i].first;
                     int productBId = interestScores[j].first;
                     double productAInterest = interestScores[i].second;
                     double productBInterest = interestScores[j].second;
 
-                    // ¼ì²éÉÌÆ·IDÊÇ·ñÔÚÓ³ÉäÖĞ
+                    // æ£€æŸ¥å•†å“IDæ˜¯å¦åœ¨æ˜ å°„ä¸­
                     if (g_productIdToIndex.find(productAId) != g_productIdToIndex.end() &&
-                        g_productIdToIndex.find(productBId) != g_productIdToIndex.end())
-                    {
+                        g_productIdToIndex.find(productBId) != g_productIdToIndex.end()) {
                         int indexA = g_productIdToIndex[productAId];
                         int indexB = g_productIdToIndex[productBId];
-                        // ¼ÆËã¼ÓÈ¨¹²ÏÖ
+                        // è®¡ç®—åŠ æƒå…±ç°
                         double weight = productAInterest * productBInterest;
                         g_coOccurrenceMatrix[indexA][indexB] += weight;
 
-                        // Ö»¶Ô·Ç¶Ô½ÇÏßÔªËØ½øĞĞ¶Ô³ÆÌî³ä
-                        if (indexA != indexB)
-                        {
-                            // TODO: ¾ØÕóÑ¹Ëõ´æ´¢£¿
+                        // åªå¯¹éå¯¹è§’çº¿å…ƒç´ è¿›è¡Œå¯¹ç§°å¡«å……
+                        if (indexA != indexB) {
+                            // TODO: çŸ©é˜µå‹ç¼©å­˜å‚¨ï¼Ÿ
                             g_coOccurrenceMatrix[indexB][indexA] += weight;
                         }
                     }
@@ -203,54 +178,46 @@ namespace Recommender
     }
 
     /**
-     * @brief ¹¹½¨ÏàËÆ¶È¾ØÕó
+     * @brief æ„å»ºç›¸ä¼¼åº¦çŸ©é˜µ
      *
-     * Ê¹ÓÃÓàÏÒÏàËÆ¶È¹«Ê½£ºW_ij = C_ij / sqrt(N_i * N_j)
-     * ÆäÖĞ C_ij ÊÇ¹²ÏÖ´ÎÊı£¬N_i ºÍ N_j ÊÇ¸÷×Ô±»ÊÕ²ØµÄ×Ü´ÎÊı
+     * ä½¿ç”¨ä½™å¼¦ç›¸ä¼¼åº¦å…¬å¼ï¼šW_ij = C_ij / sqrt(N_i * N_j)
+     * å…¶ä¸­ C_ij æ˜¯å…±ç°æ¬¡æ•°ï¼ŒN_i å’Œ N_j æ˜¯å„è‡ªè¢«æ”¶è—çš„æ€»æ¬¡æ•°
      */
-    void buildSimilarityMatrix()
-    {
+    void buildSimilarityMatrix() {
         int n = g_products.size();
 
-        // ³õÊ¼»¯ÏàËÆ¶È¾ØÕó
+        // åˆå§‹åŒ–ç›¸ä¼¼åº¦çŸ©é˜µ
         g_similarityMatrix.resize(n, std::vector<double>(n, 0.0));
 
-        // ¼ÆËãÏàËÆ¶È¾ØÕó
-        // ¶Ô½ÇÏßÖµÒÑ¾­ÔÚ g_coOccurrenceMatrix ÖĞ¼ÆËãºÃÁË
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = i; j < n; j++)
-            {
+        // è®¡ç®—ç›¸ä¼¼åº¦çŸ©é˜µ
+        // å¯¹è§’çº¿å€¼å·²ç»åœ¨ g_coOccurrenceMatrix ä¸­è®¡ç®—å¥½äº†
+        for (int i = 0; i < n; i++) {
+            for (int j = i; j < n; j++) {
                 double similarity = 0.0;
 
-                // Ö»ÓĞµ±Á½¸öÉÌÆ·¶¼ÓĞ½»»¥¼ÇÂ¼Ê±²Å¼ÆËãÏàËÆ¶È
-                // Ê¹ÓÃ¹²ÏÖ¾ØÕóµÄ¶Ô½ÇÏßÖµ×÷Îª¹éÒ»»¯Òò×Ó
-                double D_i = g_coOccurrenceMatrix[i][i]; // ÉÌÆ·iµÄ"×Ô¹²ÏÖ"Ç¿¶È
-                double D_j = g_coOccurrenceMatrix[j][j]; // ÉÌÆ·jµÄ"×Ô¹²ÏÖ"Ç¿¶È
+                // åªæœ‰å½“ä¸¤ä¸ªå•†å“éƒ½æœ‰äº¤äº’è®°å½•æ—¶æ‰è®¡ç®—ç›¸ä¼¼åº¦
+                // ä½¿ç”¨å…±ç°çŸ©é˜µçš„å¯¹è§’çº¿å€¼ä½œä¸ºå½’ä¸€åŒ–å› å­
+                double D_i = g_coOccurrenceMatrix[i][i]; // å•†å“içš„"è‡ªå…±ç°"å¼ºåº¦
+                double D_j = g_coOccurrenceMatrix[j][j]; // å•†å“jçš„"è‡ªå…±ç°"å¼ºåº¦
 
-                if (D_i > 0 && D_j > 0)
-                {
+                if (D_i > 0 && D_j > 0) {
                     double denominator = std::sqrt(D_i * D_j);
 
-                    if (i == j)
-                    {
-                        // ¶Ô½ÇÏßÔªËØ£ºÉÌÆ·Óë×Ô¼ºµÄÓàÏÒÏàËÆ¶ÈÓÀÔ¶ÊÇ1
+                    if (i == j) {
+                        // å¯¹è§’çº¿å…ƒç´ ï¼šå•†å“ä¸è‡ªå·±çš„ä½™å¼¦ç›¸ä¼¼åº¦æ°¸è¿œæ˜¯1
                         // D_i / sqrt(D_i * D_i) = D_i / D_i = 1
                         similarity = 1.0;
-                    }
-                    else
-                    {
-                        // ·Ç¶Ô½ÇÏßÔªËØ£ºÊ¹ÓÃÓàÏÒÏàËÆ¶È¹«Ê½
+                    } else {
+                        // éå¯¹è§’çº¿å…ƒç´ ï¼šä½¿ç”¨ä½™å¼¦ç›¸ä¼¼åº¦å…¬å¼
                         // W_ij = C_ij / sqrt(D_i * D_j)
                         double C_ij = g_coOccurrenceMatrix[i][j];
                         similarity = C_ij / denominator;
                     }
                 }
 
-                // ÉèÖÃ¾ØÕóÔªËØ£¨ÀûÓÃ¶Ô³ÆĞÔ£©
+                // è®¾ç½®çŸ©é˜µå…ƒç´ ï¼ˆåˆ©ç”¨å¯¹ç§°æ€§ï¼‰
                 g_similarityMatrix[i][j] = similarity;
-                if (i != j)
-                {
+                if (i != j) {
                     g_similarityMatrix[j][i] = similarity;
                 }
             }
@@ -258,17 +225,15 @@ namespace Recommender
     }
 
     /**
-     * @brief ÎªÖ¸¶¨ÓÃ»§ÍÆ¼öÎïÆ·
-     * @param userId ÓÃ»§ID
-     * @param topK ÍÆ¼öÎïÆ·µÄÊıÁ¿
-     * @return ÍÆ¼ö½á¹ûÁĞ±í£¬°üº¬ÎïÆ·IDºÍÍÆ¼ö·ÖÊıµÄ¶Ô
+     * @brief ä¸ºæŒ‡å®šç”¨æˆ·æ¨èç‰©å“
+     * @param userId ç”¨æˆ·ID
+     * @param topK æ¨èç‰©å“çš„æ•°é‡
+     * @return æ¨èç»“æœåˆ—è¡¨ï¼ŒåŒ…å«ç‰©å“IDå’Œæ¨èåˆ†æ•°çš„å¯¹
      */
-    std::vector<std::pair<int, double>> recommendProducts(int userId, int topK)
-    {
-        // TODO: ÊµÏÖÍÆ¼öËã·¨Âß¼­
-        std::vector<std::pair<int, double>> recommendations;
+    std::vector<std::pair<int, double> > recommendProducts(int userId, int topK) {
+        // TODO: å®ç°æ¨èç®—æ³•é€»è¾‘
+        std::vector<std::pair<int, double> > recommendations;
 
         return recommendations;
     }
-
 } // namespace Recommender

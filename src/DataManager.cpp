@@ -259,6 +259,54 @@ std::vector<ProductData>& DataManager::getProducts() {
     return products;
 }
 
+std::vector<CartItemDetails> DataManager::getShoppingCartDetails(const std::string &username, double &totalPrice,
+                                                                 int &totalQuantity) {
+    totalPrice = 0.0;
+    totalQuantity = 0;
+    std::vector<CartItemDetails> items;
+
+    UserData *user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return items;
+    }
+
+    for (const auto &entry: user->shoppingCart) {
+        if (entry.size() < 2) {
+            continue;
+        }
+
+        int productId = entry[0];
+        int quantity = entry[1];
+        if (quantity <= 0) {
+            continue;
+        }
+
+        CartItemDetails item{};
+        item.productId = productId;
+        item.quantity = quantity;
+
+        ProductData *product = findProduct(productId);
+        if (product) {
+            item.name = product->name;
+            item.unitPrice = product->price;
+        } else {
+            item.name = "未知商品";
+            item.unitPrice = 0.0;
+            qDebug() << "购物车中存在未找到的商品ID:" << productId;
+        }
+
+        item.subtotal = item.unitPrice * static_cast<double>(item.quantity);
+
+        totalPrice += item.subtotal;
+        totalQuantity += item.quantity;
+
+        items.push_back(item);
+    }
+
+    return items;
+}
+
 // ============== 工具函数 ==============
 
 // 清空所有数据（用户和商品）
