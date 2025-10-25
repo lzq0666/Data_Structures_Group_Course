@@ -265,8 +265,110 @@ namespace Recommender
      */
     std::vector<std::pair<int, double>> recommendProducts(int userId, int topK)
     {
-        // TODO: 实现推荐算法逻辑
         std::vector<std::pair<int, double>> recommendations;
+
+        // 1. 查找用户
+        UserData *targetUser = nullptr;
+        for (auto user : g_users)
+        {
+            if (user->userId == userId)
+            {
+                targetUser = user;
+                break;
+            }
+        }
+
+        if (targetUser == nullptr)
+        {
+            // 用户不存在，返回空列表
+            return recommendations;
+        }
+
+        // 2. 计算用户的兴趣分数
+        std::vector<std::pair<int, double>> interestScores = calculateInterestScore(targetUser);
+
+        // 3. 创建用户已交互商品的集合
+        std::unordered_map<int, double> interactedProducts;
+        for (const auto &pair : interestScores)
+        {
+            interactedProducts[pair.first] = pair.second;
+        }
+
+        // 4. 为所有未交互的商品预测评分
+        std::vector<std::pair<int, double>> candidateProducts;
+
+        for (const auto &product : g_products)
+        {
+            int productId = product->productId;
+
+            // 跳过用户已交互的商品
+            if (interactedProducts.find(productId) != interactedProducts.end())
+            {
+                continue;
+            }
+
+            // 检查商品ID是否在映射中
+            if (g_productIdToIndex.find(productId) == g_productIdToIndex.end())
+            {
+                continue;
+            }
+
+            int targetIndex = g_productIdToIndex[productId];
+
+            // 使用基于物品的协同过滤预测评分
+            // P(u,i) = Σ(sim(i,j) * r(u,j)) / Σ|sim(i,j)|
+            // 其中 j 是用户已交互的商品
+            double numerator = 0.0;   // 分子：相似度加权的兴趣值之和
+            double denominator = 0.0; // 分母：相似度绝对值之和
+
+            for (const auto &interactedPair : interestScores)
+            {
+                int interactedProductId = interactedPair.first;
+                double interestValue = interactedPair.second;
+
+                // 检查已交互商品ID是否在映射中
+                if (g_productIdToIndex.find(interactedProductId) == g_productIdToIndex.end())
+                {
+                    continue;
+                }
+
+                int interactedIndex = g_productIdToIndex[interactedProductId];
+
+                // 获取相似度
+                double similarity = g_similarityMatrix[targetIndex][interactedIndex];
+
+                // 累加加权值
+                numerator += similarity * interestValue;
+                denominator += std::abs(similarity);
+            }
+
+            // 计算预测评分
+            double predictedScore = 0.0;
+            if (denominator > 0)
+            {
+                predictedScore = numerator / denominator;
+            }
+
+            // 只推荐预测分数大于0的商品
+            if (predictedScore > 0)
+            {
+                candidateProducts.push_back({productId, predictedScore});
+            }
+        }
+
+        // 5. 按预测评分降序排序
+        std::sort(candidateProducts.begin(), candidateProducts.end(),
+                  [](const std::pair<int, double> &a, const std::pair<int, double> &b)
+                  {
+                      return a.second > b.second; // 降序排序
+                  });
+
+        // 6. 返回前 topK 个推荐结果
+        int count = std::min(topK, static_cast<int>(candidateProducts.size()));
+        for (int i = 0; i < count; i++)
+        {
+            recommendations.push_back(candidateProducts[i]);
+        }
 
         return recommendations;
     }
