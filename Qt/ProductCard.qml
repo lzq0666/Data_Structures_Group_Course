@@ -161,11 +161,18 @@ Rectangle {
     
     function getCategoryIcon(category) {
         switch(category) {
-            case "手机": return "📱"
-            case "电脑": return "💻"
-            case "耳机": return "🎧"
-            case "平板": return "📲"
-            case "手表": return "⌚"
+            case "食品":
+                return "🍎"
+            case "日用品":
+                return "🧴"
+            case "电器":
+                return "🔌"
+            case "数码产品":
+                return "📱"
+            case "服装":
+                return "👗"
+            case "酒水":
+                return "🍷"
             default: return "📦"
         }
     }
