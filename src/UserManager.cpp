@@ -1,12 +1,14 @@
 #include "UserManager.h"
 
 UserManager::UserManager()
-    : root(nullptr), dataManager(nullptr), nextUserId(1000) {
+    : root(nullptr), dataManager(nullptr), nextUserId(1000)
+{
     dataManager = new DataManager();
     loadUsersFromDataManager();
 }
 
-UserManager::~UserManager() {
+UserManager::~UserManager()
+{
     saveUsersToDataManager();
     destroyTree(root);
     delete dataManager;
@@ -14,25 +16,27 @@ UserManager::~UserManager() {
 
 // ========== QML 接口函数 ==========
 
-QVariantList UserManager::getAllUsers() {
+QVariantList UserManager::getAllUsers()
+{
     QVariantList userList;
     std::vector<UserData> users;
     collectAllUsers(root, users);
 
     // 按用户ID排序
     std::sort(users.begin(), users.end(),
-              [](const UserData &a, const UserData &b) {
-                  return a.userId < b.userId;
-              });
+        [](const UserData& a, const UserData& b) {
+            return a.userId < b.userId;
+        });
 
-    for (const auto &user: users) {
+    for (const auto& user : users) {
         userList.append(userDataToVariantMap(user));
     }
 
     return userList;
 }
 
-bool UserManager::addUser(const QString &username, const QString &password, bool isAdmin) {
+bool UserManager::addUser(const QString& username, const QString& password, bool isAdmin)
+{
     // 检查用户名是否已存在
     if (searchUserByName(username.toStdString()) != nullptr) {
         qDebug() << "用户名已存在: " << username;
@@ -58,8 +62,9 @@ bool UserManager::addUser(const QString &username, const QString &password, bool
     return false;
 }
 
-bool UserManager::deleteUser(int userId) {
-    RBNode *user = searchUser(userId);
+bool UserManager::deleteUser(int userId)
+{
+    RBNode* user = searchUser(userId);
     if (user == nullptr) {
         qDebug() << "用户不存在，ID: " << userId;
         return false;
@@ -80,8 +85,9 @@ bool UserManager::deleteUser(int userId) {
     return false;
 }
 
-bool UserManager::updateUser(int userId, const QString &username, bool isAdmin) {
-    RBNode *user = searchUser(userId);
+bool UserManager::updateUser(int userId, const QString& username, bool isAdmin)
+{
+    RBNode* user = searchUser(userId);
     if (user == nullptr) {
         qDebug() << "用户不存在，ID: " << userId;
         return false;
@@ -90,7 +96,7 @@ bool UserManager::updateUser(int userId, const QString &username, bool isAdmin) 
     // 检查新用户名是否与其他用户冲突
     std::string newUsername = username.toStdString();
     if (user->userData.username != newUsername) {
-        RBNode *existingUser = searchUserByName(newUsername);
+        RBNode* existingUser = searchUserByName(newUsername);
         if (existingUser != nullptr && existingUser->userId != userId) {
             qDebug() << "用户名已被其他用户使用: " << username;
             return false;
@@ -105,23 +111,26 @@ bool UserManager::updateUser(int userId, const QString &username, bool isAdmin) 
     return true;
 }
 
-QVariantMap UserManager::getUserById(int userId) {
-    RBNode *user = searchUser(userId);
+QVariantMap UserManager::getUserById(int userId)
+{
+    RBNode* user = searchUser(userId);
     if (user != nullptr) {
         return userDataToVariantMap(user->userData);
     }
     return QVariantMap();
 }
 
-QVariantMap UserManager::getUserByName(const QString &username) {
-    RBNode *user = searchUserByName(username.toStdString());
+QVariantMap UserManager::getUserByName(const QString& username)
+{
+    RBNode* user = searchUserByName(username.toStdString());
     if (user != nullptr) {
         return userDataToVariantMap(user->userData);
     }
     return QVariantMap();
 }
 
-QVariantMap UserManager::getUserStatistics() {
+QVariantMap UserManager::getUserStatistics()
+{
     int totalUsers = 0;
     int adminUsers = 0;
     int regularUsers = 0;
@@ -136,35 +145,40 @@ QVariantMap UserManager::getUserStatistics() {
     return stats;
 }
 
-bool UserManager::saveToFile() {
+bool UserManager::saveToFile()
+{
     saveUsersToDataManager();
     return true;
 }
 
-bool UserManager::loadFromFile() {
+bool UserManager::loadFromFile()
+{
     loadUsersFromDataManager();
     return true;
 }
 
-void UserManager::refreshData() {
+void UserManager::refreshData()
+{
     qDebug() << "刷新用户数据";
 }
 
 // ========== 红黑树操作函数 ==========
 
-RBNode *UserManager::newNode(const UserData &userData) {
-    RBNode *node = new RBNode;
+RBNode* UserManager::newNode(const UserData& userData)
+{
+    RBNode* node = new RBNode;
     node->userId = userData.userId;
     node->userData = userData;
     node->left = nullptr;
     node->right = nullptr;
     node->parent = nullptr;
-    node->color = RED; // 新节点初始颜色为红色
+    node->color = RED;  // 新节点初始颜色为红色
     return node;
 }
 
-void UserManager::leftRotate(RBNode **root, RBNode *x) {
-    RBNode *y = x->right;
+void UserManager::leftRotate(RBNode** root, RBNode* x)
+{
+    RBNode* y = x->right;
     x->right = y->left;
 
     if (y->left != nullptr)
@@ -183,8 +197,9 @@ void UserManager::leftRotate(RBNode **root, RBNode *x) {
     x->parent = y;
 }
 
-void UserManager::rightRotate(RBNode **root, RBNode *y) {
-    RBNode *x = y->left;
+void UserManager::rightRotate(RBNode** root, RBNode* y)
+{
+    RBNode* x = y->left;
     y->left = x->right;
 
     if (x->right != nullptr)
@@ -203,10 +218,11 @@ void UserManager::rightRotate(RBNode **root, RBNode *y) {
     y->parent = x;
 }
 
-void UserManager::insertFixup(RBNode **root, RBNode *z) {
+void UserManager::insertFixup(RBNode** root, RBNode* z)
+{
     while (z != *root && z->parent != nullptr && z->parent->color == RED) {
         if (z->parent == z->parent->parent->left) {
-            RBNode *y = z->parent->parent->right;
+            RBNode* y = z->parent->parent->right;
 
             if (y != nullptr && y->color == RED) {
                 // 情况1：叔节点为红色
@@ -248,15 +264,16 @@ void UserManager::insertFixup(RBNode **root, RBNode *z) {
     (*root)->color = BLACK; // 根节点始终为黑色
 }
 
-bool UserManager::insertUser(const UserData &userData) {
+bool UserManager::insertUser(const UserData& userData)
+{
     // 检查用户是否已存在
     if (searchUser(userData.userId) != nullptr) {
         return false;
     }
 
-    RBNode *z = newNode(userData);
-    RBNode *y = nullptr;
-    RBNode *x = root;
+    RBNode* z = newNode(userData);
+    RBNode* y = nullptr;
+    RBNode* x = root;
 
     // 标准BST插入
     while (x != nullptr) {
@@ -281,8 +298,9 @@ bool UserManager::insertUser(const UserData &userData) {
     return true;
 }
 
-RBNode *UserManager::searchUser(int userId) {
-    RBNode *current = root;
+RBNode* UserManager::searchUser(int userId)
+{
+    RBNode* current = root;
     while (current != nullptr) {
         if (userId == current->userId)
             return current;
@@ -294,33 +312,37 @@ RBNode *UserManager::searchUser(int userId) {
     return nullptr;
 }
 
-RBNode *UserManager::searchUserByName(const std::string &username) {
+RBNode* UserManager::searchUserByName(const std::string& username)
+{
     return searchUserByNameHelper(root, username);
 }
 
-RBNode *UserManager::searchUserByNameHelper(RBNode *node, const std::string &username) {
+RBNode* UserManager::searchUserByNameHelper(RBNode* node, const std::string& username)
+{
     if (node == nullptr) return nullptr;
 
     if (node->userData.username == username) {
         return node;
     }
 
-    RBNode *leftResult = searchUserByNameHelper(node->left, username);
+    RBNode* leftResult = searchUserByNameHelper(node->left, username);
     if (leftResult != nullptr) return leftResult;
 
     return searchUserByNameHelper(node->right, username);
 }
 
-RBNode *UserManager::minimum(RBNode *node) {
+RBNode* UserManager::minimum(RBNode* node)
+{
     while (node->left != nullptr)
         node = node->left;
     return node;
 }
 
-void UserManager::deleteFixup(RBNode **root, RBNode *x, RBNode *xParent) {
+void UserManager::deleteFixup(RBNode** root, RBNode* x, RBNode* xParent)
+{
     while (x != *root && (x == nullptr || x->color == BLACK)) {
         if (x == xParent->left) {
-            RBNode *w = xParent->right;
+            RBNode* w = xParent->right;
 
             if (w->color == RED) {
                 w->color = BLACK;
@@ -390,15 +412,16 @@ void UserManager::deleteFixup(RBNode **root, RBNode *x, RBNode *xParent) {
         x->color = BLACK;
 }
 
-bool UserManager::deleteUserNode(int userId) {
-    RBNode *z = searchUser(userId);
+bool UserManager::deleteUserNode(int userId)
+{
+    RBNode* z = searchUser(userId);
     if (z == nullptr) {
         return false;
     }
 
-    RBNode *y = z;
-    RBNode *x = nullptr;
-    RBNode *xParent = nullptr;
+    RBNode* y = z;
+    RBNode* x = nullptr;
+    RBNode* xParent = nullptr;
     Color yOriginalColor = y->color;
 
     if (z->left == nullptr) {
@@ -476,7 +499,8 @@ bool UserManager::deleteUserNode(int userId) {
     return true;
 }
 
-void UserManager::collectAllUsers(RBNode *node, std::vector<UserData> &users) {
+void UserManager::collectAllUsers(RBNode* node, std::vector<UserData>& users)
+{
     if (node != nullptr) {
         collectAllUsers(node->left, users);
         users.push_back(node->userData);
@@ -484,7 +508,8 @@ void UserManager::collectAllUsers(RBNode *node, std::vector<UserData> &users) {
     }
 }
 
-void UserManager::calculateStatistics(RBNode *node, int &total, int &admin, int &regular) {
+void UserManager::calculateStatistics(RBNode* node, int& total, int& admin, int& regular)
+{
     if (node != nullptr) {
         total++;
         if (node->userData.isAdmin) {
@@ -497,7 +522,8 @@ void UserManager::calculateStatistics(RBNode *node, int &total, int &admin, int 
     }
 }
 
-void UserManager::destroyTree(RBNode *node) {
+void UserManager::destroyTree(RBNode* node)
+{
     if (node) {
         destroyTree(node->left);
         destroyTree(node->right);
@@ -507,13 +533,14 @@ void UserManager::destroyTree(RBNode *node) {
 
 // ========== 数据管理函数 ==========
 
-void UserManager::loadUsersFromDataManager() {
+void UserManager::loadUsersFromDataManager()
+{
     // 清空现有红黑树
     destroyTree(root);
     root = nullptr;
 
-    auto &users = dataManager->getUsers();
-    for (const auto &user: users) {
+    auto& users = dataManager->getUsers();
+    for (const auto& user : users) {
         insertUser(user);
         if (user.userId >= nextUserId) {
             nextUserId = user.userId + 1;
@@ -523,15 +550,16 @@ void UserManager::loadUsersFromDataManager() {
     qDebug() << "已从DataManager加载" << users.size() << "个用户到红黑树";
 }
 
-void UserManager::saveUsersToDataManager() {
+void UserManager::saveUsersToDataManager()
+{
     std::vector<UserData> users;
     collectAllUsers(root, users);
 
     // 清空DataManager中的用户数据并重新添加
-    auto &managerUsers = dataManager->getUsers();
+    auto& managerUsers = dataManager->getUsers();
     managerUsers.clear();
 
-    for (const auto &user: users) {
+    for (const auto& user : users) {
         dataManager->addUser(user);
     }
 
@@ -540,7 +568,8 @@ void UserManager::saveUsersToDataManager() {
 
 // ========== 辅助函数 ==========
 
-QVariantMap UserManager::userDataToVariantMap(const UserData &user) {
+QVariantMap UserManager::userDataToVariantMap(const UserData& user)
+{
     QVariantMap userMap;
     userMap["userId"] = user.userId;
     userMap["username"] = QString::fromStdString(user.username);
@@ -553,7 +582,8 @@ QVariantMap UserManager::userDataToVariantMap(const UserData &user) {
     return userMap;
 }
 
-QString UserManager::generateSalt() {
+QString UserManager::generateSalt()
+{
     const QString charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     QString salt;
 
@@ -565,7 +595,8 @@ QString UserManager::generateSalt() {
     return salt;
 }
 
-QString UserManager::hashPassword(const QString &password, const QString &salt) {
+QString UserManager::hashPassword(const QString& password, const QString& salt)
+{
     QCryptographicHash hash(QCryptographicHash::Md5);
     hash.addData((password + salt).toUtf8());
     return hash.result().toHex().left(16); // 简化处理，取前16位

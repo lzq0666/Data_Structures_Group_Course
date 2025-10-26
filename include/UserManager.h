@@ -19,16 +19,15 @@ enum Color { RED, BLACK };
 struct RBNode {
     int userId;
     UserData userData;
-    RBNode *left;
-    RBNode *right;
-    RBNode *parent;
+    RBNode* left;
+    RBNode* right;
+    RBNode* parent;
     Color color;
 };
 
 class UserManager {
 public:
     explicit UserManager();
-
     ~UserManager();
 
     // ========== QML 接口函数 ==========
