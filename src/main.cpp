@@ -70,10 +70,6 @@ public:
         return ::getCurrentUser();
     }
 
-    Q_INVOKABLE QString getCurrentUsername() {
-        return ::getCurrentUser();
-    }
-
     Q_INVOKABLE int getCurrentState() {
         return static_cast<int>(::getCurrentState());
     }
@@ -312,18 +308,6 @@ public:
         return m_dataManager.saveUsersToJson();
     }
 
-    Q_INVOKABLE bool addToCart(const QString& username, int productId, int quantity) {
-        return m_dataManager.addToCart(username.toStdString(), productId, quantity);
-    }
-
-    Q_INVOKABLE bool updateCartQuantity(const QString& username, int productId, int newQuantity) {
-        return m_dataManager.updateCartQuantity(username.toStdString(), productId, newQuantity);
-    }
-
-    Q_INVOKABLE bool addViewHistory(const QString& username, int productId) {
-        return m_dataManager.addViewHistory(username.toStdString(), productId);
-    }
-
     Q_INVOKABLE QVariantMap getShoppingCartDetails(const QString& username) {
         QVariantMap result;
         QVariantList itemList;
@@ -410,21 +394,6 @@ public:
         }
 
         return productList;
-    }
-
-    Q_INVOKABLE bool rateProduct(const QString& username, int productId, int rating) {
-        bool success = m_dataManager.rateProduct(username.toStdString(), productId, rating);
-        
-        if (success) {
-            // 评价成功后立即保存数据
-            bool userSaved = m_dataManager.saveUsersToJson();
-            bool productSaved = m_dataManager.saveProductsToJson();
-            
-            qDebug() << "DataManagerWrapper: 商品评价成功 - 用户数据保存:" << (userSaved ? "成功" : "失败") 
-                     << ", 商品数据保存:" << (productSaved ? "成功" : "失败");
-        }
-        
-        return success;
     }
 
     Q_INVOKABLE bool updateProductRating(int productId, int newRating, int oldRating = -1) {
