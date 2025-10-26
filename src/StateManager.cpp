@@ -96,3 +96,4 @@ void loadAppState() {
 	g_currentUsername = settings.value("currentUser", "").toString();
 	g_currentState = static_cast<AppState>(settings.value("currentState", STATE_LOGIN).toInt()); // 从整数转换回枚举值
 }
+

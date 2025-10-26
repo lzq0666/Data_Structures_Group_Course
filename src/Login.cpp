@@ -88,8 +88,15 @@ bool registerUser(const std::string &username, const std::string &password) {
 
     // 添加用户到数据管理器
     if (dm->addUser(newUser)) {
-        qDebug() << "用户 " << username << " 注册成功";
-        return true;
+        // 立即保存用户数据到JSON文件
+        if (dm->saveUsersToJson()) {
+            std::cout << "用户 " << username << " 注册成功并已保存到文件" << std::endl;
+            return true;
+        } else {
+            std::cerr << "注册成功但保存到文件失败: " << username << std::endl;
+            // 虽然保存文件失败，但用户已在内存中，仍返回成功
+            return true;
+        }
     } else {
         qDebug() << "注册失败: 无法保存用户数据";
         return false;

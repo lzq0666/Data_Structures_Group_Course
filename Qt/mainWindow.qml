@@ -91,9 +91,13 @@ ApplicationWindow {
         // 处理加载的组件的信号
         onLoaded: {
             if (item) {
-                // 为加载的组件设置 stateManager 引用
+                // 为加载的组件设置 stateManager 引用 - 修改：添加更多调试信息
                 if (typeof item.stateManager !== "undefined") {
+                    console.log("正在为组件设置 stateManager 引用...")
                     item.stateManager = stateManager;
+                    console.log("stateManager 已设置，验证:", item.stateManager ? "成功" : "失败")
+                } else {
+                    console.log("组件没有 stateManager 属性")
                 }
                 
                 // 连接登录页面的信号
@@ -202,9 +206,17 @@ ApplicationWindow {
                     item.systemSettingsRequested.connect(handleSystemSettings);
                 }
                 
-                // 如果是商品详情页面，设置当前商品
-                if (currentStateValue === StateManager.STATE_PRODUCT_DETAIL && typeof item.setCurrentProduct === "function") {
-                    item.setCurrentProduct(currentProductId);
+                // 如果是商品详情页面，设置当前商品并确保 stateManager 引用正确
+                if (currentStateValue === StateManager.STATE_PRODUCT_DETAIL) {
+                    // 再次确认 stateManager 已正确设置
+                    if (typeof item.stateManager !== "undefined" && !item.stateManager) {
+                        console.log("商品详情页面的 stateManager 未设置，重新设置...")
+                        item.stateManager = stateManager;
+                    }
+                    
+                    if (typeof item.setCurrentProduct === "function") {
+                        item.setCurrentProduct(currentProductId);
+                    }
                 }
             }
         }
@@ -365,24 +377,26 @@ ApplicationWindow {
         stateManager.setState(StateManager.STATE_BROWSE);
     }
     
-    // 处理加入购物车请求
+    // 处理加入购物车请求 - 修正版本
     function handleAddToCart(productId, productName, price, quantity) {
         console.log("处理加入购物车请求:", productName, "数量:", quantity || 1);
         
-        var currentUser = stateManager.getCurrentUsername();
+        // 修正：使用正确的方法名获取当前用户
+        var currentUser = stateManager.getCurrentUser();
         if (!currentUser) {
             console.error("用户未登录，无法添加到购物车");
             return;
         }
         
         var addQuantity = quantity || 1;
-        var success = dataManager.addToCart(currentUser, productId, addQuantity);
+        
+        // 修正：使用 stateManager 的 addToCart 方法
+        var success = stateManager.addToCart(productId, addQuantity);
         
         if (success) {
             console.log("成功添加到购物车:", productName, "数量:", addQuantity);
             
-            // 保存用户数据到JSON文件
-            dataManager.saveUsersToJson();
+            // StateManager 中的 addToCart 方法已经包含了保存逻辑，无需再次调用
             
             // 可以在这里添加成功提示
             if (typeof appWindow.showCartSuccess === "function") {
