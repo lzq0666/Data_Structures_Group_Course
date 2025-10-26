@@ -3,7 +3,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import StateManager 1.0
 import DataManager 1.0
-// import RecommendationManager 1.0  // TODO: 取消注释当RecommendationManager实现后
+import Recommender 1.0
 
 Item {
     id: recommendationPage
@@ -12,6 +12,16 @@ Item {
     signal backToMainMenuRequested()
 
     property StateManager stateManager: null
+
+    // 推荐器 - 只提供一个方法：getRecommendations()
+    Recommender {
+        id: recommender
+    }
+
+    // DataManager 实例（用于其他功能）
+    DataManager {
+        id: dataManager
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -148,21 +158,21 @@ Item {
                             spacing: 20
 
                             Text {
-                                text: "最小评分数量: " + collaborativeConfig.minRatingsCount
+                                text: "推荐算法: 协同过滤"
                                 color: "#6c757d"
                                 font.pixelSize: 11
                             }
 
                             Text {
-                                text: "推荐商品数量: " + productList.count
+                                text: "推荐数量: " + recommendationsModel.count
                                 color: "#007bff"
                                 font.pixelSize: 11
                                 font.bold: true
                             }
 
                             Text {
-                                text: "算法状态: " + getAlgorithmStatus()
-                                color: getStatusColor()
+                                text: "状态: 就绪"
+                                color: "#28a745"
                                 font.pixelSize: 11
                             }
                         }
@@ -642,12 +652,11 @@ Item {
     // ======================== 协同过滤核心算法接口 ========================
     
     /**
-     * 主推荐函数 - 协同过滤推荐
-     * @description 基于用户协同过滤算法生成推荐
+     * 主推荐函数 - 直接调用 C++ 的 getRecommendations 方法
+     * @description 所有逻辑（加载数据、构建矩阵、计算推荐）都在 C++ 中完成
      */
     function loadCollaborativeRecommendations() {
-        console.log("开始生成协同过滤推荐")
-        recommendationsModel.clear()
+        console.log("========== 请求生成推荐 ==========")
 
         if (!stateManager || !stateManager.isLoggedIn()) {
             console.log("用户未登录，无法生成推荐")
@@ -655,24 +664,28 @@ Item {
         }
 
         var username = stateManager.getCurrentUser()
+        console.log("当前用户:", username)
         
-        try {
-            // TODO: 调用协同过滤推荐算法
-            /*
-            var recommendations = generateCollaborativeRecommendations(username)
+        // 清空现有列表
+        recommendationsModel.clear()
+        
+        // 调用 C++ 方法获取推荐（一行代码搞定！）
+        var recommendations = recommender.getRecommendations(username, collaborativeConfig.maxRecommendations)
+        
+        console.log("收到推荐结果:", recommendations.length, "个商品")
+        
+        // 添加到模型
+        for (var i = 0; i < recommendations.length; i++) {
+            var product = recommendations[i]
             
-            // 添加推荐结果到模型
-            for (var i = 0; i < recommendations.length; i++) {
-                recommendationsModel.append(recommendations[i])
-            }
-            */
+            // 添加额外的 UI 字段
+            product.similarUsers = []
+            product.userSimilarities = []
             
-            // 临时实现 - 模拟协同过滤推荐
-            loadMockCollaborativeRecommendations(username)
-            
-        } catch (error) {
-            console.error("生成协同过滤推荐时发生错误:", error)
+            recommendationsModel.append(product)
         }
+        
+        console.log("========== 推荐加载完成 ==========")
     }
 
     /**
@@ -935,37 +948,6 @@ Item {
         recordUserBehavior("rate", productData, mockRating)
     }
 
-    // ======================== 辅助函数 ========================
-    
-    /**
-     * 获取算法状态
-     */
-    function getAlgorithmStatus() {
-        // TODO: 检查协同过滤算法的实际状态
-        /*
-        可能的状态：
-        - "正常": 有足够的用户评分数据
-        - "数据不足": 用户评分数据太少
-        - "冷启动": 新用户没有评分历史
-        - "开发中": 算法还在开发阶段
-        */
-        return "开发中"
-    }
-
-    /**
-     * 获取状态颜色
-     */
-    function getStatusColor() {
-        var status = getAlgorithmStatus()
-        switch(status) {
-            case "正常": return "#28a745"
-            case "数据不足": return "#ffc107" 
-            case "冷启动": return "#17a2b8"
-            case "开发中": return "#dc3545"
-            default: return "#6c757d"
-        }
-    }
-
     /**
      * 临时实现：模拟协同过滤推荐
      * @description 在真正的协同过滤算法完成前的模拟实现
@@ -1013,10 +995,10 @@ Item {
     // ======================== 组件初始化 ========================
     
     Component.onCompleted: {
-        console.log("协同过滤推荐页面初始化完成")
-        console.log("协同过滤配置:", JSON.stringify(collaborativeConfig, null, 2))
+        console.log("========== 推荐页面已加载 ==========")
+        console.log("配置:", JSON.stringify(collaborativeConfig, null, 2))
         
-        // 加载协同过滤推荐
+        // 直接加载推荐（C++ 会自动初始化系统）
         loadCollaborativeRecommendations()
     }
 }

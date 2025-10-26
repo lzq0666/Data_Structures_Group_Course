@@ -4,6 +4,7 @@
 #include "DataManager.h"
 #include "UserManager.h"
 #include "Login.h"
+#include "Recommender.h"
 
 // 将 C++ 状态管理函数封装为 QML 可调用的类
 class StateManagerWrapper : public QObject {
@@ -618,6 +619,7 @@ int main(int argc, char* argv[]) {
     qmlRegisterType<StateManagerWrapper>("StateManager", 1, 0, "StateManager");
     qmlRegisterType<DataManagerWrapper>("DataManager", 1, 0, "DataManager");
     qmlRegisterType<UserManagerWrapper>("UserManager", 1, 0, "UserManager");
+    qmlRegisterType<RecommenderWrapper>("Recommender", 1, 0, "Recommender");
 
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:/Qt/mainWindow.qml")));

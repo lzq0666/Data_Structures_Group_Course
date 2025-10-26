@@ -354,3 +354,153 @@ namespace Recommender
         return recommendations;
     }
 } // namespace Recommender
+
+// ==================== RecommenderWrapper 实现 ====================
+
+#include <QDebug>
+#include <QVariantMap>
+#include "DataManager.h"
+
+RecommenderWrapper::RecommenderWrapper(QObject* parent)
+    : QObject(parent), m_initialized(false) {
+    qDebug() << "RecommenderWrapper 已创建";
+}
+
+bool RecommenderWrapper::ensureInitialized() {
+    if (m_initialized) {
+        return true;
+    }
+
+    try {
+        qDebug() << "========== 初始化推荐系统 ==========";
+
+        // 1. 加载数据
+        DataManager dataManager;
+        
+        if (!dataManager.loadUsersFromJson()) {
+            qDebug() << "错误：加载用户数据失败";
+            return false;
+        }
+        
+        if (!dataManager.loadProductsFromJson()) {
+            qDebug() << "错误：加载商品数据失败";
+            return false;
+        }
+
+        // 2. 复制数据到 Recommender 命名空间
+        Recommender::g_users = dataManager.getUsers();
+        Recommender::g_products = dataManager.getProducts();
+
+        qDebug() << "已加载" << Recommender::g_users.size() << "个用户";
+        qDebug() << "已加载" << Recommender::g_products.size() << "个商品";
+
+        // 3. 构建推荐矩阵
+        Recommender::initMapping();
+        qDebug() << "商品ID映射完成";
+
+        Recommender::buildCoOccurrenceMatrix();
+        qDebug() << "共现矩阵构建完成，维度:" << Recommender::g_coOccurrenceMatrix.size();
+
+        Recommender::buildSimilarityMatrix();
+        qDebug() << "相似度矩阵构建完成，维度:" << Recommender::g_similarityMatrix.size();
+
+        m_initialized = true;
+        qDebug() << "========== 推荐系统初始化成功 ==========";
+        return true;
+
+    } catch (const std::exception& e) {
+        qDebug() << "初始化异常:" << e.what();
+        return false;
+    } catch (...) {
+        qDebug() << "初始化发生未知错误";
+        return false;
+    }
+}
+
+QVariantList RecommenderWrapper::getRecommendations(const QString& username, int topK) {
+    QVariantList result;
+
+    try {
+        qDebug() << "========== 生成推荐 ==========";
+        qDebug() << "用户:" << username << "| 数量:" << topK;
+
+        // 确保系统已初始化
+        if (!ensureInitialized()) {
+            qDebug() << "错误：推荐系统初始化失败";
+            return result;
+        }
+
+        // 查找用户ID
+        DataManager dataManager;
+        dataManager.loadUsersFromJson();
+        dataManager.loadProductsFromJson();
+        
+        UserData* user = dataManager.findUser(username.toStdString());
+        if (!user) {
+            qDebug() << "错误：未找到用户" << username;
+            return result;
+        }
+
+        int userId = user->userId;
+        qDebug() << "找到用户ID:" << userId;
+
+        // 调用推荐算法
+        std::vector<std::pair<int, double>> recommendations = 
+            Recommender::recommendProducts(userId, topK);
+
+        qDebug() << "推荐算法返回" << recommendations.size() << "个结果";
+
+        // 转换为 QVariantList
+        for (const auto& item : recommendations) {
+            int productId = item.first;
+            double score = item.second;
+
+            ProductData* product = dataManager.findProduct(productId);
+            if (product) {
+                QVariantMap productMap;
+                productMap["productId"] = product->productId;
+                productMap["name"] = QString::fromStdString(product->name);
+                productMap["price"] = product->price;
+                productMap["stock"] = product->stock;
+                productMap["category"] = QString::fromStdString(product->category);
+                productMap["avgRating"] = product->avgRating;
+                productMap["reviewers"] = product->reviewers;
+                
+                // 推荐相关字段
+                productMap["collaborativeScore"] = score;
+                productMap["predictedRating"] = score;
+                productMap["confidence"] = score > 0 ? std::min(score / 1.0, 1.0) : 0.0;
+                
+                // 推荐理由
+                QString reason;
+                if (score >= 0.8) {
+                    reason = QString("强烈推荐（评分 %1）").arg(score, 0, 'f', 2);
+                } else if (score >= 0.5) {
+                    reason = QString("推荐（评分 %1）").arg(score, 0, 'f', 2);
+                } else {
+                    reason = QString("可能感兴趣（评分 %1）").arg(score, 0, 'f', 2);
+                }
+                productMap["recommendationReason"] = reason;
+
+                result.append(productMap);
+                
+                qDebug() << QString("[%1] %2 | 评分: %3")
+                    .arg(result.size())
+                    .arg(QString::fromStdString(product->name))
+                    .arg(score, 0, 'f', 3);
+            }
+        }
+
+        qDebug() << "========== 推荐完成：返回" << result.size() << "个商品 ==========";
+
+    } catch (const std::exception& e) {
+        qDebug() << "生成推荐异常:" << e.what();
+    } catch (...) {
+        qDebug() << "生成推荐发生未知错误";
+    }
+
+    return result;
+}
+
+// 手动包含 MOC 生成的文件
+#include "moc_Recommender.cpp"
