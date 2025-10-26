@@ -15,6 +15,10 @@ Item {
     property bool showError: false
     property bool showSuccess: false
     
+    // 统计数据属性
+    property int cartItemCount: 0
+    property int historyItemCount: 0
+    
     // 添加用于显示消息的函数
     function showMessage(message, isError) {
         if (isError) {
@@ -38,10 +42,24 @@ Item {
         showSuccess = false
     }
     
+    // 更新用户统计数据
+    function updateUserStats() {
+        if (stateManager) {
+            var stats = stateManager.getUserStats()
+            cartItemCount = stats.cartItemCount
+            historyItemCount = stats.historyItemCount
+        }
+    }
+    
     Timer {
         id: messageTimer
         interval: 3000
         onTriggered: clearMessages()
+    }
+    
+    // 页面显示时更新统计数据
+    Component.onCompleted: {
+        updateUserStats()
     }
 
     Rectangle {
@@ -236,7 +254,7 @@ Item {
                             }
                         }
 
-                        // 用户统计信息（删除收藏数目）
+                        // 用户统计信息
                         Rectangle {
                             width: parent.width
                             height: 120
@@ -254,7 +272,7 @@ Item {
                                     spacing: 8
                                     
                                     Text {
-                                        text: "0" // TODO: 从数据管理器获取实际数据
+                                        text: cartItemCount.toString()
                                         color: "#2c3e50"
                                         font.pixelSize: 28
                                         font.bold: true
@@ -274,7 +292,7 @@ Item {
                                     spacing: 8
                                     
                                     Text {
-                                        text: "0" // TODO: 从数据管理器获取实际数据
+                                        text: historyItemCount.toString()
                                         color: "#2c3e50"
                                         font.pixelSize: 28
                                         font.bold: true
@@ -334,7 +352,6 @@ Item {
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
-                                        // 启用修改密码功能
                                         changePasswordRequested()
                                     }
                                 }
@@ -389,4 +406,11 @@ Item {
 
     // StateManager 实例引用
     property StateManager stateManager: null
+    
+    // 监听 stateManager 变化，当设置后更新统计数据
+    onStateManagerChanged: {
+        if (stateManager) {
+            updateUserStats()
+        }
+    }
 }

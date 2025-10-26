@@ -230,8 +230,7 @@ void UserManager::insertFixup(RBNode** root, RBNode* z)
                 y->color = BLACK;
                 z->parent->parent->color = RED;
                 z = z->parent->parent;
-            }
-            else {
+            } else {
                 if (z == z->parent->right) {
                     // 情况2：z是右孩子
                     z = z->parent;
@@ -242,18 +241,16 @@ void UserManager::insertFixup(RBNode** root, RBNode* z)
                 z->parent->parent->color = RED;
                 rightRotate(root, z->parent->parent);
             }
-        }
-        else {
+        } else {
             // 对称情况
-            RBNode* y = z->parent->parent->left;
+            RBNode *y = z->parent->parent->left;
 
             if (y != nullptr && y->color == RED) {
                 z->parent->color = BLACK;
                 y->color = BLACK;
                 z->parent->parent->color = RED;
                 z = z->parent->parent;
-            }
-            else {
+            } else {
                 if (z == z->parent->left) {
                     z = z->parent;
                     rightRotate(root, z);
@@ -359,8 +356,7 @@ void UserManager::deleteFixup(RBNode** root, RBNode* x, RBNode* xParent)
                 w->color = RED;
                 x = xParent;
                 xParent = x->parent;
-            }
-            else {
+            } else {
                 if (w->right == nullptr || w->right->color == BLACK) {
                     if (w->left != nullptr)
                         w->left->color = BLACK;
@@ -377,9 +373,8 @@ void UserManager::deleteFixup(RBNode** root, RBNode* x, RBNode* xParent)
                 x = *root;
                 break;
             }
-        }
-        else {
-            RBNode* w = xParent->left;
+        } else {
+            RBNode *w = xParent->left;
 
             if (w->color == RED) {
                 w->color = BLACK;
@@ -393,8 +388,7 @@ void UserManager::deleteFixup(RBNode** root, RBNode* x, RBNode* xParent)
                 w->color = RED;
                 x = xParent;
                 xParent = x->parent;
-            }
-            else {
+            } else {
                 if (w->left == nullptr || w->left->color == BLACK) {
                     if (w->right != nullptr)
                         w->right->color = BLACK;
@@ -443,8 +437,7 @@ bool UserManager::deleteUserNode(int userId)
 
         if (z->right != nullptr)
             z->right->parent = z->parent;
-    }
-    else if (z->right == nullptr) {
+    } else if (z->right == nullptr) {
         x = z->left;
         xParent = z->parent;
 
@@ -457,8 +450,7 @@ bool UserManager::deleteUserNode(int userId)
 
         if (z->left != nullptr)
             z->left->parent = z->parent;
-    }
-    else {
+    } else {
         y = minimum(z->right);
         yOriginalColor = y->color;
         x = y->right;
@@ -467,8 +459,7 @@ bool UserManager::deleteUserNode(int userId)
             if (x != nullptr)
                 x->parent = y;
             xParent = y;
-        }
-        else {
+        } else {
             xParent = y->parent;
 
             if (y->parent != nullptr) {
@@ -523,8 +514,7 @@ void UserManager::calculateStatistics(RBNode* node, int& total, int& admin, int&
         total++;
         if (node->userData.isAdmin) {
             admin++;
-        }
-        else {
+        } else {
             regular++;
         }
         calculateStatistics(node->left, total, admin, regular);

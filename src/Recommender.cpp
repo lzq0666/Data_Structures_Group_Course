@@ -1,4 +1,4 @@
-#include "Recommender.h"
+﻿#include "Recommender.h"
 #include "DataManager.h"
 #include <unordered_map>
 #include <vector>
@@ -12,14 +12,13 @@ namespace Recommender
     std::vector<ProductData> g_products;
     std::vector<UserData> g_users;
     std::unordered_map<int, int> g_productIdToIndex;
-    std::vector<std::vector<double>> g_coOccurrenceMatrix;
-    std::vector<std::vector<double>> g_similarityMatrix;
+    std::vector<std::vector<double> > g_coOccurrenceMatrix;
+    std::vector<std::vector<double> > g_similarityMatrix;
 
     /**
      * @brief 初始化商品ID到索引的映射
      */
-    void initMapping()
-    {
+    void initMapping() {
         g_productIdToIndex.clear();
         for (int i = 0; i < g_products.size(); i++)
         {
@@ -85,9 +84,7 @@ namespace Recommender
                 int productId = viewItem[0];
                 int views = viewItem[1];
                 viewCounts[productId] = views;
-            }
-            else if (viewItem.size() == 1)
-            {
+            } else if (viewItem.size() == 1) {
                 int productId = viewItem[0];
                 viewCounts[productId] = 1; // 默认浏览1次
             }
@@ -95,18 +92,15 @@ namespace Recommender
 
         // 4. 收集所有用户有交互的商品ID
         std::unordered_map<int, bool> interactedProducts;
-        for (const auto &pair : ratings)
-        {
+        for (const auto &pair: ratings) {
             int productId = pair.first;
             interactedProducts[productId] = true;
         }
-        for (const auto &pair : inCart)
-        {
+        for (const auto &pair: inCart) {
             int productId = pair.first;
             interactedProducts[productId] = true;
         }
-        for (const auto &pair : viewCounts)
-        {
+        for (const auto &pair: viewCounts) {
             int productId = pair.first;
             interactedProducts[productId] = true;
         }
@@ -117,23 +111,20 @@ namespace Recommender
             int productId = pair.first;
             // 评分因素 f_r = (r - 1) / 4
             double f_r = 0.0;
-            if (ratings.find(productId) != ratings.end())
-            {
+            if (ratings.find(productId) != ratings.end()) {
                 double r = ratings[productId];
                 f_r = (r - 1.0) / 4.0; // 将[1,5]映射到[0,1]
             }
 
             // 购物车因素 f_c
             double f_c = 0.0;
-            if (inCart.find(productId) != inCart.end() && inCart[productId])
-            {
+            if (inCart.find(productId) != inCart.end() && inCart[productId]) {
                 f_c = 1.0;
             }
 
             // 浏览次数因素 使用饱和函数 f_v = 1 - exp(-0.2 * v)
             double f_v = 0.0;
-            if (viewCounts.find(productId) != viewCounts.end())
-            {
+            if (viewCounts.find(productId) != viewCounts.end()) {
                 int v = viewCounts[productId];
                 f_v = 1.0 - std::exp(-0.2 * v);
             }
@@ -156,8 +147,7 @@ namespace Recommender
      *
      * 分析用户的行为，统计物品之间的共现次数
      */
-    void buildCoOccurrenceMatrix()
-    {
+    void buildCoOccurrenceMatrix() {
         int n = g_products.size();
         // 为共现矩阵分配空间并初始化为 0
         g_coOccurrenceMatrix.resize(n, std::vector<double>(n, 0));
@@ -177,8 +167,7 @@ namespace Recommender
 
                     // 检查商品ID是否在映射中
                     if (g_productIdToIndex.find(productAId) != g_productIdToIndex.end() &&
-                        g_productIdToIndex.find(productBId) != g_productIdToIndex.end())
-                    {
+                        g_productIdToIndex.find(productBId) != g_productIdToIndex.end()) {
                         int indexA = g_productIdToIndex[productAId];
                         int indexB = g_productIdToIndex[productBId];
                         // 计算加权共现
@@ -203,8 +192,7 @@ namespace Recommender
      * 使用余弦相似度公式：W_ij = C_ij / sqrt(N_i * N_j)
      * 其中 C_ij 是共现次数，N_i 和 N_j 是各自被收藏的总次数
      */
-    void buildSimilarityMatrix()
-    {
+    void buildSimilarityMatrix() {
         int n = g_products.size();
 
         // 初始化相似度矩阵
@@ -223,8 +211,7 @@ namespace Recommender
                 double D_i = g_coOccurrenceMatrix[i][i]; // 商品i的"自共现"强度
                 double D_j = g_coOccurrenceMatrix[j][j]; // 商品j的"自共现"强度
 
-                if (D_i > 0 && D_j > 0)
-                {
+                if (D_i > 0 && D_j > 0) {
                     double denominator = std::sqrt(D_i * D_j);
 
                     if (i == j)
@@ -244,8 +231,7 @@ namespace Recommender
 
                 // 设置矩阵元素（利用对称性）
                 g_similarityMatrix[i][j] = similarity;
-                if (i != j)
-                {
+                if (i != j) {
                     g_similarityMatrix[j][i] = similarity;
                 }
             }
@@ -367,5 +353,4 @@ namespace Recommender
 
         return recommendations;
     }
-
 } // namespace Recommender

@@ -10,7 +10,8 @@ Item {
     
     // 与主窗口通信的信号
     signal backToMainMenuRequested()
-    signal addToCartRequested(int productId, string productName, real price)
+    signal addToCartRequested(int productId, string productName, real price, int quantity)
+    signal showProductDetailRequested(int productId)
     
     // StateManager 引用
     property var stateManager: null
@@ -25,7 +26,7 @@ Item {
         id: productModel
     }
     
-    // 搜索和分类相关属性（暂时不实现功能）
+    // 筛选和搜索相关属性 - 简化版本
     property string currentSearchText: ""
     property string currentCategory: "全部"
     
@@ -46,7 +47,7 @@ Item {
         }
     }
     
-    // 主容器 - 与其他界面保持一致的设计
+    // 主容器
     Rectangle {
         anchors.centerIn: parent
         width: Math.min(parent.width * 0.98, 1600)
@@ -70,15 +71,6 @@ Item {
                 color: "#ffffff"
                 border.color: "#ecf0f1"
                 border.width: 2
-                
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.topMargin: 2
-                    anchors.leftMargin: 2
-                    color: "#10000000"
-                    radius: parent.radius
-                    z: -1
-                }
                 
                 RowLayout {
                     anchors.fill: parent
@@ -151,15 +143,15 @@ Item {
                         
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "发现您喜欢的商品"
+                            text: "分类筛选，快速搜索"
                             font.pixelSize: 13
                             color: "#7f8c8d"
                         }
                     }
-                    
-                    // 搜索框（暂时不实现搜索功能）
+
+                    // 搜索框
                     Rectangle {
-                        Layout.preferredWidth: 280
+                        Layout.preferredWidth: 300
                         Layout.preferredHeight: 40
                         radius: 10
                         color: "#ffffff"
@@ -182,19 +174,60 @@ Item {
                             TextField {
                                 id: searchField
                                 Layout.fillWidth: true
-                                placeholderText: "搜索您想要的商品... (功能暂未开放)"
+                                placeholderText: "搜索商品名称..."
                                 font.pixelSize: 13
                                 color: "#2c3e50"
                                 placeholderTextColor: "#bdc3c7"
                                 background: Item {}
                                 verticalAlignment: TextInput.AlignVCenter
-                                enabled: false  // 暂时禁用搜索功能
                                 
                                 onTextChanged: {
                                     currentSearchText = text
-                                    console.log("搜索文本变更:", text, "- 搜索功能暂未实现")
+                                    searchTimer.restart()
+                                }
+                                
+                                Keys.onPressed: {
+                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        applyFilters()
+                                        event.accepted = true
+                                    }
                                 }
                             }
+                            
+                            // 清空搜索按钮
+                            Rectangle {
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: clearSearchArea.containsMouse ? "#e74c3c" : "transparent"
+                                visible: searchField.text.length > 0
+                                
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "✕"
+                                    font.pixelSize: 12
+                                    color: clearSearchArea.containsMouse ? "white" : "#7f8c8d"
+                                }
+                                
+                                MouseArea {
+                                    id: clearSearchArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        searchField.text = ""
+                                        searchField.focus = false
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 搜索延迟定时器
+                        Timer {
+                            id: searchTimer
+                            interval: 500
+                            repeat: false
+                            onTriggered: applyFilters()
                         }
                     }
                 }
@@ -205,81 +238,91 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: 20
-                
-                // 左侧分类面板（暂时不实现筛选功能）
+
+                // 左侧分类面板 - 简化版
                 Rectangle {
-                    Layout.preferredWidth: 220
+                    Layout.preferredWidth: 250
                     Layout.fillHeight: true
                     radius: 15
                     color: "#ffffff"
                     border.color: "#ecf0f1"
                     border.width: 2
                     
-                    Rectangle {
-                        anchors.fill: parent
-                        anchors.topMargin: 2
-                        anchors.leftMargin: 2
-                        color: "#08000000"
-                        radius: parent.radius
-                        z: -1
-                    }
-                    
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 20
-                        spacing: 15
+                        spacing: 20
                         
-                        // 分类标题
-                        ColumnLayout {
+                        // 分类标题和重置按钮
+                        RowLayout {
                             Layout.fillWidth: true
-                            spacing: 8
                             
-                            RowLayout {
-                                Layout.alignment: Qt.AlignHCenter
-                                spacing: 8
-                                
-                                Rectangle {
-                                    Layout.preferredWidth: 35
-                                    Layout.preferredHeight: 35
-                                    radius: 17
-                                    color: "#e74c3c"
-                                    
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "📂"
-                                        font.pixelSize: 18
-                                    }
-                                }
+                            Rectangle {
+                                Layout.preferredWidth: 35
+                                Layout.preferredHeight: 35
+                                radius: 17
+                                color: "#e74c3c"
                                 
                                 Text {
-                                    text: "商品分类"
+                                    anchors.centerIn: parent
+                                    text: "📂"
                                     font.pixelSize: 18
-                                    font.bold: true
-                                    color: "#2c3e50"
                                 }
                             }
                             
+                            Text {
+                                text: "商品分类"
+                                font.pixelSize: 18
+                                font.bold: true
+                                color: "#2c3e50"
+                            }
+                            
+                            Item { Layout.fillWidth: true }
+                            
+                            // 重置按钮
                             Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 2
-                                Layout.leftMargin: 20
-                                Layout.rightMargin: 20
-                                radius: 1
-                                color: "#e74c3c"
+                                Layout.preferredWidth: 60
+                                Layout.preferredHeight: 30
+                                radius: 8
+                                color: resetArea.containsMouse ? "#95a5a6" : "#bdc3c7"
+                                
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "重置"
+                                    font.pixelSize: 12
+                                    color: "white"
+                                    font.bold: true
+                                }
+                                
+                                MouseArea {
+                                    id: resetArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: resetFilters()
+                                }
                             }
                         }
                         
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 2
+                            radius: 1
+                            color: "#e74c3c"
+                        }
+                        
+                        // 商品分类筛选
                         ButtonGroup { id: categoryGroup }
                         
-                        // 分类按钮（暂时不实现筛选功能）
                         Repeater {
                             model: [
                                 {text: "全部", icon: "🏪", color: "#3498db"},
-                                {text: "手机", icon: "📱", color: "#e74c3c"},
-                                {text: "电脑", icon: "💻", color: "#9b59b6"},
-                                {text: "耳机", icon: "🎧", color: "#f39c12"},
-                                {text: "平板", icon: "📲", color: "#2ecc71"},
-                                {text: "手表", icon: "⌚", color: "#34495e"}
+                                {text: "食品", icon: "🍎", color: "#e74c3c"},
+                                {text: "日用品", icon: "🧴", color: "#9b59b6"},
+                                {text: "电器", icon: "🔌", color: "#f39c12"},
+                                {text: "数码产品", icon: "📱", color: "#2ecc71"},
+                                {text: "服装", icon: "👗", color: "#34495e"},
+                                {text: "酒水", icon: "🍷", color: "#3498db"}
                             ]
                             
                             Rectangle {
@@ -304,7 +347,6 @@ Item {
                                     text: modelData.text
                                     checked: index === 0
                                     ButtonGroup.group: categoryGroup
-                                    enabled: false  // 暂时禁用分类功能
                                     
                                     indicator: Item {}
                                     
@@ -314,12 +356,12 @@ Item {
                                         
                                         Text {
                                             text: modelData.icon
-                                            font.pixelSize: 18
+                                            font.pixelSize: 20
                                         }
                                         
                                         Text {
                                             text: categoryBtn.text
-                                            font.pixelSize: 15
+                                            font.pixelSize: 16
                                             font.bold: categoryBtn.checked
                                             color: categoryBtn.checked ? "white" : "#2c3e50"
                                         }
@@ -328,7 +370,7 @@ Item {
                                     onCheckedChanged: {
                                         if (checked) {
                                             currentCategory = text
-                                            console.log("分类选择:", text, "- 筛选功能暂未实现")
+                                            applyFilters()
                                         }
                                     }
                                 }
@@ -338,7 +380,6 @@ Item {
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
-                                    enabled: false  // 暂时禁用分类功能
                                     onClicked: categoryBtn.checked = true
                                 }
                             }
@@ -357,21 +398,12 @@ Item {
                     border.color: "#ecf0f1"
                     border.width: 2
                     
-                    Rectangle {
-                        anchors.fill: parent
-                        anchors.topMargin: 2
-                        anchors.leftMargin: 2
-                        color: "#08000000"
-                        radius: parent.radius
-                        z: -1
-                    }
-                    
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 20
                         spacing: 15
                         
-                        // 商品区域标题 - 删除了刷新按钮
+                        // 商品区域标题和统计信息
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 12
@@ -393,14 +425,14 @@ Item {
                                 spacing: 2
                                 
                                 Text {
-                                    text: "精选商品"
+                                    text: getDisplayTitle()
                                     font.pixelSize: 18
                                     font.bold: true
                                     color: "#2c3e50"
                                 }
                                 
                                 Text {
-                                    text: "共 " + productModel.count + " 件商品"
+                                    text: "共找到 " + productModel.count + " 件商品"
                                     font.pixelSize: 13
                                     color: "#7f8c8d"
                                 }
@@ -408,7 +440,23 @@ Item {
                             
                             Item { Layout.fillWidth: true }
                             
-                            // 删除了刷新按钮及其相关代码
+                            // 筛选状态指示器
+                            Rectangle {
+                                Layout.preferredWidth: filterIndicator.implicitWidth + 16
+                                Layout.preferredHeight: 30
+                                radius: 15
+                                color: hasActiveFilters() ? "#e74c3c" : "#95a5a6"
+                                visible: hasActiveFilters()
+                                
+                                Text {
+                                    id: filterIndicator
+                                    anchors.centerIn: parent
+                                    text: "筛选已应用"
+                                    font.pixelSize: 12
+                                    color: "white"
+                                    font.bold: true
+                                }
+                            }
                         }
                         
                         // 商品网格
@@ -433,41 +481,34 @@ Item {
                             GridView {
                                 id: productGrid
                                 
-                                cellWidth: 300
-                                cellHeight: 400
+                                cellWidth: 280
+                                cellHeight: 380
                                 model: productModel
                                 
                                 delegate: Item {
-                                    width: productGrid.cellWidth - 12
-                                    height: productGrid.cellHeight - 12
+                                    width: productGrid.cellWidth - 10
+                                    height: productGrid.cellHeight - 10
                                     
                                     Rectangle {
                                         id: productCard
                                         anchors.fill: parent
-                                        radius: 14
+                                        radius: 12
                                         color: "#ffffff"
-                                        border.color: "#ecf0f1"  // 固定边框颜色，不再变化
-                                        border.width: 1  // 固定边框宽度
+                                        border.color: cardArea.containsMouse ? "#3498db" : "#ecf0f1"
+                                        border.width: cardArea.containsMouse ? 2 : 1
                                         
-                                        // 删除了缩放动画效果
-                                        // scale: cardArea.containsMouse ? 1.02 : 1.0
+                                        scale: cardArea.containsMouse ? 1.03 : 1.0
                                         
-                                        // 删除了边框和缩放的动画效果
-                                        // Behavior on border.color { ColorAnimation { duration: 200 } }
-                                        // Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuad } }
+                                        Behavior on border.color { ColorAnimation { duration: 200 } }
+                                        Behavior on scale { NumberAnimation { duration: 150 } }
                                         
                                         Rectangle {
                                             anchors.fill: parent
-                                            anchors.topMargin: 2  // 固定阴影位置
-                                            anchors.leftMargin: 2  // 固定阴影位置
-                                            color: "#06000000"  // 固定阴影颜色
+                                            anchors.topMargin: 3
+                                            anchors.leftMargin: 3
+                                            color: "#06000000"
                                             radius: parent.radius
                                             z: -1
-                                            
-                                            // 删除了阴影的动画效果
-                                            // Behavior on anchors.topMargin { NumberAnimation { duration: 200 } }
-                                            // Behavior on anchors.leftMargin { NumberAnimation { duration: 200 } }
-                                            // Behavior on color { ColorAnimation { duration: 200 } }
                                         }
                                         
                                         MouseArea {
@@ -478,6 +519,7 @@ Item {
                                             
                                             onClicked: {
                                                 console.log("点击了商品:", model.name, "ID:", model.productId)
+                                                showProductDetailRequested(model.productId)
                                             }
                                         }
                                         
@@ -489,7 +531,7 @@ Item {
                                             // 商品图片区域
                                             Rectangle {
                                                 Layout.fillWidth: true
-                                                Layout.preferredHeight: 150
+                                                Layout.preferredHeight: 140
                                                 radius: 10
                                                 color: "#f8f9fa"
                                                 border.color: "#e9ecef"
@@ -497,26 +539,26 @@ Item {
                                                 
                                                 ColumnLayout {
                                                     anchors.centerIn: parent
-                                                    spacing: 6
+                                                    spacing: 8
                                                     
                                                     Text {
                                                         Layout.alignment: Qt.AlignHCenter
                                                         text: getCategoryIcon(model.category)
-                                                        font.pixelSize: 40
+                                                        font.pixelSize: 45
                                                         color: getCategoryColor(model.category)
                                                     }
                                                     
                                                     Rectangle {
-                                                        Layout.preferredWidth: 70
-                                                        Layout.preferredHeight: 20
+                                                        Layout.preferredWidth: 80
+                                                        Layout.preferredHeight: 22
                                                         Layout.alignment: Qt.AlignHCenter
-                                                        radius: 10
+                                                        radius: 11
                                                         color: getCategoryColor(model.category)
                                                         
                                                         Text {
                                                             anchors.centerIn: parent
                                                             text: model.category || "未分类"
-                                                            font.pixelSize: 10
+                                                            font.pixelSize: 11
                                                             color: "white"
                                                             font.bold: true
                                                         }
@@ -527,51 +569,44 @@ Item {
                                             // 商品信息区域
                                             ColumnLayout {
                                                 Layout.fillWidth: true
-                                                spacing: 6
+                                                spacing: 8
                                                 
                                                 // 商品名称
-                                                Rectangle {
+                                                Text {
                                                     Layout.fillWidth: true
-                                                    Layout.preferredHeight: 36
-                                                    color: "transparent"
-                                                    
-                                                    Text {
-                                                        anchors.fill: parent
-                                                        text: model.name || "未知商品"
-                                                        font.pixelSize: 14
-                                                        font.bold: true
-                                                        color: "#2c3e50"
-                                                        wrapMode: Text.WordWrap
-                                                        maximumLineCount: 2
-                                                        elide: Text.ElideRight
-                                                        verticalAlignment: Text.AlignTop
-                                                    }
+                                                    text: model.name || "未知商品"
+                                                    font.pixelSize: 15
+                                                    font.bold: true
+                                                    color: "#2c3e50"
+                                                    wrapMode: Text.WordWrap
+                                                    maximumLineCount: 2
+                                                    elide: Text.ElideRight
                                                 }
                                                 
                                                 // 评分和库存信息
                                                 RowLayout {
                                                     Layout.fillWidth: true
-                                                    spacing: 8
+                                                    spacing: 10
                                                     
                                                     // 评分信息
                                                     RowLayout {
-                                                        spacing: 3
+                                                        spacing: 4
                                                         
                                                         Text {
                                                             text: "⭐"
-                                                            font.pixelSize: 12
+                                                            font.pixelSize: 14
                                                         }
                                                         
                                                         Text {
                                                             text: (model.avgRating || 0).toFixed(1)
-                                                            font.pixelSize: 11
-                                                            color: "#7f8c8d"
+                                                            font.pixelSize: 13
+                                                            color: "#f39c12"
                                                             font.bold: true
                                                         }
                                                         
                                                         Text {
                                                             text: "(" + (model.reviewers || 0) + ")"
-                                                            font.pixelSize: 10
+                                                            font.pixelSize: 11
                                                             color: "#95a5a6"
                                                         }
                                                     }
@@ -580,16 +615,16 @@ Item {
                                                     
                                                     // 库存标签
                                                     Rectangle {
-                                                        Layout.preferredWidth: stockText.implicitWidth + 8
-                                                        Layout.preferredHeight: 16
-                                                        radius: 8
+                                                        Layout.preferredWidth: stockLabel.implicitWidth + 10
+                                                        Layout.preferredHeight: 20
+                                                        radius: 10
                                                         color: (model.stock || 0) > 0 ? "#2ecc71" : "#e74c3c"
                                                         
                                                         Text {
-                                                            id: stockText
+                                                            id: stockLabel
                                                             anchors.centerIn: parent
                                                             text: "库存 " + (model.stock || 0)
-                                                            font.pixelSize: 8
+                                                            font.pixelSize: 10
                                                             color: "white"
                                                             font.bold: true
                                                         }
@@ -602,13 +637,13 @@ Item {
                                             // 价格和按钮区域
                                             ColumnLayout {
                                                 Layout.fillWidth: true
-                                                spacing: 10
+                                                spacing: 12
                                                 
                                                 // 价格显示
                                                 Text {
                                                     Layout.alignment: Qt.AlignHCenter
                                                     text: "¥" + (model.price || 0).toFixed(2)
-                                                    font.pixelSize: 18
+                                                    font.pixelSize: 20
                                                     font.bold: true
                                                     color: "#e74c3c"
                                                 }
@@ -618,23 +653,23 @@ Item {
                                                     Layout.fillWidth: true
                                                     spacing: 8
                                                     
-                                                    // 查看详情按钮 - 删除了表情符号
+                                                    // 查看详情按钮
                                                     Rectangle {
                                                         Layout.fillWidth: true
-                                                        Layout.preferredHeight: 34
+                                                        Layout.preferredHeight: 36
                                                         radius: 8
                                                         color: detailArea.containsMouse ? "#3498db" : "#2c3e50"
                                                         
-                                                        scale: detailArea.pressed ? 0.96 : 1.0
+                                                        scale: detailArea.pressed ? 0.95 : 1.0
                                                         
                                                         Behavior on color { ColorAnimation { duration: 200 } }
                                                         Behavior on scale { NumberAnimation { duration: 100 } }
                                                         
                                                         Text {
                                                             anchors.centerIn: parent
-                                                            text: "查看"  // 删除了👁️表情符号
+                                                            text: "查看详情"
                                                             color: "white"
-                                                            font.pixelSize: 12
+                                                            font.pixelSize: 13
                                                             font.bold: true
                                                         }
                                                         
@@ -646,18 +681,21 @@ Item {
                                                             
                                                             onClicked: {
                                                                 console.log("查看商品详情:", model.name, "ID:", model.productId)
+                                                                showProductDetailRequested(model.productId)
                                                             }
                                                         }
                                                     }
                                                     
                                                     // 加入购物车按钮
                                                     Rectangle {
-                                                        Layout.preferredWidth: 42
-                                                        Layout.preferredHeight: 34
+                                                        Layout.preferredWidth: 45
+                                                        Layout.preferredHeight: 36
                                                         radius: 8
                                                         color: cartArea.containsMouse ? "#27ae60" : "#2ecc71"
+                                                        enabled: (model.stock || 0) > 0
+                                                        opacity: enabled ? 1.0 : 0.5
                                                         
-                                                        scale: cartArea.pressed ? 0.96 : 1.0
+                                                        scale: cartArea.pressed ? 0.95 : 1.0
                                                         
                                                         Behavior on color { ColorAnimation { duration: 200 } }
                                                         Behavior on scale { NumberAnimation { duration: 100 } }
@@ -665,7 +703,7 @@ Item {
                                                         Text {
                                                             anchors.centerIn: parent
                                                             text: "🛒"
-                                                            font.pixelSize: 15
+                                                            font.pixelSize: 16
                                                         }
                                                         
                                                         MouseArea {
@@ -673,10 +711,11 @@ Item {
                                                             anchors.fill: parent
                                                             hoverEnabled: true
                                                             cursorShape: Qt.PointingHandCursor
+                                                            enabled: parent.enabled
                                                             
                                                             onClicked: {
                                                                 console.log("添加到购物车:", model.name, "ID:", model.productId, "价格:", model.price)
-                                                                addToCartRequested(model.productId, model.name, model.price)
+                                                                addToCartRequested(model.productId, model.name, model.price, 1)
                                                                 cartFeedback.start()
                                                             }
                                                         }
@@ -685,16 +724,16 @@ Item {
                                                         Rectangle {
                                                             id: cartFeedbackRect
                                                             anchors.centerIn: parent
-                                                            width: 16
-                                                            height: 16
-                                                            radius: 8
+                                                            width: 20
+                                                            height: 20
+                                                            radius: 10
                                                             color: "#ffffff"
                                                             opacity: 0
                                                             
                                                             Text {
                                                                 anchors.centerIn: parent
                                                                 text: "✓"
-                                                                font.pixelSize: 10
+                                                                font.pixelSize: 12
                                                                 color: "#2ecc71"
                                                                 font.bold: true
                                                             }
@@ -711,11 +750,11 @@ Item {
                                                                     NumberAnimation {
                                                                         target: cartFeedbackRect
                                                                         property: "scale"
-                                                                        from: 0.5; to: 1.1; duration: 150
+                                                                        from: 0.5; to: 1.2; duration: 150
                                                                     }
                                                                 }
                                                                 
-                                                                PauseAnimation { duration: 250 }
+                                                                PauseAnimation { duration: 300 }
                                                                 
                                                                 ParallelAnimation {
                                                                     NumberAnimation {
@@ -741,12 +780,39 @@ Item {
                         }
                         
                         // 空状态提示
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "暂无商品数据"
-                            font.pixelSize: 16
-                            color: "#7f8c8d"
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 200
+                            Layout.alignment: Qt.AlignCenter
+                            color: "transparent"
                             visible: productModel.count === 0
+                            
+                            ColumnLayout {
+                                anchors.centerIn: parent
+                                spacing: 15
+                                
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    text: "🔍"
+                                    font.pixelSize: 48
+                                    color: "#bdc3c7"
+                                }
+                                
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    text: getEmptyStateMessage()
+                                    font.pixelSize: 16
+                                    color: "#7f8c8d"
+                                    font.bold: true
+                                }
+                                
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    text: "尝试调整分类筛选或搜索关键词"
+                                    font.pixelSize: 14
+                                    color: "#95a5a6"
+                                }
+                            }
                         }
                     }
                 }
@@ -754,53 +820,180 @@ Item {
         }
     }
     
-    // 工具函数 - 获取分类图标
+    // ============== 工具函数 ==============
+    
+    // 获取分类图标
     function getCategoryIcon(category) {
         switch(category) {
-            case "手机": return "📱"
-            case "电脑": return "💻"
-            case "耳机": return "🎧"
-            case "平板": return "📲"
-            case "手表": return "⌚"
+            case "食品":
+                return "🍎"
+            case "日用品":
+                return "🧴"
+            case "电器":
+                return "🔌"
+            case "数码产品":
+                return "📱"
+            case "服装":
+                return "👗"
+            case "酒水":
+                return "🍷"
             default: return "📦"
         }
     }
     
-    // 工具函数 - 获取分类颜色
+    // 获取分类颜色
     function getCategoryColor(category) {
         switch(category) {
-            case "手机": return "#e74c3c"
-            case "电脑": return "#9b59b6"
-            case "耳机": return "#f39c12"
-            case "平板": return "#2ecc71"
-            case "手表": return "#34495e"
+            case "食品":
+                return "#e74c3c"
+            case "日用品":
+                return "#9b59b6"
+            case "电器":
+                return "#f39c12"
+            case "数码产品":
+                return "#2ecc71"
+            case "服装":
+                return "#34495e"
+            case "酒水":
+                return "#3498db"
             default: return "#3498db"
         }
     }
     
-    // === 使用 DataManager 的商品数据操作函数 ===
+    // 获取显示标题
+    function getDisplayTitle() {
+        if (currentCategory !== "全部") {
+            return currentCategory + " - 商品列表"
+        }
+        if (currentSearchText) {
+            return "搜索结果: " + currentSearchText
+        }
+        return "全部商品"
+    }
     
-    // 从DataManager加载商品数据并填充到模型中
-    function loadAllProducts() {
-        console.log("开始使用DataManager加载商品数据...")
+    // 获取空状态消息
+    function getEmptyStateMessage() {
+        if (hasActiveFilters()) {
+            return "没有找到符合条件的商品"
+        }
+        return "暂无商品数据"
+    }
+    
+    // 检查是否有活动筛选条件
+    function hasActiveFilters() {
+        return currentSearchText !== "" || currentCategory !== "全部"
+    }
+    
+    // ============== 数据操作函数 ==============
+    
+    // 应用筛选条件 - 修正版本
+    function applyFilters() {
+        console.log("开始应用筛选条件...")
+        console.log("搜索关键词:", currentSearchText)
+        console.log("分类:", currentCategory)
         
         try {
             // 清空当前模型
             productModel.clear()
             
-            // 调用DataManager的loadProductsFromJson()函数从JSON文件加载数据
+            var filteredProducts = []
+            
+            // 根据筛选条件获取数据
+            if (currentSearchText === "" && currentCategory === "全部") {
+                // 没有任何筛选条件，显示所有商品
+                filteredProducts = dataManager.getProducts()
+            } else if (currentSearchText !== "" && currentCategory === "全部") {
+                // 只有搜索条件
+                filteredProducts = dataManager.searchProducts(currentSearchText)
+            } else if (currentSearchText === "" && currentCategory !== "全部") {
+                // 只有分类筛选
+                filteredProducts = dataManager.filterByCategory(currentCategory)
+            } else {
+                // 同时有搜索和分类筛选 - 需要手动组合
+                var searchResults = dataManager.searchProducts(currentSearchText)
+                var categoryResults = dataManager.filterByCategory(currentCategory)
+                
+                // 手动取交集
+                var searchMap = {}
+                for (var i = 0; i < searchResults.length; i++) {
+                    var product = searchResults[i]
+                    searchMap[product.productId] = product
+                }
+                
+                for (var j = 0; j < categoryResults.length; j++) {
+                    var catProduct = categoryResults[j]
+                    if (searchMap[catProduct.productId]) {
+                        filteredProducts.push(catProduct)
+                    }
+                }
+            }
+            
+            console.log("筛选完成，找到", filteredProducts.length, "个商品")
+            
+            // 将筛选结果添加到模型
+            for (var k = 0; k < filteredProducts.length; k++) {
+                var finalProduct = filteredProducts[k]
+                productModel.append({
+                    "productId": finalProduct.productId,
+                    "name": finalProduct.name,
+                    "price": finalProduct.price,
+                    "stock": finalProduct.stock,
+                    "category": finalProduct.category,
+                    "avgRating": finalProduct.avgRating,
+                    "reviewers": finalProduct.reviewers
+                })
+            }
+            
+            console.log("筛选结果已更新到界面，显示", productModel.count, "个商品")
+            
+        } catch (error) {
+            console.error("应用筛选条件时发生错误:", error)
+            // 发生错误时加载全部商品
+            loadAllProducts()
+        }
+    }
+    
+    // 重置筛选条件
+    function resetFilters() {
+        console.log("重置筛选条件")
+        
+        // 重置搜索
+        searchField.text = ""
+        currentSearchText = ""
+        
+        // 重置分类（选择第一个，即"全部"）
+        for (var i = 0; i < categoryGroup.buttons.length; i++) {
+            if (i === 0) {
+                categoryGroup.buttons[i].checked = true
+                break
+            }
+        }
+        currentCategory = "全部"
+        
+        // 重新加载所有商品
+        loadAllProducts()
+    }
+    
+    // 从DataManager加载所有商品数据 - 修正版本
+    function loadAllProducts() {
+        console.log("开始加载所有商品数据...")
+        
+        try {
+            // 清空当前模型
+            productModel.clear()
+            
+            // 调用DataManager加载数据
             var loadSuccess = dataManager.loadProductsFromJson()
             if (!loadSuccess) {
                 console.error("从JSON文件加载商品数据失败")
                 return false
             }
             
-            // 调用DataManager的getProducts()函数获取所有商品数据
+            // 获取所有商品数据
             var products = dataManager.getProducts()
-            
             console.log("从DataManager获取到", products.length, "个商品")
             
-            // 将商品数据添加到QML模型中，注意字段名映射
+            // 将商品数据添加到QML模型中
             for (var i = 0; i < products.length; i++) {
                 var product = products[i]
                 productModel.append({
@@ -809,7 +1002,7 @@ Item {
                     "price": product.price,
                     "stock": product.stock,
                     "category": product.category,
-                    "avgRating": product.avgRating,  // 使用统一的字段名
+                    "avgRating": product.avgRating,
                     "reviewers": product.reviewers
                 })
             }
@@ -823,25 +1016,11 @@ Item {
         }
     }
     
-    // 删除了 refreshProductList() 函数，因为刷新按钮已被移除
-    
-    // 清空商品列表
-    function clearProductList() {
-        console.log("清空商品列表")
-        productModel.clear()
-    }
-    
-    // 获取商品总数 - 使用DataManager
-    function getProductCount() {
-        var products = dataManager.getProducts()
-        return products.length
-    }
-    
-    // 根据ID查找商品 - 使用DataManager的findProduct函数
+    // 根据ID查找商品 - 修正版本
     function findProductById(productId) {
         try {
             var product = dataManager.findProduct(productId)
-            if (product) {
+            if (product && product.productId) {
                 console.log("找到商品:", product.name, "价格:", product.price)
                 return product
             } else {
@@ -854,16 +1033,18 @@ Item {
         }
     }
     
-    // 页面组件完成初始化后的处理
+    // ============== 组件初始化 ==============
+    
     Component.onCompleted: {
         console.log("商品浏览页面初始化...")
         console.log("DataManager实例已创建，开始加载商品数据")
         
-        // 页面加载完成后立即使用DataManager函数加载商品数据
+        // 页面加载完成后立即加载商品数据
         var success = loadAllProducts()
         
         if (success) {
             console.log("商品浏览页面初始化完成，商品数据加载成功")
+            console.log("分类筛选和搜索功能已启用")
         } else {
             console.error("商品浏览页面初始化完成，但商品数据加载失败")
         }

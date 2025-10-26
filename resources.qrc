@@ -13,5 +13,7 @@
         <file>Qt/RecommendationPage.qml</file>
         <file>Qt/UserManagementPage.qml</file>
         <file>Qt/ProductManagementPage.qml</file>
+        <file>Qt/shoppingCare.qml</file>
+        <file>Qt/ProductDetailPage.qml</file>
     </qresource>
 </RCC>

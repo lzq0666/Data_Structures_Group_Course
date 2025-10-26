@@ -2,6 +2,7 @@
 import QtQuick.Controls.Fusion 2.12
 import QtQuick.Dialogs
 import StateManager 1.0
+import DataManager 1.0
 
 ApplicationWindow {
     id: appWindow
@@ -19,6 +20,14 @@ ApplicationWindow {
             contentLoader.updateSource()
         }
     }
+    
+    // DataManager实例 - 用于购物车操作
+    DataManager {
+        id: dataManager
+    }
+    
+    // 当前查看的商品ID
+    property int currentProductId: -1
     
     // 根据状态显示不同内容
     Loader {
@@ -42,6 +51,9 @@ ApplicationWindow {
                 case StateManager.STATE_BROWSE: 
                     source = "qrc:/Qt/BrowsePage.qml"
                     break
+                case StateManager.STATE_PRODUCT_DETAIL:
+                    source = "qrc:/Qt/ProductDetailPage.qml"
+                    break
                 case StateManager.STATE_ADMIN: 
                     source = "qrc:/Qt/adminPage.qml"
                     break
@@ -54,11 +66,17 @@ ApplicationWindow {
                 case StateManager.STATE_RECOMMENDATION:  
                     source = "qrc:/Qt/RecommendationPage.qml"
                     break
-                case StateManager.STATE_USER_MANAGEMENT: 
+                case StateManager.STATE_USER_MANAGEMENT:
                     source = "qrc:/Qt/UserManagementPage.qml"
                     break
-                case StateManager.STATE_PRODUCT_MANAGEMENT:  
+                case StateManager.STATE_PRODUCT_MANAGEMENT:
                     source = "qrc:/Qt/ProductManagementPage.qml"
+                    break
+                case StateManager.STATE_DATA_IMPORT:
+                    source = "qrc:/Qt/DataImportPage.qml"
+                    break
+                case StateManager.STATE_SHOPPING_CART:
+                    source = "qrc:/Qt/shoppingCare.qml"
                     break
                 default: 
                     source = "qrc:/Qt/LoginPage.qml"
@@ -134,6 +152,19 @@ ApplicationWindow {
                 // 连接返回管理员页面信号（从用户管理页面和商品管理页面）
                 if (typeof item.backToAdminRequested !== "undefined") {
                     item.backToAdminRequested.connect(handleBackToAdmin);
+                // 连接浏览页面的商品详情信号
+                if (typeof item.showProductDetailRequested !== "undefined") {
+                    item.showProductDetailRequested.connect(handleShowProductDetail);
+                }
+                
+                // 连接商品详情页面的返回浏览信号
+                if (typeof item.backToBrowseRequested !== "undefined") {
+                    item.backToBrowseRequested.connect(handleBackToBrowse);
+                }
+                
+                // 连接加入购物车信号
+                if (typeof item.addToCartRequested !== "undefined") {
+                    item.addToCartRequested.connect(handleAddToCart);
                 }
                 
                 // 连接用户信息页面的修改密码信号
@@ -159,6 +190,19 @@ ApplicationWindow {
                 
                 if (typeof item.productManagementRequested !== "undefined") {
                     item.productManagementRequested.connect(handleProductManagement);
+                }
+                
+                if (typeof item.orderManagementRequested !== "undefined") {
+                    item.orderManagementRequested.connect(handleOrderManagement);
+                }
+                
+                if (typeof item.systemSettingsRequested !== "undefined") {
+                    item.systemSettingsRequested.connect(handleSystemSettings);
+                }
+                
+                // 如果是商品详情页面，设置当前商品
+                if (currentStateValue === StateManager.STATE_PRODUCT_DETAIL && typeof item.setCurrentProduct === "function") {
+                    item.setCurrentProduct(currentProductId);
                 }
             }
         }
@@ -285,9 +329,7 @@ ApplicationWindow {
     // 跳转到购物车页面 
     function handleShoppingCart() {
         console.log("跳转到购物车页面");
-        // TODO: 需要创建购物车页面或者实现购物车功能
-        // 目前暂时显示提示信息
-        console.log("购物车功能正在开发中...");
+        stateManager.setState(StateManager.STATE_SHOPPING_CART);
     }
     
     // 跳转到用户信息页面
@@ -306,6 +348,46 @@ ApplicationWindow {
     function handleBackToAdmin() {
         console.log("返回管理员页面");
         stateManager.setState(StateManager.STATE_ADMIN);
+        
+    // 跳转到商品详情页面
+    function handleShowProductDetail(productId) {
+        console.log("跳转到商品详情页面，商品ID:", productId);
+        currentProductId = productId;
+        stateManager.setState(StateManager.STATE_PRODUCT_DETAIL);
+    }
+    
+    // 从商品详情页面返回浏览页面
+    function handleBackToBrowse() {
+        console.log("返回商品浏览页面");
+        stateManager.setState(StateManager.STATE_BROWSE);
+    }
+    
+    // 处理加入购物车请求
+    function handleAddToCart(productId, productName, price, quantity) {
+        console.log("处理加入购物车请求:", productName, "数量:", quantity || 1);
+        
+        var currentUser = stateManager.getCurrentUsername();
+        if (!currentUser) {
+            console.error("用户未登录，无法添加到购物车");
+            return;
+        }
+        
+        var addQuantity = quantity || 1;
+        var success = dataManager.addToCart(currentUser, productId, addQuantity);
+        
+        if (success) {
+            console.log("成功添加到购物车:", productName, "数量:", addQuantity);
+            
+            // 保存用户数据到JSON文件
+            dataManager.saveUsersToJson();
+            
+            // 可以在这里添加成功提示
+            if (typeof appWindow.showCartSuccess === "function") {
+                appWindow.showCartSuccess(productName, addQuantity);
+            }
+        } else {
+            console.error("添加到购物车失败");
+        }
     }
     
     // 跳转到修改密码页面
@@ -379,5 +461,11 @@ ApplicationWindow {
     function handleProductManagement() {
         console.log("打开商品管理");
         stateManager.setState(StateManager.STATE_PRODUCT_MANAGEMENT);  // 更新为实际跳转到商品管理页面
+    }
+    
+    // 成功添加到购物车的提示（可选实现）
+    function showCartSuccess(productName, quantity) {
+        console.log("商品已成功添加到购物车:", productName, "数量:", quantity);
+        // 这里可以实现一个全局的成功提示
     }
 }
