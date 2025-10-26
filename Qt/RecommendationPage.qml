@@ -12,6 +12,14 @@ Item {
     signal backToMainMenuRequested()
 
     property StateManager stateManager: null
+    
+    // 当 stateManager 设置完成后，自动加载推荐
+    onStateManagerChanged: {
+        if (stateManager) {
+            console.log("stateManager 已设置，开始加载推荐")
+            loadCollaborativeRecommendations()
+        }
+    }
 
     // 推荐器 - 只提供一个方法：getRecommendations()
     Recommender {
@@ -404,8 +412,8 @@ Item {
                     // 空状态提示
                     Rectangle {
                         anchors.centerIn: parent
-                        width: 350
-                        height: 250
+                        width: 400
+                        height: 120
                         color: "transparent"
                         visible: productList.count === 0
 
@@ -415,52 +423,20 @@ Item {
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "🤖"
-                                font.pixelSize: 48
-                            }
-
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: "正在分析用户相似度..."
+                                text: "暂无推荐商品"
                                 color: "#6c757d"
-                                font.pixelSize: 16
+                                font.pixelSize: 20
                                 font.bold: true
                             }
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "基于协同过滤算法\n寻找与您偏好相似的用户"
+                                text: "建议多浏览和评分商品，以便为您提供更精准的推荐"
                                 color: "#95a5a6"
                                 font.pixelSize: 14
                                 horizontalAlignment: Text.AlignHCenter
-                            }
-
-                            Rectangle {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                width: 120
-                                height: 35
-                                radius: 17
-                                color: refreshArea.containsMouse ? "#28a745" : "#6c757d"
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "生成推荐"
-                                    color: "white"
-                                    font.pixelSize: 12
-                                    font.bold: true
-                                }
-
-                                MouseArea {
-                                    id: refreshArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: loadCollaborativeRecommendations()
-                                }
-
-                                Behavior on color {
-                                    ColorAnimation { duration: 200 }
-                                }
+                                wrapMode: Text.WordWrap
+                                width: 380
                             }
                         }
                     }
@@ -829,7 +805,7 @@ Item {
         console.log("========== 推荐页面已加载 ==========")
         console.log("配置:", JSON.stringify(collaborativeConfig, null, 2))
         
-        // 直接加载推荐（C++ 会自动初始化系统）
-        loadCollaborativeRecommendations()
+        // 不在这里加载推荐，而是等待 stateManager 设置完成后自动加载
+        // 参见 onStateManagerChanged 处理器
     }
 }
