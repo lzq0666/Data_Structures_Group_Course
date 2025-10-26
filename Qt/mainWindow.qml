@@ -366,24 +366,26 @@ ApplicationWindow {
         stateManager.setState(StateManager.STATE_BROWSE);
     }
     
-    // 处理加入购物车请求
+    // 处理加入购物车请求 - 修正版本
     function handleAddToCart(productId, productName, price, quantity) {
         console.log("处理加入购物车请求:", productName, "数量:", quantity || 1);
         
-        var currentUser = stateManager.getCurrentUsername();
+        // 修正：使用正确的方法名获取当前用户
+        var currentUser = stateManager.getCurrentUser();
         if (!currentUser) {
             console.error("用户未登录，无法添加到购物车");
             return;
         }
         
         var addQuantity = quantity || 1;
-        var success = dataManager.addToCart(currentUser, productId, addQuantity);
+        
+        // 修正：使用 stateManager 的 addToCart 方法
+        var success = stateManager.addToCart(productId, addQuantity);
         
         if (success) {
             console.log("成功添加到购物车:", productName, "数量:", addQuantity);
             
-            // 保存用户数据到JSON文件
-            dataManager.saveUsersToJson();
+            // StateManager 中的 addToCart 方法已经包含了保存逻辑，无需再次调用
             
             // 可以在这里添加成功提示
             if (typeof appWindow.showCartSuccess === "function") {

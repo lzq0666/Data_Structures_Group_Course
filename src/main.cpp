@@ -70,6 +70,11 @@ public:
         return ::getCurrentUser();
     }
 
+    // 添加新方法以兼容 QML 中的调用
+    Q_INVOKABLE QString getCurrentUsername() {
+        return getCurrentUser();
+    }
+
     Q_INVOKABLE int getCurrentState() {
         return static_cast<int>(::getCurrentState());
     }
@@ -159,67 +164,122 @@ public:
         return stats;
     }
 
-    // 添加购物车操作方法
+    // 添加购物车操作方法 - 修改：添加自动保存
     Q_INVOKABLE bool addToCart(int productId, int quantity) {
         QString currentUser = getCurrentUser();
         if (currentUser.isEmpty()) {
+            qDebug() << "用户未登录，无法添加到购物车";
             return false;
         }
 
         DataManager dataManager;
-        return dataManager.addToCart(currentUser.toStdString(), productId, quantity);
+        bool success = dataManager.addToCart(currentUser.toStdString(), productId, quantity);
+        
+        if (success) {
+            // 立即保存用户数据
+            bool saved = dataManager.saveUsersToJson();
+            qDebug() << "添加购物车成功 - 保存到文件:" << (saved ? "成功" : "失败");
+        }
+        
+        return success;
     }
 
     Q_INVOKABLE bool removeFromCart(int productId) {
         QString currentUser = getCurrentUser();
         if (currentUser.isEmpty()) {
+            qDebug() << "用户未登录，无法从购物车移除";
             return false;
         }
 
         DataManager dataManager;
-        return dataManager.removeFromCart(currentUser.toStdString(), productId);
+        bool success = dataManager.removeFromCart(currentUser.toStdString(), productId);
+        
+        if (success) {
+            // 立即保存用户数据
+            bool saved = dataManager.saveUsersToJson();
+            qDebug() << "从购物车移除成功 - 保存到文件:" << (saved ? "成功" : "失败");
+        }
+        
+        return success;
     }
 
     Q_INVOKABLE bool updateCartQuantity(int productId, int newQuantity) {
         QString currentUser = getCurrentUser();
         if (currentUser.isEmpty()) {
+            qDebug() << "用户未登录，无法更新购物车数量";
             return false;
         }
 
         DataManager dataManager;
-        return dataManager.updateCartQuantity(currentUser.toStdString(), productId, newQuantity);
+        bool success = dataManager.updateCartQuantity(currentUser.toStdString(), productId, newQuantity);
+        
+        if (success) {
+            // 立即保存用户数据
+            bool saved = dataManager.saveUsersToJson();
+            qDebug() << "更新购物车数量成功 - 保存到文件:" << (saved ? "成功" : "失败");
+        }
+        
+        return success;
     }
 
-    // 添加浏览历史
+    // 添加浏览历史 - 修改：添加自动保存
     Q_INVOKABLE bool addViewHistory(int productId) {
         QString currentUser = getCurrentUser();
         if (currentUser.isEmpty()) {
+            // 未登录用户也可以浏览，但不记录历史
+            qDebug() << "用户未登录，不记录浏览历史";
             return false;
         }
 
         DataManager dataManager;
-        return dataManager.addViewHistory(currentUser.toStdString(), productId);
+        bool success = dataManager.addViewHistory(currentUser.toStdString(), productId);
+        
+        if (success) {
+            // 立即保存用户数据
+            bool saved = dataManager.saveUsersToJson();
+            qDebug() << "添加浏览历史成功 - 保存到文件:" << (saved ? "成功" : "失败");
+        }
+        
+        return success;
     }
 
-    // 收藏操作
+    // 收藏操作 - 修改：添加自动保存
     Q_INVOKABLE bool addToFavorites(int productId, int rating) {
         QString currentUser = getCurrentUser();
         if (currentUser.isEmpty()) {
+            qDebug() << "用户未登录，无法添加收藏";
             return false;
         }
 
         DataManager dataManager;
-        return dataManager.addToFavorites(currentUser.toStdString(), productId, rating);
+        bool success = dataManager.addToFavorites(currentUser.toStdString(), productId, rating);
+        
+        if (success) {
+            // 立即保存用户数据
+            bool saved = dataManager.saveUsersToJson();
+            qDebug() << "添加收藏成功 - 保存到文件:" << (saved ? "成功" : "失败");
+        }
+        
+        return success;
     }
 
     Q_INVOKABLE bool removeFromFavorites(int productId) {
         QString currentUser = getCurrentUser();
         if (currentUser.isEmpty()) {
+            qDebug() << "用户未登录，无法移除收藏";
             return false;
         }
 
         DataManager dataManager;
-        return dataManager.removeFromFavorites(currentUser.toStdString(), productId);
+        bool success = dataManager.removeFromFavorites(currentUser.toStdString(), productId);
+        
+        if (success) {
+            // 立即保存用户数据
+            bool saved = dataManager.saveUsersToJson();
+            qDebug() << "移除收藏成功 - 保存到文件:" << (saved ? "成功" : "失败");
+        }
+        
+        return success;
     }
 
     // 修改：评价商品并保存数据
@@ -239,7 +299,7 @@ public:
         bool success = dataManager.rateProduct(currentUser.toStdString(), productId, rating);
         
         if (success) {
-            // 评价成功后立即保存用户数据
+            // 评价成功后立即保存用户数据和商品数据
             bool userSaved = dataManager.saveUsersToJson();
             bool productSaved = dataManager.saveProductsToJson();
             
@@ -254,7 +314,7 @@ signals:
     void stateChanged(int newState);
 };
 
-// DataManager 的 QML 包装器
+// DataManager 的 QML 包装器 - 增强版本，添加自动保存
 class DataManagerWrapper : public QObject {
     Q_OBJECT
 
@@ -306,6 +366,23 @@ public:
 
     Q_INVOKABLE bool saveUsersToJson() {
         return m_dataManager.saveUsersToJson();
+    }
+
+    // 新增：添加浏览历史的包装方法
+    Q_INVOKABLE bool addViewHistory(const QString& username, int productId) {
+        if (username.isEmpty()) {
+            return false;
+        }
+        
+        bool success = m_dataManager.addViewHistory(username.toStdString(), productId);
+        
+        if (success) {
+            // 立即保存用户数据
+            bool saved = m_dataManager.saveUsersToJson();
+            qDebug() << "DataManager 添加浏览历史 - 保存到文件:" << (saved ? "成功" : "失败");
+        }
+        
+        return success;
     }
 
     Q_INVOKABLE QVariantMap getShoppingCartDetails(const QString& username) {
