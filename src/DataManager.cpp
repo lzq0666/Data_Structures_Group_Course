@@ -736,6 +736,74 @@ bool DataManager::removeFromFavorites(const std::string &username, int productId
     return false;
 }
 
+// 评价商品并更新用户收藏和商品评分
+bool DataManager::rateProduct(const std::string& username, int productId, int rating) {
+    // 检查评分有效性
+    if (rating < 0 || rating > 5) {
+        qDebug() << "评分无效，必须在0-5之间:" << rating;
+        return false;
+    }
+
+    UserData* user = findUser(username);
+    if (!user) {
+        qDebug() << "未找到用户:" << QString::fromStdString(username);
+        return false;
+    }
+
+    ProductData* product = findProduct(productId);
+    if (!product) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 查找用户之前的评分
+    int oldRating = -1;
+    for (const auto& entry : user->favorites) {
+        if (entry.size() >= 2 && entry[0] == productId) {
+            oldRating = entry[1];
+            break;
+        }
+    }
+
+    // 更新商品评分
+    if (!updateProductRating(productId, rating, oldRating)) {
+        return false;
+    }
+
+    // 更新用户收藏中的评分
+    return addToFavorites(username, productId, rating);
+}
+
+// 更新商品评分信息
+bool DataManager::updateProductRating(int productId, int newRating, int oldRating) {
+    ProductData* product = findProduct(productId);
+    if (!product) {
+        qDebug() << "商品不存在，ID:" << productId;
+        return false;
+    }
+
+    // 如果是新评分（oldRating = -1）
+    if (oldRating == -1) {
+        // 新用户评分：更新平均评分和评价人数
+        double totalRating = product->avgRating * product->reviewers + newRating;
+        product->reviewers += 1;
+        product->avgRating = totalRating / product->reviewers;
+    }
+    else {
+        // 更新已有评分：减去旧评分，加上新评分
+        double totalRating = product->avgRating * product->reviewers - oldRating + newRating;
+        product->avgRating = totalRating / product->reviewers;
+    }
+
+    qDebug() << "更新商品评分，ID:" << productId
+        << "新评分:" << newRating
+        << "旧评分:" << oldRating
+        << "平均分:" << product->avgRating
+        << "评价人数:" << product->reviewers;
+
+    return true;
+}
+
 // ============== 工具函数 ==============
 
 // 清空所有数据（用户和商品）

@@ -91,9 +91,13 @@ ApplicationWindow {
         // 处理加载的组件的信号
         onLoaded: {
             if (item) {
-                // 为加载的组件设置 stateManager 引用
+                // 为加载的组件设置 stateManager 引用 - 修改：添加更多调试信息
                 if (typeof item.stateManager !== "undefined") {
+                    console.log("正在为组件设置 stateManager 引用...")
                     item.stateManager = stateManager;
+                    console.log("stateManager 已设置，验证:", item.stateManager ? "成功" : "失败")
+                } else {
+                    console.log("组件没有 stateManager 属性")
                 }
                 
                 // 连接登录页面的信号
@@ -197,9 +201,17 @@ ApplicationWindow {
                     item.systemSettingsRequested.connect(handleSystemSettings);
                 }
                 
-                // 如果是商品详情页面，设置当前商品
-                if (currentStateValue === StateManager.STATE_PRODUCT_DETAIL && typeof item.setCurrentProduct === "function") {
-                    item.setCurrentProduct(currentProductId);
+                // 如果是商品详情页面，设置当前商品并确保 stateManager 引用正确
+                if (currentStateValue === StateManager.STATE_PRODUCT_DETAIL) {
+                    // 再次确认 stateManager 已正确设置
+                    if (typeof item.stateManager !== "undefined" && !item.stateManager) {
+                        console.log("商品详情页面的 stateManager 未设置，重新设置...")
+                        item.stateManager = stateManager;
+                    }
+                    
+                    if (typeof item.setCurrentProduct === "function") {
+                        item.setCurrentProduct(currentProductId);
+                    }
                 }
             }
         }

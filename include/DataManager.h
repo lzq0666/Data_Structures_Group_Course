@@ -149,6 +149,10 @@ public:
 
     bool removeFromFavorites(const std::string &username, int productId);
 
+    // 评价相关方法
+    bool rateProduct(const std::string& username, int productId, int rating);
+    bool updateProductRating(int productId, int newRating, int oldRating = -1);
+
     // 工具函数
     void clearAllData();
 

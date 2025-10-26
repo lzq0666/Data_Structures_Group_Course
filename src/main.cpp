@@ -91,6 +91,30 @@ public:
         return false;
     }
 
+    // 新增：获取用户对商品的评分
+    Q_INVOKABLE int getUserProductRating(int productId) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return -1;
+        }
+
+        DataManager dataManager;
+        UserData* user = dataManager.findUser(currentUser.toStdString());
+        if (!user) {
+            return -1;
+        }
+
+        // 在用户的 favorites 中查找该商品的评分
+        // favorites 格式: [[productId, rating], ...]
+        for (const auto& entry : user->favorites) {
+            if (entry.size() >= 2 && entry[0] == productId) {
+                return entry[1]; // 返回评分
+            }
+        }
+
+        return -1; // 未找到评分
+    }
+
     // 获取用户统计数据 - 修正浏览历史统计逻辑
     Q_INVOKABLE QVariantMap getUserStats() {
         QVariantMap stats;
@@ -200,6 +224,34 @@ public:
 
         DataManager dataManager;
         return dataManager.removeFromFavorites(currentUser.toStdString(), productId);
+    }
+
+    // 修改：评价商品并保存数据
+    Q_INVOKABLE bool rateProduct(int productId, int rating) {
+        QString currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            qDebug() << "用户未登录，无法评价商品";
+            return false;
+        }
+
+        if (rating < 0 || rating > 5) {
+            qDebug() << "评分无效，必须在0-5之间:" << rating;
+            return false;
+        }
+
+        DataManager dataManager;
+        bool success = dataManager.rateProduct(currentUser.toStdString(), productId, rating);
+        
+        if (success) {
+            // 评价成功后立即保存用户数据
+            bool userSaved = dataManager.saveUsersToJson();
+            bool productSaved = dataManager.saveProductsToJson();
+            
+            qDebug() << "商品评价成功 - 用户数据保存:" << (userSaved ? "成功" : "失败") 
+                     << ", 商品数据保存:" << (productSaved ? "成功" : "失败");
+        }
+        
+        return success;
     }
 
 signals:
@@ -358,6 +410,25 @@ public:
         }
 
         return productList;
+    }
+
+    Q_INVOKABLE bool rateProduct(const QString& username, int productId, int rating) {
+        bool success = m_dataManager.rateProduct(username.toStdString(), productId, rating);
+        
+        if (success) {
+            // 评价成功后立即保存数据
+            bool userSaved = m_dataManager.saveUsersToJson();
+            bool productSaved = m_dataManager.saveProductsToJson();
+            
+            qDebug() << "DataManagerWrapper: 商品评价成功 - 用户数据保存:" << (userSaved ? "成功" : "失败") 
+                     << ", 商品数据保存:" << (productSaved ? "成功" : "失败");
+        }
+        
+        return success;
+    }
+
+    Q_INVOKABLE bool updateProductRating(int productId, int newRating, int oldRating = -1) {
+        return m_dataManager.updateProductRating(productId, newRating, oldRating);
     }
 
 private:
