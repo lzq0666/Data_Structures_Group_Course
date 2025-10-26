@@ -357,6 +357,7 @@ Item {
                                         Text {
                                             text: modelData.icon
                                             font.pixelSize: 20
+                                            Layout.alignment: Qt.AlignVCenter   // 图标垂直居中
                                         }
                                         
                                         Text {
@@ -364,6 +365,10 @@ Item {
                                             font.pixelSize: 16
                                             font.bold: categoryBtn.checked
                                             color: categoryBtn.checked ? "white" : "#2c3e50"
+                                            Layout.alignment: Qt.AlignVCenter   // 文本垂直居中
+                                            Layout.fillWidth: true  // 文本区域填充剩余宽度
+                                            horizontalAlignment: Text.AlignLeft // 文本左对齐
+                                            verticalAlignment: Text.AlignVCenter    // 文本垂直居中
                                         }
                                     }
                                     
