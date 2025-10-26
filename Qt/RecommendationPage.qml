@@ -10,6 +10,8 @@ Item {
 
     // 定义信号
     signal backToMainMenuRequested()
+    signal addToCartRequested(int productId, string productName, real price, int quantity)
+    signal showProductDetailRequested(int productId)
 
     property StateManager stateManager: null
     
@@ -171,6 +173,7 @@ Item {
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         recordUserBehavior("view", productData)
+                                        showProductDetailRequested(productData.productId)
                                         console.log("查看商品详情:", productData ? productData.name : "")
                                     }
                                 }
@@ -327,6 +330,7 @@ Item {
                                                     cursorShape: Qt.PointingHandCursor
                                                     onClicked: {
                                                         recordUserBehavior("view", productData)
+                                                        showProductDetailRequested(productData.productId)
                                                         console.log("查看商品详情:", productData ? productData.name : "")
                                                     }
                                                 }
@@ -357,6 +361,7 @@ Item {
                                                     cursorShape: Qt.PointingHandCursor
                                                     onClicked: {
                                                         recordUserBehavior("add_to_cart", productData)
+                                                        addToCartRequested(productData.productId, productData.name, productData.price, 1)
                                                         console.log("加入购物车:", productData ? productData.name : "")
                                                     }
                                                 }
