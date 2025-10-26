@@ -593,14 +593,17 @@ Item {
                     
                     // 商品评价区域 - 独立的区域
                     Rectangle {
+                        id: ratingSection
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 300  // 增加高度以容纳更多内容
+                        implicitHeight: ratingContent.implicitHeight + ratingContent.anchors.margins * 2
+                        Layout.preferredHeight: implicitHeight
                         radius: 15
                         color: "#ffffff"
                         border.color: "#ecf0f1"
                         border.width: 2
                         
                         ColumnLayout {
+                            id: ratingContent
                             anchors.fill: parent
                             anchors.margins: 30
                             spacing: 15
@@ -681,7 +684,7 @@ Item {
                                 visible: stateManager && stateManager.isLoggedIn()
                                 
                                 Text {
-                                    text: "选择评分 (0-5分):"
+                                    text: "选择评分 (1-5分):"
                                     font.pixelSize: 14
                                     color: "#555"
                                 }
@@ -691,14 +694,14 @@ Item {
                                     spacing: 8
                                     
                                     Repeater {
-                                        model: 6
+                                        model: 5
                                         
                                         Rectangle {
                                             Layout.preferredWidth: 45
                                             Layout.preferredHeight: 45
                                             radius: 8
-                                            color: ratingArea.containsMouse ? "#3498db" : 
-                                                   (index <= selectedRating ? "#f39c12" : "#ecf0f1")
+                          color: ratingArea.containsMouse ? "#3498db" : 
+                              (index + 1 <= selectedRating ? "#f39c12" : "#ecf0f1")
                                             border.color: "#bdc3c7"
                                             border.width: 1
                                             
@@ -709,10 +712,10 @@ Item {
                                             
                                             Text {
                                                 anchors.centerIn: parent
-                                                text: index
+                                                text: index + 1
                                                 font.pixelSize: 16
                                                 font.bold: true
-                                                color: index <= selectedRating ? "white" : "#7f8c8d"
+                                                color: index + 1 <= selectedRating ? "white" : "#7f8c8d"
                                             }
                                             
                                             MouseArea {
@@ -721,146 +724,143 @@ Item {
                                                 hoverEnabled: true
                                                 cursorShape: Qt.PointingHandCursor
                                                 onClicked: {
-                                                    selectedRating = index
-                                                    console.log("选择评分:", index)
+                                                    selectedRating = index + 1
+                                                    console.log("选择评分:", selectedRating)
                                                 }
                                             }
                                         }
                                     }
                                     
                                     Item { Layout.fillWidth: true }
-                                }
-                            }
-                            
-                            // 提交评价按钮
-                            Rectangle {
-                                Layout.preferredWidth: 180
-                                Layout.preferredHeight: 45
-                                Layout.alignment: Qt.AlignRight
-                                radius: 10
-                                color: submitRatingArea.containsMouse ? "#27ae60" : "#2ecc71"
-                                
-                                scale: submitRatingArea.pressed ? 0.98 : 1.0
-                                
-                                Behavior on color { ColorAnimation { duration: 200 } }
-                                Behavior on scale { NumberAnimation { duration: 100 } }
-                                
-                                enabled: selectedRating >= 0 && stateManager && stateManager.isLoggedIn()
-                                opacity: enabled ? 1.0 : 0.5
-                                visible: stateManager && stateManager.isLoggedIn()
-                                
-                                RowLayout {
-                                    anchors.centerIn: parent
-                                    spacing: 8
-                                    
-                                    Text {
-                                        text: "⭐"
-                                        font.pixelSize: 16
-                                    }
-                                    
-                                    Text {
-                                        text: "提交评价"
-                                        color: "white"
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                    }
-                                }
-                                
-                                MouseArea {
-                                    id: submitRatingArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    enabled: parent.enabled
-                                    
-                                    onClicked: {
-                                        if (currentProduct && stateManager) {
-                                            var currentUser = stateManager.getCurrentUsername()
-                                            if (currentUser) {
-                                                console.log("开始提交评价:")
-                                                console.log("- 商品:", currentProduct.name)
-                                                console.log("- 用户:", currentUser)
-                                                console.log("- 评分:", selectedRating)
-                                                
-                                                // 使用 StateManager 的评价方法
-                                                var success = stateManager.rateProduct(currentProduct.productId, selectedRating)
-                                                
-                                                if (success) {
-                                                    console.log("评价提交成功!")
+
+                                    Rectangle {
+                                        Layout.preferredWidth: 180
+                                        Layout.preferredHeight: 45
+                                        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                                        radius: 10
+                                        color: submitRatingArea.containsMouse ? "#27ae60" : "#2ecc71"
+
+                                        scale: submitRatingArea.pressed ? 0.98 : 1.0
+
+                                        Behavior on color { ColorAnimation { duration: 200 } }
+                                        Behavior on scale { NumberAnimation { duration: 100 } }
+
+                                        enabled: selectedRating >= 1 && stateManager && stateManager.isLoggedIn()
+                                        opacity: enabled ? 1.0 : 0.5
+
+                                        RowLayout {
+                                            anchors.centerIn: parent
+                                            spacing: 8
+                                            
+                                            Text {
+                                                text: "⭐"
+                                                font.pixelSize: 16
+                                            }
+                                            
+                                            Text {
+                                                text: "提交评价"
+                                                color: "white"
+                                                font.pixelSize: 14
+                                                font.bold: true
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            id: submitRatingArea
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            enabled: parent.enabled
+                                            
+                                            onClicked: {
+                                                if (currentProduct && stateManager) {
+                                                    var currentUser = stateManager.getCurrentUsername()
+                                                    if (currentUser) {
+                                                        console.log("开始提交评价:")
+                                                        console.log("- 商品:", currentProduct.name)
+                                                        console.log("- 用户:", currentUser)
+                                                        console.log("- 评分:", selectedRating)
                                                     
-                                                    // 重新获取更新后的商品数据
-                                                    refreshProductData()
+                                                        // 使用 StateManager 的评价方法
+                                                        var success = stateManager.rateProduct(currentProduct.productId, selectedRating)
                                                     
-                                                    // 显示成功反馈
-                                                    ratingSuccessFeedback.start()
+                                                        if (success) {
+                                                            console.log("评价提交成功!")
                                                     
-                                                    // 更新用户评分显示
-                                                    updateUserRatingDisplay()
+                                                            // 重新获取更新后的商品数据
+                                                            refreshProductData()
                                                     
+                                                            // 显示成功反馈
+                                                            ratingSuccessFeedback.start()
+                                                    
+                                                            // 更新用户评分显示
+                                                            updateUserRatingDisplay()
+                                                    
+                                                        } else {
+                                                            console.log("评价提交失败")
+                                                        }
+                                                    } else {
+                                                        console.log("无法获取当前用户名")
+                                                    }
                                                 } else {
-                                                    console.log("评价提交失败")
+                                                    console.log("缺少必要数据 - currentProduct:", !!currentProduct, "stateManager:", !!stateManager)
                                                 }
-                                            } else {
-                                                console.log("无法获取当前用户名")
-                                            }
-                                        } else {
-                                            console.log("缺少必要数据 - currentProduct:", !!currentProduct, "stateManager:", !!stateManager)
-                                        }
-                                    }
-                                }
-                                
-                                // 评价成功反馈动画
-                                Rectangle {
-                                    id: ratingSuccessRect
-                                    anchors.centerIn: parent
-                                    width: 40
-                                    height: 40
-                                    radius: 20
-                                    color: "#ffffff"
-                                    opacity: 0
-                                    
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "✓"
-                                        font.pixelSize: 20
-                                        color: "#2ecc71"
-                                        font.bold: true
-                                    }
-                                    
-                                    SequentialAnimation {
-                                        id: ratingSuccessFeedback
-                                        
-                                        ParallelAnimation {
-                                            NumberAnimation {
-                                                target: ratingSuccessRect
-                                                property: "opacity"
-                                                from: 0; to: 1; duration: 200
-                                            }
-                                            NumberAnimation {
-                                                target: ratingSuccessRect
-                                                property: "scale"
-                                                from: 0.5; to: 1.2; duration: 200
                                             }
                                         }
-                                        
-                                        PauseAnimation { duration: 800 }
-                                        
-                                        ParallelAnimation {
-                                            NumberAnimation {
-                                                target: ratingSuccessRect
-                                                property: "opacity"
-                                                to: 0; duration: 200
+
+                                        // 评价成功反馈动画
+                                        Rectangle {
+                                            id: ratingSuccessRect
+                                            anchors.centerIn: parent
+                                            width: 40
+                                            height: 40
+                                            radius: 20
+                                            color: "#ffffff"
+                                            opacity: 0
+                                            
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: "✓"
+                                                font.pixelSize: 20
+                                                color: "#2ecc71"
+                                                font.bold: true
                                             }
-                                            NumberAnimation {
-                                                target: ratingSuccessRect
-                                                property: "scale"
-                                                to: 1.0; duration: 200
+                                            
+                                            SequentialAnimation {
+                                                id: ratingSuccessFeedback
+                                            
+                                                ParallelAnimation {
+                                                    NumberAnimation {
+                                                        target: ratingSuccessRect
+                                                        property: "opacity"
+                                                        from: 0; to: 1; duration: 200
+                                                    }
+                                                    NumberAnimation {
+                                                        target: ratingSuccessRect
+                                                        property: "scale"
+                                                        from: 0.5; to: 1.2; duration: 200
+                                                    }
+                                                }
+                                            
+                                                PauseAnimation { duration: 800 }
+                                            
+                                                ParallelAnimation {
+                                                    NumberAnimation {
+                                                        target: ratingSuccessRect
+                                                        property: "opacity"
+                                                        to: 0; duration: 200
+                                                    }
+                                                    NumberAnimation {
+                                                        target: ratingSuccessRect
+                                                        property: "scale"
+                                                        to: 1.0; duration: 200
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                            
                             Item { Layout.fillHeight: true }  // 占位符，确保布局正确
                         }
                     }
