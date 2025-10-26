@@ -237,7 +237,13 @@ Item {
                                 Layout.preferredWidth: 60
                                 Layout.preferredHeight: 30
                                 radius: 8
-                                color: resetArea.containsMouse ? "#95a5a6" : "#bdc3c7"
+                                color: {
+                                    if (currentCategory !== "全部") {
+                                        return resetArea.containsMouse ? "#e67e22" : "#e74c3c"
+                                    } else {
+                                        return resetArea.containsMouse ? "#95a5a6" : "#bdc3c7"
+                                    }
+                                }
                                 
                                 Text {
                                     anchors.centerIn: parent
