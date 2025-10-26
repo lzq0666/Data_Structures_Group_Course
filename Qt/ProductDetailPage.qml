@@ -119,25 +119,14 @@ Item {
                     }
                     
                     // 标题区域
-                    ColumnLayout {
+                    Text {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignCenter
-                        spacing: 4
-                        
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "📋 商品详情"
-                            font.pixelSize: 24
-                            font.bold: true
-                            color: "#2c3e50"
-                        }
-                        
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "详细了解您感兴趣的商品"
-                            font.pixelSize: 13
-                            color: "#7f8c8d"
-                        }
+                        text: "📋 商品详情"
+                        font.pixelSize: 24
+                        font.bold: true
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignHCenter
                     }
                     
                     Item {

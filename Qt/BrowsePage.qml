@@ -107,25 +107,14 @@ Item {
                     }
                     
                     // 标题区域
-                    ColumnLayout {
+                    Text {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignCenter
-                        spacing: 4
-                        
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "🛍️ 商品浏览"
-                            font.pixelSize: 24
-                            font.bold: true
-                            color: "#2c3e50"
-                        }
-                        
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "分类筛选，快速搜索"
-                            font.pixelSize: 13
-                            color: "#7f8c8d"
-                        }
+                        text: "🛍️ 商品浏览"
+                        font.pixelSize: 24
+                        font.bold: true
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignHCenter
                     }
 
                     // 搜索框
