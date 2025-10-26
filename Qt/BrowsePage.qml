@@ -367,7 +367,7 @@ Item {
                             spacing: 12
                             
                             Text {
-                                text: "🎁 " + getDisplayTitle()
+                                text: getDisplayTitle()
                                 font.pixelSize: 18
                                 font.bold: true
                                 color: "#2c3e50"
