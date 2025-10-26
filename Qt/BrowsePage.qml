@@ -494,13 +494,16 @@ Item {
                                         anchors.fill: parent
                                         radius: 12
                                         color: "#ffffff"
-                                        border.color: cardArea.containsMouse ? "#3498db" : "#ecf0f1"
-                                        border.width: cardArea.containsMouse ? 2 : 1
+                                        // 删除边框动画效果 - 改为静态边框
+                                        border.color: "#ecf0f1"
+                                        border.width: 1
                                         
-                                        scale: cardArea.containsMouse ? 1.03 : 1.0
+                                        // 删除缩放动画效果
+                                        // scale: cardArea.containsMouse ? 1.03 : 1.0
                                         
-                                        Behavior on border.color { ColorAnimation { duration: 200 } }
-                                        Behavior on scale { NumberAnimation { duration: 150 } }
+                                        // 删除所有 Behavior 动画
+                                        // Behavior on border.color { ColorAnimation { duration: 200 } }
+                                        // Behavior on scale { NumberAnimation { duration: 150 } }
                                         
                                         Rectangle {
                                             anchors.fill: parent
@@ -653,17 +656,20 @@ Item {
                                                     Layout.fillWidth: true
                                                     spacing: 8
                                                     
-                                                    // 查看详情按钮
+                                                    // 查看详情按钮 - 删除动画效果
                                                     Rectangle {
                                                         Layout.fillWidth: true
                                                         Layout.preferredHeight: 36
                                                         radius: 8
-                                                        color: detailArea.containsMouse ? "#3498db" : "#2c3e50"
+                                                        // 删除悬停颜色变化
+                                                        color: "#2c3e50"
                                                         
-                                                        scale: detailArea.pressed ? 0.95 : 1.0
+                                                        // 删除缩放动画效果
+                                                        // scale: detailArea.pressed ? 0.95 : 1.0
                                                         
-                                                        Behavior on color { ColorAnimation { duration: 200 } }
-                                                        Behavior on scale { NumberAnimation { duration: 100 } }
+                                                        // 删除 Behavior 动画
+                                                        // Behavior on color { ColorAnimation { duration: 200 } }
+                                                        // Behavior on scale { NumberAnimation { duration: 100 } }
                                                         
                                                         Text {
                                                             anchors.centerIn: parent
@@ -686,19 +692,22 @@ Item {
                                                         }
                                                     }
                                                     
-                                                    // 加入购物车按钮
+                                                    // 加入购物车按钮 - 删除动画效果
                                                     Rectangle {
                                                         Layout.preferredWidth: 45
                                                         Layout.preferredHeight: 36
                                                         radius: 8
-                                                        color: cartArea.containsMouse ? "#27ae60" : "#2ecc71"
+                                                        // 删除悬停颜色变化
+                                                        color: "#2ecc71"
                                                         enabled: (model.stock || 0) > 0
                                                         opacity: enabled ? 1.0 : 0.5
                                                         
-                                                        scale: cartArea.pressed ? 0.95 : 1.0
+                                                        // 删除缩放动画效果
+                                                        // scale: cartArea.pressed ? 0.95 : 1.0
                                                         
-                                                        Behavior on color { ColorAnimation { duration: 200 } }
-                                                        Behavior on scale { NumberAnimation { duration: 100 } }
+                                                        // 删除 Behavior 动画
+                                                        // Behavior on color { ColorAnimation { duration: 200 } }
+                                                        // Behavior on scale { NumberAnimation { duration: 100 } }
                                                         
                                                         Text {
                                                             anchors.centerIn: parent
