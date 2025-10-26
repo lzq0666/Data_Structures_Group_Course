@@ -107,25 +107,14 @@ Item {
                     }
                     
                     // 标题区域
-                    ColumnLayout {
+                    Text {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignCenter
-                        spacing: 4
-                        
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "🛍️ 商品浏览"
-                            font.pixelSize: 24
-                            font.bold: true
-                            color: "#2c3e50"
-                        }
-                        
-                        Text {
-                            Layout.alignment: Qt.AlignHCenter
-                            text: "分类筛选，快速搜索"
-                            font.pixelSize: 13
-                            color: "#7f8c8d"
-                        }
+                        text: "🛍️ 商品浏览"
+                        font.pixelSize: 24
+                        font.bold: true
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignHCenter
                     }
 
                     // 搜索框
@@ -248,7 +237,13 @@ Item {
                                 Layout.preferredWidth: 60
                                 Layout.preferredHeight: 30
                                 radius: 8
-                                color: resetArea.containsMouse ? "#95a5a6" : "#bdc3c7"
+                                color: {
+                                    if (currentCategory !== "全部") {
+                                        return resetArea.containsMouse ? "#e67e22" : "#e74c3c"
+                                    } else {
+                                        return resetArea.containsMouse ? "#95a5a6" : "#bdc3c7"
+                                    }
+                                }
                                 
                                 Text {
                                     anchors.centerIn: parent
@@ -372,7 +367,7 @@ Item {
                             spacing: 12
                             
                             Text {
-                                text: "🎁 " + getDisplayTitle()
+                                text: getDisplayTitle()
                                 font.pixelSize: 18
                                 font.bold: true
                                 color: "#2c3e50"
@@ -385,24 +380,6 @@ Item {
                             }
                             
                             Item { Layout.fillWidth: true }
-                            
-                            // 筛选状态指示器
-                            Rectangle {
-                                Layout.preferredWidth: filterIndicator.implicitWidth + 16
-                                Layout.preferredHeight: 30
-                                radius: 15
-                                color: "#e74c3c"
-                                visible: hasActiveFilters()
-                                
-                                Text {
-                                    id: filterIndicator
-                                    anchors.centerIn: parent
-                                    text: "筛选已应用"
-                                    font.pixelSize: 12
-                                    color: "white"
-                                    font.bold: true
-                                }
-                            }
                         }
                         
                         // 商品网格
