@@ -380,24 +380,6 @@ Item {
                             }
                             
                             Item { Layout.fillWidth: true }
-                            
-                            // 筛选状态指示器
-                            Rectangle {
-                                Layout.preferredWidth: filterIndicator.implicitWidth + 16
-                                Layout.preferredHeight: 30
-                                radius: 15
-                                color: "#e74c3c"
-                                visible: hasActiveFilters()
-                                
-                                Text {
-                                    id: filterIndicator
-                                    anchors.centerIn: parent
-                                    text: "筛选已应用"
-                                    font.pixelSize: 12
-                                    color: "white"
-                                    font.bold: true
-                                }
-                            }
                         }
                         
                         // 商品网格
