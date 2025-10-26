@@ -495,202 +495,6 @@ Item {
         console.log("========== 推荐加载完成 ==========")
     }
 
-    /**
-     * 协同过滤推荐算法核心接口
-     * @param username 目标用户名
-     * @returns 推荐商品数组
-     * @description 基于用户-商品评分矩阵，找到相似用户，推荐他们喜欢的商品
-     * 
-     * 协同过滤算法步骤：
-     * 1. 获取目标用户的评分历史
-     * 2. 获取所有其他用户的评分历史  
-     * 3. 计算目标用户与其他用户的相似度（皮尔逊相关系数或余弦相似度）
-     * 4. 筛选出相似度超过阈值的用户
-     * 5. 基于相似用户的评分预测目标用户对未评分商品的评分
-     * 6. 选择预测评分最高的商品作为推荐
-     * 
-     * 预期返回格式：
-     * [
-     *   {
-     *     productId: 1001,
-     *     name: "商品名称",
-     *     price: 99.99,
-     *     avgRating: 4.5,
-     *     reviewers: 100,
-     *     category: "分类",
-     *     collaborativeScore: 4.2,           // 协同过滤预测评分 (1-5)
-     *     recommendationReason: "与您偏好相似的3位用户都给出了高评分",
-     *     similarUsers: ["user1", "user2", "user3"],  // 相似用户列表
-     *     userSimilarities: [0.85, 0.78, 0.65],      // 对应的相似度值
-     *     predictedRating: 4.2,              // 预测评分
-     *     confidence: 0.78                   // 推荐置信度
-     *   }
-     * ]
-     */
-    function generateCollaborativeRecommendations(username) {
-        console.log("TODO: 实现协同过滤推荐算法")
-        
-        // TODO: 实现步骤
-        /*
-        1. 调用 getUserRatings(username) 获取目标用户评分历史
-        2. 调用 getAllUsersRatings() 获取所有用户评分数据
-        3. 调用 calculateUserSimilarity(targetUser, otherUser) 计算用户相似度
-        4. 调用 findSimilarUsers(username, threshold) 找到相似用户
-        5. 调用 predictRatings(username, similarUsers) 预测商品评分
-        6. 调用 selectTopRecommendations(predictions, count) 选择top推荐
-        */
-        
-        return []
-    }
-
-    /**
-     * 获取用户评分历史
-     * @param username 用户名
-     * @returns 用户评分数组
-     * @description 从DataManager获取用户的评分历史数据
-     * 
-     * 预期返回格式：
-     * [
-     *   { productId: 1001, rating: 4.5, timestamp: 1640995200 },
-     *   { productId: 1002, rating: 3.8, timestamp: 1641081600 },
-     *   ...
-     * ]
-     */
-    function getUserRatings(username) {
-        // TODO: 从DataManager获取用户评分数据
-        /*
-        1. 调用 DataManager.findUser(username) 获取用户对象
-        2. 解析用户的 favorites 字段 (格式: [[productId, rating], ...])
-        3. 转换为标准格式并返回
-        */
-        
-        console.log("TODO: 获取用户评分历史 -", username)
-        return []
-    }
-
-    /**
-     * 获取所有用户的评分数据
-     * @returns 所有用户评分映射
-     * @description 获取系统中所有用户的评分数据，用于计算用户相似度
-     * 
-     * 预期返回格式：
-     * {
-     *   "user1": [
-     *     { productId: 1001, rating: 4.5 },
-     *     { productId: 1002, rating: 3.8 }
-     *   ],
-     *   "user2": [
-     *     { productId: 1001, rating: 4.0 },
-     *     { productId: 1003, rating: 4.2 }
-     *   ],
-     *   ...
-     * }
-     */
-    function getAllUsersRatings() {
-        // TODO: 从DataManager获取所有用户评分数据
-        /*
-        1. 调用 DataManager.getUsers() 获取所有用户
-        2. 遍历每个用户，提取其评分历史
-        3. 构建用户-评分映射表
-        */
-        
-        console.log("TODO: 获取所有用户评分数据")
-        return {}
-    }
-
-    /**
-     * 计算两个用户之间的相似度
-     * @param userRatings1 用户1的评分数组
-     * @param userRatings2 用户2的评分数组
-     * @returns 相似度值 (0-1)
-     * @description 使用皮尔逊相关系数计算用户相似度
-     * 
-     * 算法说明：
-     * 1. 找到两个用户都评分过的商品
-     * 2. 如果共同评分商品少于最小阈值，返回0
-     * 3. 计算皮尔逊相关系数
-     * 4. 将相关系数转换为0-1范围的相似度
-     */
-    function calculateUserSimilarity(userRatings1, userRatings2) {
-        // TODO: 实现皮尔逊相关系数计算
-        /*
-        1. 找到共同评分的商品 commonProducts
-        2. 如果 commonProducts.length < collaborativeConfig.minRatingsCount，返回 0
-        3. 计算平均评分 mean1, mean2
-        4. 计算皮尔逊相关系数 r = Σ((x-μx)(y-μy)) / √(Σ(x-μx)²Σ(y-μy)²)
-        5. 返回 (r + 1) / 2 将-1~1转换为0~1
-        */
-        
-        console.log("TODO: 计算用户相似度")
-        return 0.0
-    }
-
-    /**
-     * 找到与目标用户相似的用户
-     * @param username 目标用户名
-     * @returns 相似用户数组
-     * @description 找到相似度超过阈值的用户
-     * 
-     * 预期返回格式：
-     * [
-     *   { username: "user1", similarity: 0.85 },
-     *   { username: "user2", similarity: 0.78 },
-     *   ...
-     * ]
-     */
-    function findSimilarUsers(username) {
-        // TODO: 实现相似用户查找
-        /*
-        1. 获取目标用户评分 targetRatings = getUserRatings(username)
-        2. 获取所有用户评分 allUsersRatings = getAllUsersRatings()
-        3. 遍历其他用户，计算与目标用户的相似度
-        4. 筛选相似度 >= collaborativeConfig.userSimilarityThreshold 的用户
-        5. 按相似度降序排序
-        6. 返回相似用户列表
-        */
-        
-        console.log("TODO: 查找相似用户 -", username)
-        return []
-    }
-
-    /**
-     * 基于相似用户预测目标用户对商品的评分
-     * @param username 目标用户名
-     * @param similarUsers 相似用户数组
-     * @returns 预测评分数组
-     * @description 使用加权平均预测用户对未评分商品的评分
-     * 
-     * 预测公式：
-     * 预测评分 = Σ(相似度 × 相似用户评分) / Σ(相似度)
-     * 
-     * 预期返回格式：
-     * [
-     *   { 
-     *     productId: 1001, 
-     *     predictedRating: 4.2, 
-     *     confidence: 0.78, 
-     *     contributingUsers: ["user1", "user2"] 
-     *   },
-     *   ...
-     * ]
-     */
-    function predictUserRatings(username, similarUsers) {
-        // TODO: 实现评分预测
-        /*
-        1. 获取目标用户已评分商品 ratedProducts
-        2. 获取所有商品列表 allProducts
-        3. 筛选出目标用户未评分的商品 unratedProducts
-        4. 对每个未评分商品：
-           a. 找到相似用户中对该商品有评分的用户
-           b. 使用加权平均计算预测评分
-           c. 计算预测置信度
-        5. 返回预测结果
-        */
-        
-        console.log("TODO: 预测用户评分 -", username)
-        return []
-    }
-
     // ======================== 用户行为记录接口 ========================
     
     /**
@@ -698,7 +502,6 @@ Item {
      * @param actionType 行为类型: "view", "add_to_cart", "rate"
      * @param productData 商品数据
      * @param extraData 额外数据(如评分值)
-     * @description 记录用户行为，特别是评分行为对协同过滤很重要
      */
     function recordUserBehavior(actionType, productData, extraData = null) {
         if (!stateManager || !stateManager.isLoggedIn() || !productData) {
@@ -707,96 +510,26 @@ Item {
         }
         
         var username = stateManager.getCurrentUser()
-        var timestamp = Math.floor(Date.now() / 1000)
-        
-        // TODO: 更新用户行为数据到DataManager
-        /*
-        根据actionType更新对应的用户数据：
-        - "view": 更新viewHistory [[productId, timestamp], ...]
-        - "add_to_cart": 更新shoppingCart [[productId, quantity], ...]  
-        - "rate": 更新favorites [[productId, rating], ...] (这是评分数据)
-        
-        特别注意：评分数据对协同过滤算法至关重要
-        */
         
         console.log("记录用户行为:", {
             user: username,
             action: actionType,
             productId: productData.productId,
             productName: productData.name,
-            extraData: extraData,
-            timestamp: timestamp
+            extraData: extraData
         })
-        
-        // 如果是评分行为，可能需要重新生成推荐
-        if (actionType === "rate") {
-            console.log("用户新增评分，建议重新生成推荐")
-        }
     }
 
     /**
      * 显示评分对话框
      * @param productData 商品数据
-     * @description 让用户对商品进行评分，这是协同过滤的重要数据来源
      */
     function showRatingDialog(productData) {
-        // TODO: 实现评分对话框
-        /*
-        1. 创建评分对话框（1-5星评分）
-        2. 用户选择评分后，调用 recordUserBehavior("rate", productData, rating)
-        3. 更新用户的评分数据到DataManager
-        4. 可选：重新生成推荐
-        */
-        
         console.log("TODO: 显示评分对话框 -", productData ? productData.name : "未知商品")
         
         // 临时实现：直接记录4分评分
         var mockRating = 4.0
         recordUserBehavior("rate", productData, mockRating)
-    }
-
-    /**
-     * 临时实现：模拟协同过滤推荐
-     * @description 在真正的协同过滤算法完成前的模拟实现
-     */
-    function loadMockCollaborativeRecommendations(username) {
-        try {
-            var allProducts = dataManager.getProducts()
-            
-            // 模拟协同过滤推荐逻辑
-            var mockRecommendations = []
-            var maxRecommendations = Math.min(allProducts.length, collaborativeConfig.maxRecommendations)
-            
-            for (var i = 0; i < maxRecommendations; i++) {
-                var product = allProducts[i]
-                
-                // 模拟协同过滤数据
-                var mockProduct = Object.assign({}, product)
-                mockProduct.collaborativeScore = Math.random() * 2 + 3  // 3-5分
-                mockProduct.recommendationReason = "模拟：与您偏好相似的用户推荐"
-                mockProduct.similarUsers = ["模拟用户1", "模拟用户2", "模拟用户3"]
-                mockProduct.userSimilarities = [0.85, 0.78, 0.65]
-                mockProduct.predictedRating = mockProduct.collaborativeScore
-                mockProduct.confidence = Math.random() * 0.3 + 0.7  // 0.7-1.0
-                
-                mockRecommendations.push(mockProduct)
-            }
-            
-            // 按协同过滤得分排序
-            mockRecommendations.sort(function(a, b) {
-                return b.collaborativeScore - a.collaborativeScore
-            })
-            
-            // 添加到界面模型
-            for (var j = 0; j < mockRecommendations.length; j++) {
-                recommendationsModel.append(mockRecommendations[j])
-            }
-
-            console.log("模拟协同过滤推荐加载完成，共", mockRecommendations.length, "个商品")
-
-        } catch (error) {
-            console.error("加载模拟协同过滤推荐时发生错误:", error)
-        }
     }
 
     // ======================== 组件初始化 ========================
