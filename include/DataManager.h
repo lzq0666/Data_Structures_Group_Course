@@ -62,12 +62,15 @@ public:
     bool loadUsersFromJson();
     bool saveUsersToJson();
     bool addUser(const UserData &user);
+    bool removeUser(const std::string &username);
     UserData *findUser(const std::string &username);
     std::vector<UserData> &getUsers();
 
     // 商品数据操作
     bool loadProductsFromJson();
     bool saveProductsToJson();
+    bool addProduct(const ProductData &product);
+    bool removeProduct(int productId);
     ProductData *findProduct(int productId);
     std::vector<ProductData> &getProducts();
 
