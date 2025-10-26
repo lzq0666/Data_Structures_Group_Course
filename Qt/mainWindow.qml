@@ -152,6 +152,8 @@ ApplicationWindow {
                 // 连接返回管理员页面信号（从用户管理页面和商品管理页面）
                 if (typeof item.backToAdminRequested !== "undefined") {
                     item.backToAdminRequested.connect(handleBackToAdmin);
+                }
+
                 // 连接浏览页面的商品详情信号
                 if (typeof item.showProductDetailRequested !== "undefined") {
                     item.showProductDetailRequested.connect(handleShowProductDetail);
@@ -348,7 +350,8 @@ ApplicationWindow {
     function handleBackToAdmin() {
         console.log("返回管理员页面");
         stateManager.setState(StateManager.STATE_ADMIN);
-        
+    }
+
     // 跳转到商品详情页面
     function handleShowProductDetail(productId) {
         console.log("跳转到商品详情页面，商品ID:", productId);
