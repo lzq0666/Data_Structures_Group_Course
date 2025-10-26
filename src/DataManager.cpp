@@ -318,7 +318,7 @@ getShoppingCartDetails(const std::string& username, double& totalPrice, int& tot
         }
 
         CartItemDetails item{};
-        item.productId = productId;
+        item.productId = productId;  // 确保设置商品ID
         item.quantity = quantity;
 
         ProductData* product = findProduct(productId);

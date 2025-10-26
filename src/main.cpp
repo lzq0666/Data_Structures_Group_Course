@@ -406,7 +406,7 @@ public:
 
         for (const auto& item : details) {
             QVariantMap itemMap;
-            itemMap["productId"] = item.productId;
+            itemMap["productId"] = item.productId;  // 确保包含商品ID
             itemMap["name"] = QString::fromStdString(item.name);
             itemMap["quantity"] = item.quantity;
             itemMap["unitPrice"] = item.unitPrice;
