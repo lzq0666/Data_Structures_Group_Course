@@ -98,7 +98,7 @@ bool registerUser(const std::string &username, const std::string &password) {
             return true;
         }
     } else {
-        std::cerr << "注册失败: 无法保存用户数据" << std::endl;
+        qDebug() << "注册失败: 无法保存用户数据";
         return false;
     }
 }
@@ -114,16 +114,16 @@ bool login(const std::string &username, const std::string &password) {
     UserData *user = dm->findUser(username);
 
     if (!user) {
-        std::cerr << "登录失败: 用户不存在" << std::endl;
+        qDebug() << "登录失败: 用户不存在";
         return false;
     }
 
     // 验证密码
     if (verifyPassword(password, user->password, user->salt)) {
-        std::cout << "用户 " << username << " 登录成功" << std::endl;
+        qDebug() << "用户 " << username << " 登录成功";
         return true;
     } else {
-        std::cerr << "登录失败: 密码错误" << std::endl;
+        qDebug() << "登录失败: 密码错误";
         return false;
     }
 }

@@ -89,7 +89,7 @@ dataManager.addUser(newUser);
 // 查找用户
 UserData* user = dataManager.findUser("username");
 if (user) {
-    std::cout << "用户邮箱: " << user->email << std::endl;
+    std::cout << "用户邮箱: " << user->email ;
 }
 
 // 删除用户

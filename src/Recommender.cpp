@@ -7,9 +7,10 @@
 #include <algorithm>
 
 // 定义命名空间内的全局变量
-namespace Recommender {
-    std::vector<ProductData *> g_products;
-    std::vector<UserData *> g_users;
+namespace Recommender
+{
+    std::vector<ProductData> g_products;
+    std::vector<UserData> g_users;
     std::unordered_map<int, int> g_productIdToIndex;
     std::vector<std::vector<double> > g_coOccurrenceMatrix;
     std::vector<std::vector<double> > g_similarityMatrix;
@@ -19,8 +20,9 @@ namespace Recommender {
      */
     void initMapping() {
         g_productIdToIndex.clear();
-        for (int i = 0; i < g_products.size(); i++) {
-            g_productIdToIndex[g_products[i]->productId] = i;
+        for (int i = 0; i < g_products.size(); i++)
+        {
+            g_productIdToIndex[g_products[i].productId] = i;
         }
     }
 
@@ -36,27 +38,26 @@ namespace Recommender {
      * - f_c: 是否加入购物车，加入购物车则为1，否则为0
      * - f_v: 浏览次数，f_v = 1 - exp(-0.2 * v)
      */
-    std::vector<std::pair<int, double> > calculateInterestScore(UserData *user) {
-        std::vector<std::pair<int, double> > interestScores;
-
-        if (user == nullptr) {
-            return interestScores;
-        }
+    std::vector<std::pair<int, double>> calculateInterestScore(const UserData &user)
+    {
+        std::vector<std::pair<int, double>> interestScores;
 
         // 权重设置
         const double RATING_WEIGHT = 0.6; // 评分权重
-        const double CART_WEIGHT = 0.25; // 购物车权重
-        const double VIEW_WEIGHT = 0.15; // 浏览次数权重
+        const double CART_WEIGHT = 0.25;  // 购物车权重
+        const double VIEW_WEIGHT = 0.15;  // 浏览次数权重
 
         // 为每个商品构建一个映射，记录评分、是否在购物车、浏览次数
         std::unordered_map<int, double> ratings; // 商品ID -> 评分
-        std::unordered_map<int, bool> inCart; // 商品ID -> 是否在购物车
+        std::unordered_map<int, bool> inCart;    // 商品ID -> 是否在购物车
         std::unordered_map<int, int> viewCounts; // 商品ID -> 浏览次数
 
         // 1. 处理收藏（favorites）数据，获取评分
         // favorites格式: [[商品ID, 评分], ...]
-        for (const auto &favorite: user->favorites) {
-            if (favorite.size() >= 2) {
+        for (const auto &favorite : user.favorites)
+        {
+            if (favorite.size() >= 2)
+            {
                 int productId = favorite[0];
                 int rating = favorite[1];
                 ratings[productId] = rating;
@@ -65,8 +66,10 @@ namespace Recommender {
 
         // 2. 处理购物车（shoppingCart）数据
         // shoppingCart格式: [[商品ID, 数量, ...], ...]
-        for (const auto &cartItem: user->shoppingCart) {
-            if (!cartItem.empty()) {
+        for (const auto &cartItem : user.shoppingCart)
+        {
+            if (!cartItem.empty())
+            {
                 int productId = cartItem[0];
                 inCart[productId] = true;
             }
@@ -74,8 +77,10 @@ namespace Recommender {
 
         // 3. 处理浏览历史（viewHistory）数据
         // viewHistory格式: [[商品ID, 浏览次数, ...], ...]
-        for (const auto &viewItem: user->viewHistory) {
-            if (viewItem.size() >= 2) {
+        for (const auto &viewItem : user.viewHistory)
+        {
+            if (viewItem.size() >= 2)
+            {
                 int productId = viewItem[0];
                 int views = viewItem[1];
                 viewCounts[productId] = views;
@@ -101,7 +106,8 @@ namespace Recommender {
         }
 
         // 5. 为每个有交互的商品计算兴趣值
-        for (const auto &pair: interactedProducts) {
+        for (const auto &pair : interactedProducts)
+        {
             int productId = pair.first;
             // 评分因素 f_r = (r - 1) / 4
             double f_r = 0.0;
@@ -145,13 +151,15 @@ namespace Recommender {
         int n = g_products.size();
         // 为共现矩阵分配空间并初始化为 0
         g_coOccurrenceMatrix.resize(n, std::vector<double>(n, 0));
-        for (const auto &user: g_users) {
+        for (const auto &user : g_users)
+        {
             // 计算用户的兴趣分数
-            std::vector<std::pair<int, double> > interestScores = calculateInterestScore(user);
+            std::vector<std::pair<int, double>> interestScores = calculateInterestScore(user);
 
-            for (size_t i = 0; i < interestScores.size(); i++) {
-                for (size_t j = i; j < interestScores.size(); j++) {
-                    // j 从 i 开始，包含对角线
+            for (size_t i = 0; i < interestScores.size(); i++)
+            {
+                for (size_t j = i; j < interestScores.size(); j++)
+                { // j 从 i 开始，包含对角线
                     int productAId = interestScores[i].first;
                     int productBId = interestScores[j].first;
                     double productAInterest = interestScores[i].second;
@@ -167,7 +175,8 @@ namespace Recommender {
                         g_coOccurrenceMatrix[indexA][indexB] += weight;
 
                         // 只对非对角线元素进行对称填充
-                        if (indexA != indexB) {
+                        if (indexA != indexB)
+                        {
                             // TODO: 矩阵压缩存储？
                             g_coOccurrenceMatrix[indexB][indexA] += weight;
                         }
@@ -191,8 +200,10 @@ namespace Recommender {
 
         // 计算相似度矩阵
         // 对角线值已经在 g_coOccurrenceMatrix 中计算好了
-        for (int i = 0; i < n; i++) {
-            for (int j = i; j < n; j++) {
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = i; j < n; j++)
+            {
                 double similarity = 0.0;
 
                 // 只有当两个商品都有交互记录时才计算相似度
@@ -203,11 +214,14 @@ namespace Recommender {
                 if (D_i > 0 && D_j > 0) {
                     double denominator = std::sqrt(D_i * D_j);
 
-                    if (i == j) {
+                    if (i == j)
+                    {
                         // 对角线元素：商品与自己的余弦相似度永远是1
                         // D_i / sqrt(D_i * D_i) = D_i / D_i = 1
                         similarity = 1.0;
-                    } else {
+                    }
+                    else
+                    {
                         // 非对角线元素：使用余弦相似度公式
                         // W_ij = C_ij / sqrt(D_i * D_j)
                         double C_ij = g_coOccurrenceMatrix[i][j];
@@ -230,9 +244,112 @@ namespace Recommender {
      * @param topK 推荐物品的数量
      * @return 推荐结果列表，包含物品ID和推荐分数的对
      */
-    std::vector<std::pair<int, double> > recommendProducts(int userId, int topK) {
-        // TODO: 实现推荐算法逻辑
-        std::vector<std::pair<int, double> > recommendations;
+    std::vector<std::pair<int, double>> recommendProducts(int userId, int topK)
+    {
+        std::vector<std::pair<int, double>> recommendations;
+
+        // 1. 查找用户
+        UserData *targetUser = nullptr;
+        for (auto &user : g_users)
+        {
+            if (user.userId == userId)
+            {
+                targetUser = &user;
+                break;
+            }
+        }
+
+        if (targetUser == nullptr)
+        {
+            // 用户不存在，返回空列表
+            return recommendations;
+        }
+
+        // 2. 计算用户的兴趣分数
+        std::vector<std::pair<int, double>> interestScores = calculateInterestScore(*targetUser);
+
+        // 3. 创建用户已交互商品的集合
+        std::unordered_map<int, double> interactedProducts;
+        for (const auto &pair : interestScores)
+        {
+            interactedProducts[pair.first] = pair.second;
+        }
+
+        // 4. 为所有未交互的商品预测评分
+        std::vector<std::pair<int, double>> candidateProducts;
+
+        for (const auto &product : g_products)
+        {
+            int productId = product.productId;
+
+            // 跳过用户已交互的商品
+            if (interactedProducts.find(productId) != interactedProducts.end())
+            {
+                continue;
+            }
+
+            // 检查商品ID是否在映射中
+            if (g_productIdToIndex.find(productId) == g_productIdToIndex.end())
+            {
+                continue;
+            }
+
+            int targetIndex = g_productIdToIndex[productId];
+
+            // 使用基于物品的协同过滤预测评分
+            // P(u,i) = Σ(sim(i,j) * r(u,j)) / Σ|sim(i,j)|
+            // 其中 j 是用户已交互的商品
+            double numerator = 0.0;   // 分子：相似度加权的兴趣值之和
+            double denominator = 0.0; // 分母：相似度绝对值之和
+
+            for (const auto &interactedPair : interestScores)
+            {
+                int interactedProductId = interactedPair.first;
+                double interestValue = interactedPair.second;
+
+                // 检查已交互商品ID是否在映射中
+                if (g_productIdToIndex.find(interactedProductId) == g_productIdToIndex.end())
+                {
+                    continue;
+                }
+
+                int interactedIndex = g_productIdToIndex[interactedProductId];
+
+                // 获取相似度
+                double similarity = g_similarityMatrix[targetIndex][interactedIndex];
+
+                // 累加加权值
+                numerator += similarity * interestValue;
+                denominator += std::abs(similarity);
+            }
+
+            // 计算预测评分
+            double predictedScore = 0.0;
+            if (denominator > 0)
+            {
+                predictedScore = numerator / denominator;
+            }
+
+            // 只推荐预测分数大于0的商品
+            if (predictedScore > 0)
+            {
+                candidateProducts.push_back({productId, predictedScore});
+            }
+        }
+
+        // 5. 按预测评分降序排序
+        std::sort(candidateProducts.begin(), candidateProducts.end(),
+                  [](const std::pair<int, double> &a, const std::pair<int, double> &b)
+                  {
+                      return a.second > b.second; // 降序排序
+                  });
+
+        // 6. 返回前 topK 个推荐结果
+        int count = std::min(topK, static_cast<int>(candidateProducts.size()));
+        for (int i = 0; i < count; i++)
+        {
+            recommendations.push_back(candidateProducts[i]);
+        }
 
         return recommendations;
     }

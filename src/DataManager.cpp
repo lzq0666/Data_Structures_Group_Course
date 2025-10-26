@@ -157,9 +157,8 @@ bool DataManager::saveUsersToJson() {
 
         qDebug() << "成功保存 " << users.size() << " 个用户数据 => " << QString::fromStdString(path);
         return true;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "保存用户数据时发生错误: " << e.what() << std::endl;
+    } catch (const std::exception &e) {
+        qDebug() << "保存用户数据时发生错误: " << e.what();
         return false;
     }
 }
@@ -172,7 +171,7 @@ bool DataManager::saveUsersToJson() {
 bool DataManager::addUser(const UserData& user) {
     // 检查用户是否已存在
     if (findUser(user.username) != nullptr) {
-        std::cerr << "用户已存在: " << user.username << std::endl;
+        qDebug() << "用户已存在: " << user.username;
         return false;
     }
 
@@ -181,12 +180,25 @@ bool DataManager::addUser(const UserData& user) {
     return true;
 }
 
-/**
- * @brief 根据用户名查找用户
- * @param username 要查找的用户名
- * @return 找到返回用户指针，未找到返回 nullptr
- */
-UserData* DataManager::findUser(const std::string& username) {
+// 删除用户
+bool DataManager::removeUser(const std::string &username) {
+    auto it = std::find_if(users.begin(), users.end(),
+                           [&username](const UserData &user) {
+                               return user.username == username;
+                           });
+
+    if (it != users.end()) {
+        users.erase(it);
+        qDebug() << "成功删除用户: " << username;
+        return true;
+    }
+
+    qDebug() << "未找到用户: " << username;
+    return false;
+}
+
+// 查找用户
+UserData *DataManager::findUser(const std::string &username) {
     auto it = std::find_if(users.begin(), users.end(),
         [&username](const UserData& user) {
             return user.username == username;
@@ -242,9 +254,8 @@ bool DataManager::loadProductsFromJson() {
 
         qDebug() << "成功加载 " << products.size() << " 个商品数据";
         return true;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "加载商品数据时发生错误: " << e.what() << std::endl;
+    } catch (const std::exception &e) {
+        qDebug() << "加载商品数据时发生错误: " << e.what();
         return false;
     }
 }
@@ -288,11 +299,38 @@ bool DataManager::saveProductsToJson() {
 
         qDebug() << "成功保存 " << products.size() << " 个商品数据 => " << QString::fromStdString(path);
         return true;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "保存商品数据时发生错误: " << e.what() << std::endl;
+    } catch (const std::exception &e) {
+        qDebug() << "保存商品数据时发生错误: " << e.what();
         return false;
     }
+}
+
+bool DataManager::addProduct(const ProductData &product) {
+    // 检查商品是否已存在
+    if (findProduct(product.productId) != nullptr) {
+        qDebug() << "商品已存在，ID: " << product.productId;
+        return false;
+    }
+
+    products.push_back(product);
+    qDebug() << "成功添加商品: " << product.name << " (ID: " << product.productId << ")";
+    return true;
+}
+
+bool DataManager::removeProduct(int productId) {
+    auto it = std::find_if(products.begin(), products.end(),
+                           [productId](const ProductData &product) {
+                               return product.productId == productId;
+                           });
+
+    if (it != products.end()) {
+        qDebug() << "成功删除商品: " << it->name << " (ID: " << productId << ")";
+        products.erase(it);
+        return true;
+    }
+
+    qDebug() << "未找到商品，ID: " << productId;
+    return false;
 }
 
 /**
@@ -928,7 +966,7 @@ bool DataManager::createEmptyJsonFile(const std::string& filename) {
 
         std::ofstream file(filename);
         if (!file.is_open()) {
-            std::cerr << "无法创建文件: " << filename << std::endl;
+            qDebug() << "无法创建文件: " << filename;
             return false;
         }
 
@@ -937,9 +975,8 @@ bool DataManager::createEmptyJsonFile(const std::string& filename) {
 
         qDebug() << "成功创建空的 JSON 文件: " << QString::fromStdString(filename);
         return true;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "创建 JSON 文件时发生错误: " << e.what() << std::endl;
+    } catch (const std::exception &e) {
+        qDebug() << "创建 JSON 文件时发生错误: " << e.what();
         return false;
     }
 }

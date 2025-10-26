@@ -153,6 +153,11 @@ ApplicationWindow {
                     item.backToMainMenuRequested.connect(handleBackToMainMenu);
                 }
                 
+                // 连接返回管理员页面信号（从用户管理页面和商品管理页面）
+                if (typeof item.backToAdminRequested !== "undefined") {
+                    item.backToAdminRequested.connect(handleBackToAdmin);
+                }
+
                 // 连接浏览页面的商品详情信号
                 if (typeof item.showProductDetailRequested !== "undefined") {
                     item.showProductDetailRequested.connect(handleShowProductDetail);
@@ -353,6 +358,12 @@ ApplicationWindow {
         stateManager.setState(StateManager.STATE_MAIN_MENU);
     }
     
+    // 从用户管理页面和商品管理页面返回管理员页面
+    function handleBackToAdmin() {
+        console.log("返回管理员页面");
+        stateManager.setState(StateManager.STATE_ADMIN);
+    }
+
     // 跳转到商品详情页面
     function handleShowProductDetail(productId) {
         console.log("跳转到商品详情页面，商品ID:", productId);
@@ -461,12 +472,12 @@ ApplicationWindow {
     // 管理员页面功能处理函数
     function handleUserManagement() {
         console.log("打开用户管理");
-        // TODO: 实现用户管理功能
+        stateManager.setState(StateManager.STATE_USER_MANAGEMENT);
     }
     
     function handleProductManagement() {
         console.log("打开商品管理");
-        // TODO: 实现商品管理功能
+        stateManager.setState(StateManager.STATE_PRODUCT_MANAGEMENT);  // 更新为实际跳转到商品管理页面
     }
     
     // 成功添加到购物车的提示（可选实现）
