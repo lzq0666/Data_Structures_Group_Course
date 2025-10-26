@@ -142,268 +142,231 @@ Item {
                             id: productList
                             anchors.fill: parent
                             cellWidth: 300
-                            cellHeight: 240
+                            cellHeight: 380
                             model: ListModel { id: recommendationsModel }
 
                             delegate: Rectangle {
                                 width: productList.cellWidth - 10
                                 height: productList.cellHeight - 10
-                                radius: 15
-                                color: "white"
-                                border.color: cardArea.containsMouse ? "#3498db" : "#e9ecef"
-                                border.width: 2
+                                radius: 12
+                                color: "#ffffff"
+                                border.color: "#ecf0f1"
+                                border.width: 1
 
                                 property var productData: model
 
-                                Column {
+                                // 阴影效果
+                                Rectangle {
                                     anchors.fill: parent
-                                    anchors.margins: 15
-                                    spacing: 8
+                                    anchors.topMargin: 3
+                                    anchors.leftMargin: 3
+                                    color: "#06000000"
+                                    radius: parent.radius
+                                    z: -1
+                                }
 
-                                    // 商品名称和协同过滤标签
-                                    Row {
-                                        width: parent.width
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        recordUserBehavior("view", productData)
+                                        console.log("查看商品详情:", productData ? productData.name : "")
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 16
+                                    spacing: 12
+
+                                    // 商品图片区域
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 140
+                                        radius: 10
+                                        color: "#f8f9fa"
+                                        border.color: "#e9ecef"
+                                        border.width: 1
+
+                                        ColumnLayout {
+                                            anchors.centerIn: parent
+                                            spacing: 8
+
+                                            Text {
+                                                Layout.alignment: Qt.AlignHCenter
+                                                text: getCategoryIcon(productData.category)
+                                                font.pixelSize: 45
+                                                color: getCategoryColor(productData.category)
+                                            }
+
+                                            Rectangle {
+                                                Layout.preferredWidth: 80
+                                                Layout.preferredHeight: 22
+                                                Layout.alignment: Qt.AlignHCenter
+                                                radius: 11
+                                                color: getCategoryColor(productData.category)
+
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: productData.category || "未分类"
+                                                    font.pixelSize: 11
+                                                    color: "white"
+                                                    font.bold: true
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // 商品信息区域
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
                                         spacing: 8
 
+                                        // 商品名称
                                         Text {
-                                            width: parent.width - 60
-                                            text: productData ? productData.name : "加载中..."
-                                            color: "#2c3e50"
-                                            font.pixelSize: 16
+                                            Layout.fillWidth: true
+                                            text: productData.name || "未知商品"
+                                            font.pixelSize: 15
                                             font.bold: true
+                                            color: "#2c3e50"
                                             wrapMode: Text.WordWrap
                                             maximumLineCount: 2
                                             elide: Text.ElideRight
                                         }
 
-                                        Rectangle {
-                                            width: 50
-                                            height: 18
-                                            radius: 9
-                                            color: "#dc3545"  // 协同过滤标识色
+                                        // 评分和库存信息
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 10
 
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "协同"
-                                                color: "white"
-                                                font.pixelSize: 8
-                                                font.bold: true
+                                            // 评分信息
+                                            RowLayout {
+                                                spacing: 4
+
+                                                Text {
+                                                    text: "⭐"
+                                                    font.pixelSize: 14
+                                                }
+
+                                                Text {
+                                                    text: (productData.avgRating || 0).toFixed(1)
+                                                    font.pixelSize: 13
+                                                    color: "#f39c12"
+                                                    font.bold: true
+                                                }
+
+                                                Text {
+                                                    text: "(" + (productData.reviewers || 0) + ")"
+                                                    font.pixelSize: 11
+                                                    color: "#95a5a6"
+                                                }
+                                            }
+
+                                            Item { Layout.fillWidth: true }
+
+                                            // 库存标签
+                                            Rectangle {
+                                                Layout.preferredWidth: stockLabel.implicitWidth + 10
+                                                Layout.preferredHeight: 20
+                                                radius: 10
+                                                color: (productData.stock || 0) > 0 ? "#2ecc71" : "#e74c3c"
+
+                                                Text {
+                                                    id: stockLabel
+                                                    anchors.centerIn: parent
+                                                    text: "库存 " + (productData.stock || 0)
+                                                    font.pixelSize: 10
+                                                    color: "white"
+                                                    font.bold: true
+                                                }
                                             }
                                         }
                                     }
 
-                                    // 价格和评分
-                                    Row {
-                                        spacing: 15
+                                    Item { Layout.fillHeight: true }
 
+                                    // 价格和按钮区域
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 12
+
+                                        // 价格显示
                                         Text {
-                                            text: "¥" + (productData ? productData.price.toFixed(2) : "0.00")
+                                            Layout.alignment: Qt.AlignHCenter
+                                            text: "¥" + (productData.price || 0).toFixed(2)
+                                            font.pixelSize: 20
+                                            font.bold: true
                                             color: "#e74c3c"
-                                            font.pixelSize: 18
-                                            font.bold: true
                                         }
 
-                                        Row {
-                                            spacing: 5
+                                        // 操作按钮
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 8
 
-                                            Text {
-                                                text: "★"
-                                                color: "#f39c12"
-                                                font.pixelSize: 14
-                                            }
+                                            // 查看详情按钮
+                                            Rectangle {
+                                                Layout.fillWidth: true
+                                                Layout.preferredHeight: 36
+                                                radius: 8
+                                                color: viewBtnArea.containsMouse ? "#34495e" : "#2c3e50"
 
-                                            Text {
-                                                text: productData ? productData.avgRating.toFixed(1) : "0.0"
-                                                color: "#f39c12"
-                                                font.pixelSize: 14
-                                            }
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "查看详情"
+                                                    color: "white"
+                                                    font.pixelSize: 13
+                                                    font.bold: true
+                                                }
 
-                                            Text {
-                                                text: "(" + (productData ? productData.reviewers : 0) + ")"
-                                                color: "#95a5a6"
-                                                font.pixelSize: 12
-                                            }
-                                        }
-                                    }
+                                                MouseArea {
+                                                    id: viewBtnArea
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        recordUserBehavior("view", productData)
+                                                        console.log("查看商品详情:", productData ? productData.name : "")
+                                                    }
+                                                }
 
-                                    // 协同过滤推荐得分
-                                    Rectangle {
-                                        width: parent.width
-                                        height: 25
-                                        color: "#ffe8e8"
-                                        radius: 12
-
-                                        Rectangle {
-                                            width: (productData && productData.collaborativeScore ? 
-                                                   (productData.collaborativeScore / 5.0) * parent.width : 0)
-                                            height: parent.height
-                                            color: "#dc3545"
-                                            radius: 12
-                                        }
-
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: "推荐度: " + (productData && productData.collaborativeScore ? 
-                                                            productData.collaborativeScore.toFixed(1) + "/5.0" : "0/5.0")
-                                            color: "#2c3e50"
-                                            font.pixelSize: 12
-                                            font.bold: true
-                                        }
-                                    }
-
-                                    // 相似用户信息
-                                    Text {
-                                        width: parent.width
-                                        text: productData && productData.similarUsers ? 
-                                              "相似用户数量: " + productData.similarUsers.length : "正在分析相似用户..."
-                                        color: "#6c757d"
-                                        font.pixelSize: 11
-                                        wrapMode: Text.WordWrap
-                                    }
-
-                                    // 协同过滤推荐理由
-                                    Text {
-                                        width: parent.width
-                                        text: productData && productData.recommendationReason ? 
-                                              productData.recommendationReason : "基于相似用户偏好推荐"
-                                        color: "#6c757d"
-                                        font.pixelSize: 11
-                                        wrapMode: Text.WordWrap
-                                        maximumLineCount: 2
-                                        elide: Text.ElideRight
-                                    }
-
-                                    // 分类标签
-                                    Rectangle {
-                                        width: categoryLabel.implicitWidth + 12
-                                        height: 20
-                                        color: "#007bff"
-                                        radius: 10
-
-                                        Text {
-                                            id: categoryLabel
-                                            anchors.centerIn: parent
-                                            text: productData ? productData.category : ""
-                                            color: "white"
-                                            font.pixelSize: 10
-                                        }
-                                    }
-
-                                    // 操作按钮
-                                    Row {
-                                        width: parent.width
-                                        spacing: 8
-
-                                        Rectangle {
-                                            width: (parent.width - 16) / 3
-                                            height: 25
-                                            radius: 12
-                                            color: viewArea.containsMouse ? "#17a2b8" : "#20c997"
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "查看"
-                                                color: "white"
-                                                font.pixelSize: 9
-                                                font.bold: true
-                                            }
-
-                                            MouseArea {
-                                                id: viewArea
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    recordUserBehavior("view", productData)
-                                                    console.log("查看商品详情:", productData ? productData.name : "")
+                                                Behavior on color {
+                                                    ColorAnimation { duration: 200 }
                                                 }
                                             }
 
-                                            Behavior on color {
-                                                ColorAnimation { duration: 200 }
-                                            }
-                                        }
+                                            // 加入购物车按钮
+                                            Rectangle {
+                                                id: cartButton
+                                                Layout.preferredWidth: 45
+                                                Layout.preferredHeight: 36
+                                                radius: 8
+                                                color: cartBtnArea.containsMouse ? "#27ae60" : "#2ecc71"
 
-                                        Rectangle {
-                                            width: (parent.width - 16) / 3
-                                            height: 25
-                                            radius: 12
-                                            color: cartArea.containsMouse ? "#dc3545" : "#fd7e14"
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "购物车"
-                                                color: "white"
-                                                font.pixelSize: 9
-                                                font.bold: true
-                                            }
-
-                                            MouseArea {
-                                                id: cartArea
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    recordUserBehavior("add_to_cart", productData)
-                                                    console.log("加入购物车:", productData ? productData.name : "")
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "🛒"
+                                                    font.pixelSize: 16
                                                 }
-                                            }
 
-                                            Behavior on color {
-                                                ColorAnimation { duration: 200 }
-                                            }
-                                        }
-
-                                        Rectangle {
-                                            width: (parent.width - 16) / 3
-                                            height: 25
-                                            radius: 12
-                                            color: rateArea.containsMouse ? "#6f42c1" : "#8f5bc3"
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "评分"
-                                                color: "white"
-                                                font.pixelSize: 9
-                                                font.bold: true
-                                            }
-
-                                            MouseArea {
-                                                id: rateArea
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    showRatingDialog(productData)
+                                                MouseArea {
+                                                    id: cartBtnArea
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        recordUserBehavior("add_to_cart", productData)
+                                                        console.log("加入购物车:", productData ? productData.name : "")
+                                                    }
                                                 }
-                                            }
 
-                                            Behavior on color {
-                                                ColorAnimation { duration: 200 }
+                                                Behavior on color {
+                                                    ColorAnimation { duration: 200 }
+                                                }
                                             }
                                         }
                                     }
-                                }
-
-                                MouseArea {
-                                    id: cardArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                }
-
-                                Behavior on border.color {
-                                    ColorAnimation { duration: 200 }
-                                }
-
-                                // 添加阴影效果
-                                Rectangle {
-                                    anchors.fill: parent
-                                    anchors.margins: -2
-                                    radius: parent.radius + 2
-                                    color: "transparent"
-                                    border.color: "#00000020"
-                                    border.width: 1
-                                    z: -1
                                 }
                             }
                         }
@@ -530,6 +493,38 @@ Item {
         // 临时实现：直接记录4分评分
         var mockRating = 4.0
         recordUserBehavior("rate", productData, mockRating)
+    }
+
+    // ======================== 辅助函数 ========================
+    
+    /**
+     * 根据分类获取图标
+     */
+    function getCategoryIcon(category) {
+        switch(category) {
+            case "食品": return "🍎"
+            case "日用品": return "🧴"
+            case "电器": return "🔌"
+            case "数码产品": return "📱"
+            case "服装": return "👗"
+            case "酒水": return "🍷"
+            default: return "📦"
+        }
+    }
+    
+    /**
+     * 根据分类获取颜色
+     */
+    function getCategoryColor(category) {
+        switch(category) {
+            case "食品": return "#e74c3c"
+            case "日用品": return "#9b59b6"
+            case "电器": return "#f39c12"
+            case "数码产品": return "#2ecc71"
+            case "服装": return "#34495e"
+            case "酒水": return "#3498db"
+            default: return "#3498db"
+        }
     }
 
     // ======================== 组件初始化 ========================
