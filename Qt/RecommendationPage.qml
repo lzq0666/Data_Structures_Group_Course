@@ -3,15 +3,35 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import StateManager 1.0
 import DataManager 1.0
-// import RecommendationManager 1.0  // TODO: 取消注释当RecommendationManager实现后
+import Recommender 1.0
 
 Item {
     id: recommendationPage
 
     // 定义信号
     signal backToMainMenuRequested()
+    signal addToCartRequested(int productId, string productName, real price, int quantity)
+    signal showProductDetailRequested(int productId)
 
     property StateManager stateManager: null
+    
+    // 当 stateManager 设置完成后，自动加载推荐
+    onStateManagerChanged: {
+        if (stateManager) {
+            console.log("stateManager 已设置，开始加载推荐")
+            loadCollaborativeRecommendations()
+        }
+    }
+
+    // 推荐器 - 只提供一个方法：getRecommendations()
+    Recommender {
+        id: recommender
+    }
+
+    // DataManager 实例（用于其他功能）
+    DataManager {
+        id: dataManager
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -83,16 +103,10 @@ Item {
                             spacing: 5
 
                             Text {
-                                text: "智能推荐"
+                                text: "个性化推荐"
                                 color: "#2c3e50"
                                 font.pixelSize: 28
                                 font.bold: true
-                            }
-
-                            Text {
-                                text: "基于协同过滤算法的智能推荐系统"
-                                color: "#7f8c8d"
-                                font.pixelSize: 14
                             }
                         }
 
@@ -110,179 +124,10 @@ Item {
                     }
                 }
 
-                // 协同过滤算法信息栏
-                Rectangle {
-                    width: parent.width
-                    height: 60
-                    color: "#f8f9fa"
-                    radius: 8
-                    border.color: "#dee2e6"
-                    border.width: 1
-
-                    Column {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 15
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 8
-
-                        Row {
-                            spacing: 15
-
-                            Rectangle {
-                                width: 8
-                                height: 8
-                                radius: 4
-                                color: "#28a745"
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-
-                            Text {
-                                text: "算法: 基于用户的协同过滤 | 用户相似度阈值: " + collaborativeConfig.userSimilarityThreshold
-                                color: "#495057"
-                                font.pixelSize: 12
-                                font.bold: true
-                            }
-                        }
-
-                        Row {
-                            spacing: 20
-
-                            Text {
-                                text: "最小评分数量: " + collaborativeConfig.minRatingsCount
-                                color: "#6c757d"
-                                font.pixelSize: 11
-                            }
-
-                            Text {
-                                text: "推荐商品数量: " + productList.count
-                                color: "#007bff"
-                                font.pixelSize: 11
-                                font.bold: true
-                            }
-
-                            Text {
-                                text: "算法状态: " + getAlgorithmStatus()
-                                color: getStatusColor()
-                                font.pixelSize: 11
-                            }
-                        }
-                    }
-                }
-
-                // 刷新推荐控制栏
-                Rectangle {
-                    width: parent.width
-                    height: 45
-                    color: "transparent"
-
-                    Row {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 15
-
-                        Text {
-                            text: "协同过滤参数:"
-                            color: "#2c3e50"
-                            font.pixelSize: 14
-                            font.bold: true
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-
-                        // 相似度阈值调整
-                        Row {
-                            spacing: 8
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            Text {
-                                text: "相似度阈值:"
-                                color: "#6c757d"
-                                font.pixelSize: 11
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-
-                            Rectangle {
-                                width: 60
-                                height: 25
-                                radius: 12
-                                color: "#e9ecef"
-                                border.color: "#dee2e6"
-                                border.width: 1
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: collaborativeConfig.userSimilarityThreshold.toFixed(1)
-                                    color: "#495057"
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                }
-                            }
-                        }
-
-                        // 最小评分数量显示
-                        Row {
-                            spacing: 8
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            Text {
-                                text: "最小评分:"
-                                color: "#6c757d"
-                                font.pixelSize: 11
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-
-                            Rectangle {
-                                width: 40
-                                height: 25
-                                radius: 12
-                                color: "#e9ecef"
-                                border.color: "#dee2e6"
-                                border.width: 1
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: collaborativeConfig.minRatingsCount
-                                    color: "#495057"
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                }
-                            }
-                        }
-
-                        // 刷新推荐按钮
-                        Rectangle {
-                            width: 120
-                            height: 30
-                            radius: 15
-                            color: refreshBtnArea.containsMouse ? "#17a2b8" : "#6c757d"
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "🔄 刷新推荐"
-                                color: "white"
-                                font.pixelSize: 10
-                                font.bold: true
-                            }
-
-                            MouseArea {
-                                id: refreshBtnArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: loadCollaborativeRecommendations()
-                            }
-
-                            Behavior on color {
-                                ColorAnimation { duration: 200 }
-                            }
-                        }
-                    }
-                }
-
                 // 商品推荐列表
                 Rectangle {
                     width: parent.width
-                    height: parent.height - 205
+                    height: parent.height - 100
                     color: "transparent"
 
                     ScrollView {
@@ -292,269 +137,289 @@ Item {
                         GridView {
                             id: productList
                             anchors.fill: parent
-                            cellWidth: 300
-                            cellHeight: 240
+                            anchors.margins: 0
+                            cellWidth: Math.floor(width / Math.max(1, Math.floor(width / 300)))
+                            cellHeight: 380
                             model: ListModel { id: recommendationsModel }
 
                             delegate: Rectangle {
                                 width: productList.cellWidth - 10
                                 height: productList.cellHeight - 10
-                                radius: 15
-                                color: "white"
-                                border.color: cardArea.containsMouse ? "#3498db" : "#e9ecef"
-                                border.width: 2
+                                radius: 12
+                                color: "#ffffff"
+                                border.color: "#ecf0f1"
+                                border.width: 1
 
                                 property var productData: model
 
-                                Column {
+                                // 阴影效果
+                                Rectangle {
                                     anchors.fill: parent
-                                    anchors.margins: 15
-                                    spacing: 8
+                                    anchors.topMargin: 3
+                                    anchors.leftMargin: 3
+                                    color: "#06000000"
+                                    radius: parent.radius
+                                    z: -1
+                                }
 
-                                    // 商品名称和协同过滤标签
-                                    Row {
-                                        width: parent.width
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        recordUserBehavior("view", productData)
+                                        showProductDetailRequested(productData.productId)
+                                        console.log("查看商品详情:", productData ? productData.name : "")
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 16
+                                    spacing: 12
+
+                                    // 商品图片区域
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 140
+                                        radius: 10
+                                        color: "#f8f9fa"
+                                        border.color: "#e9ecef"
+                                        border.width: 1
+
+                                        ColumnLayout {
+                                            anchors.centerIn: parent
+                                            spacing: 8
+
+                                            Text {
+                                                Layout.alignment: Qt.AlignHCenter
+                                                text: getCategoryIcon(productData.category)
+                                                font.pixelSize: 45
+                                                color: getCategoryColor(productData.category)
+                                            }
+
+                                            Rectangle {
+                                                Layout.preferredWidth: 80
+                                                Layout.preferredHeight: 22
+                                                Layout.alignment: Qt.AlignHCenter
+                                                radius: 11
+                                                color: getCategoryColor(productData.category)
+
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: productData.category || "未分类"
+                                                    font.pixelSize: 11
+                                                    color: "white"
+                                                    font.bold: true
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // 商品信息区域
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
                                         spacing: 8
 
+                                        // 商品名称
                                         Text {
-                                            width: parent.width - 60
-                                            text: productData ? productData.name : "加载中..."
-                                            color: "#2c3e50"
-                                            font.pixelSize: 16
+                                            Layout.fillWidth: true
+                                            text: productData.name || "未知商品"
+                                            font.pixelSize: 15
                                             font.bold: true
+                                            color: "#2c3e50"
                                             wrapMode: Text.WordWrap
                                             maximumLineCount: 2
                                             elide: Text.ElideRight
                                         }
 
-                                        Rectangle {
-                                            width: 50
-                                            height: 18
-                                            radius: 9
-                                            color: "#dc3545"  // 协同过滤标识色
+                                        // 评分和库存信息
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 10
 
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "协同"
-                                                color: "white"
-                                                font.pixelSize: 8
-                                                font.bold: true
+                                            // 评分信息
+                                            RowLayout {
+                                                spacing: 4
+
+                                                Text {
+                                                    text: "⭐"
+                                                    font.pixelSize: 14
+                                                }
+
+                                                Text {
+                                                    text: (productData.avgRating || 0).toFixed(1)
+                                                    font.pixelSize: 13
+                                                    color: "#f39c12"
+                                                    font.bold: true
+                                                }
+
+                                                Text {
+                                                    text: "(" + (productData.reviewers || 0) + ")"
+                                                    font.pixelSize: 11
+                                                    color: "#95a5a6"
+                                                }
+                                            }
+
+                                            Item { Layout.fillWidth: true }
+
+                                            // 库存标签
+                                            Rectangle {
+                                                Layout.preferredWidth: stockLabel.implicitWidth + 10
+                                                Layout.preferredHeight: 20
+                                                radius: 10
+                                                color: (productData.stock || 0) > 0 ? "#2ecc71" : "#e74c3c"
+
+                                                Text {
+                                                    id: stockLabel
+                                                    anchors.centerIn: parent
+                                                    text: "库存 " + (productData.stock || 0)
+                                                    font.pixelSize: 10
+                                                    color: "white"
+                                                    font.bold: true
+                                                }
                                             }
                                         }
                                     }
 
-                                    // 价格和评分
-                                    Row {
-                                        spacing: 15
+                                    Item { Layout.fillHeight: true }
 
+                                    // 价格和按钮区域
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 12
+
+                                        // 价格显示
                                         Text {
-                                            text: "¥" + (productData ? productData.price.toFixed(2) : "0.00")
+                                            Layout.alignment: Qt.AlignHCenter
+                                            text: "¥" + (productData.price || 0).toFixed(2)
+                                            font.pixelSize: 20
+                                            font.bold: true
                                             color: "#e74c3c"
-                                            font.pixelSize: 18
-                                            font.bold: true
                                         }
 
-                                        Row {
-                                            spacing: 5
+                                        // 操作按钮
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 8
 
-                                            Text {
-                                                text: "★"
-                                                color: "#f39c12"
-                                                font.pixelSize: 14
-                                            }
+                                            // 查看详情按钮
+                                            Rectangle {
+                                                Layout.fillWidth: true
+                                                Layout.preferredHeight: 36
+                                                radius: 8
+                                                color: viewBtnArea.containsMouse ? "#34495e" : "#2c3e50"
 
-                                            Text {
-                                                text: productData ? productData.avgRating.toFixed(1) : "0.0"
-                                                color: "#f39c12"
-                                                font.pixelSize: 14
-                                            }
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "查看详情"
+                                                    color: "white"
+                                                    font.pixelSize: 13
+                                                    font.bold: true
+                                                }
 
-                                            Text {
-                                                text: "(" + (productData ? productData.reviewers : 0) + ")"
-                                                color: "#95a5a6"
-                                                font.pixelSize: 12
-                                            }
-                                        }
-                                    }
+                                                MouseArea {
+                                                    id: viewBtnArea
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        recordUserBehavior("view", productData)
+                                                        showProductDetailRequested(productData.productId)
+                                                        console.log("查看商品详情:", productData ? productData.name : "")
+                                                    }
+                                                }
 
-                                    // 协同过滤推荐得分
-                                    Rectangle {
-                                        width: parent.width
-                                        height: 25
-                                        color: "#ffe8e8"
-                                        radius: 12
-
-                                        Rectangle {
-                                            width: (productData && productData.collaborativeScore ? 
-                                                   (productData.collaborativeScore / 5.0) * parent.width : 0)
-                                            height: parent.height
-                                            color: "#dc3545"
-                                            radius: 12
-                                        }
-
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: "推荐度: " + (productData && productData.collaborativeScore ? 
-                                                            productData.collaborativeScore.toFixed(1) + "/5.0" : "0/5.0")
-                                            color: "#2c3e50"
-                                            font.pixelSize: 12
-                                            font.bold: true
-                                        }
-                                    }
-
-                                    // 相似用户信息
-                                    Text {
-                                        width: parent.width
-                                        text: productData && productData.similarUsers ? 
-                                              "相似用户数量: " + productData.similarUsers.length : "正在分析相似用户..."
-                                        color: "#6c757d"
-                                        font.pixelSize: 11
-                                        wrapMode: Text.WordWrap
-                                    }
-
-                                    // 协同过滤推荐理由
-                                    Text {
-                                        width: parent.width
-                                        text: productData && productData.recommendationReason ? 
-                                              productData.recommendationReason : "基于相似用户偏好推荐"
-                                        color: "#6c757d"
-                                        font.pixelSize: 11
-                                        wrapMode: Text.WordWrap
-                                        maximumLineCount: 2
-                                        elide: Text.ElideRight
-                                    }
-
-                                    // 分类标签
-                                    Rectangle {
-                                        width: categoryLabel.implicitWidth + 12
-                                        height: 20
-                                        color: "#007bff"
-                                        radius: 10
-
-                                        Text {
-                                            id: categoryLabel
-                                            anchors.centerIn: parent
-                                            text: productData ? productData.category : ""
-                                            color: "white"
-                                            font.pixelSize: 10
-                                        }
-                                    }
-
-                                    // 操作按钮
-                                    Row {
-                                        width: parent.width
-                                        spacing: 8
-
-                                        Rectangle {
-                                            width: (parent.width - 16) / 3
-                                            height: 25
-                                            radius: 12
-                                            color: viewArea.containsMouse ? "#17a2b8" : "#20c997"
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "查看"
-                                                color: "white"
-                                                font.pixelSize: 9
-                                                font.bold: true
-                                            }
-
-                                            MouseArea {
-                                                id: viewArea
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    recordUserBehavior("view", productData)
-                                                    console.log("查看商品详情:", productData ? productData.name : "")
+                                                Behavior on color {
+                                                    ColorAnimation { duration: 200 }
                                                 }
                                             }
 
-                                            Behavior on color {
-                                                ColorAnimation { duration: 200 }
-                                            }
-                                        }
+                                            // 加入购物车按钮
+                                            Rectangle {
+                                                id: cartButton
+                                                Layout.preferredWidth: 45
+                                                Layout.preferredHeight: 36
+                                                radius: 8
+                                                color: "#2ecc71"
+                                                enabled: (productData.stock || 0) > 0
+                                                opacity: enabled ? 1.0 : 0.5
 
-                                        Rectangle {
-                                            width: (parent.width - 16) / 3
-                                            height: 25
-                                            radius: 12
-                                            color: cartArea.containsMouse ? "#dc3545" : "#fd7e14"
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "购物车"
-                                                color: "white"
-                                                font.pixelSize: 9
-                                                font.bold: true
-                                            }
-
-                                            MouseArea {
-                                                id: cartArea
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    recordUserBehavior("add_to_cart", productData)
-                                                    console.log("加入购物车:", productData ? productData.name : "")
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "🛒"
+                                                    font.pixelSize: 16
                                                 }
-                                            }
 
-                                            Behavior on color {
-                                                ColorAnimation { duration: 200 }
-                                            }
-                                        }
-
-                                        Rectangle {
-                                            width: (parent.width - 16) / 3
-                                            height: 25
-                                            radius: 12
-                                            color: rateArea.containsMouse ? "#6f42c1" : "#8f5bc3"
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "评分"
-                                                color: "white"
-                                                font.pixelSize: 9
-                                                font.bold: true
-                                            }
-
-                                            MouseArea {
-                                                id: rateArea
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    showRatingDialog(productData)
+                                                MouseArea {
+                                                    id: cartBtnArea
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    enabled: parent.enabled
+                                                    
+                                                    onClicked: {
+                                                        recordUserBehavior("add_to_cart", productData)
+                                                        addToCartRequested(productData.productId, productData.name, productData.price, 1)
+                                                        cartFeedback.start()
+                                                        console.log("加入购物车:", productData ? productData.name : "")
+                                                    }
                                                 }
-                                            }
 
-                                            Behavior on color {
-                                                ColorAnimation { duration: 200 }
+                                                // 购物车反馈动画
+                                                Rectangle {
+                                                    id: cartFeedbackRect
+                                                    anchors.centerIn: parent
+                                                    width: 20
+                                                    height: 20
+                                                    radius: 10
+                                                    color: "#ffffff"
+                                                    opacity: 0
+                                                    scale: 1.0
+                                                    
+                                                    Text {
+                                                        anchors.centerIn: parent
+                                                        text: "✓"
+                                                        font.pixelSize: 12
+                                                        color: "#2ecc71"
+                                                        font.bold: true
+                                                    }
+                                                    
+                                                    SequentialAnimation {
+                                                        id: cartFeedback
+                                                        
+                                                        ParallelAnimation {
+                                                            NumberAnimation {
+                                                                target: cartFeedbackRect
+                                                                property: "opacity"
+                                                                from: 0; to: 1; duration: 150
+                                                            }
+                                                            NumberAnimation {
+                                                                target: cartFeedbackRect
+                                                                property: "scale"
+                                                                from: 0.5; to: 1.2; duration: 150
+                                                            }
+                                                        }
+                                                        
+                                                        PauseAnimation { duration: 400 }
+                                                        
+                                                        ParallelAnimation {
+                                                            NumberAnimation {
+                                                                target: cartFeedbackRect
+                                                                property: "opacity"
+                                                                to: 0; duration: 200
+                                                            }
+                                                            NumberAnimation {
+                                                                target: cartFeedbackRect
+                                                                property: "scale"
+                                                                to: 1.0; duration: 200
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
-                                }
-
-                                MouseArea {
-                                    id: cardArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                }
-
-                                Behavior on border.color {
-                                    ColorAnimation { duration: 200 }
-                                }
-
-                                // 添加阴影效果
-                                Rectangle {
-                                    anchors.fill: parent
-                                    anchors.margins: -2
-                                    radius: parent.radius + 2
-                                    color: "transparent"
-                                    border.color: "#00000020"
-                                    border.width: 1
-                                    z: -1
                                 }
                             }
                         }
@@ -563,8 +428,8 @@ Item {
                     // 空状态提示
                     Rectangle {
                         anchors.centerIn: parent
-                        width: 350
-                        height: 250
+                        width: 400
+                        height: 120
                         color: "transparent"
                         visible: productList.count === 0
 
@@ -574,52 +439,20 @@ Item {
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "🤖"
-                                font.pixelSize: 48
-                            }
-
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: "正在分析用户相似度..."
+                                text: "暂无推荐商品"
                                 color: "#6c757d"
-                                font.pixelSize: 16
+                                font.pixelSize: 20
                                 font.bold: true
                             }
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "基于协同过滤算法\n寻找与您偏好相似的用户"
+                                text: "建议多浏览和评分商品，以便为您提供更精准的推荐"
                                 color: "#95a5a6"
                                 font.pixelSize: 14
                                 horizontalAlignment: Text.AlignHCenter
-                            }
-
-                            Rectangle {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                width: 120
-                                height: 35
-                                radius: 17
-                                color: refreshArea.containsMouse ? "#28a745" : "#6c757d"
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "生成推荐"
-                                    color: "white"
-                                    font.pixelSize: 12
-                                    font.bold: true
-                                }
-
-                                MouseArea {
-                                    id: refreshArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: loadCollaborativeRecommendations()
-                                }
-
-                                Behavior on color {
-                                    ColorAnimation { duration: 200 }
-                                }
+                                wrapMode: Text.WordWrap
+                                width: 380
                             }
                         }
                     }
@@ -642,12 +475,11 @@ Item {
     // ======================== 协同过滤核心算法接口 ========================
     
     /**
-     * 主推荐函数 - 协同过滤推荐
-     * @description 基于用户协同过滤算法生成推荐
+     * 主推荐函数 - 直接调用 C++ 的 getRecommendations 方法
+     * @description 所有逻辑（加载数据、构建矩阵、计算推荐）都在 C++ 中完成
      */
     function loadCollaborativeRecommendations() {
-        console.log("开始生成协同过滤推荐")
-        recommendationsModel.clear()
+        console.log("========== 请求生成推荐 ==========")
 
         if (!stateManager || !stateManager.isLoggedIn()) {
             console.log("用户未登录，无法生成推荐")
@@ -655,220 +487,28 @@ Item {
         }
 
         var username = stateManager.getCurrentUser()
+        console.log("当前用户:", username)
         
-        try {
-            // TODO: 调用协同过滤推荐算法
-            /*
-            var recommendations = generateCollaborativeRecommendations(username)
+        // 清空现有列表
+        recommendationsModel.clear()
+        
+        // 调用 C++ 方法获取推荐（一行代码搞定！）
+        var recommendations = recommender.getRecommendations(username, collaborativeConfig.maxRecommendations)
+        
+        console.log("收到推荐结果:", recommendations.length, "个商品")
+        
+        // 添加到模型
+        for (var i = 0; i < recommendations.length; i++) {
+            var product = recommendations[i]
             
-            // 添加推荐结果到模型
-            for (var i = 0; i < recommendations.length; i++) {
-                recommendationsModel.append(recommendations[i])
-            }
-            */
+            // 添加额外的 UI 字段
+            product.similarUsers = []
+            product.userSimilarities = []
             
-            // 临时实现 - 模拟协同过滤推荐
-            loadMockCollaborativeRecommendations(username)
-            
-        } catch (error) {
-            console.error("生成协同过滤推荐时发生错误:", error)
+            recommendationsModel.append(product)
         }
-    }
-
-    /**
-     * 协同过滤推荐算法核心接口
-     * @param username 目标用户名
-     * @returns 推荐商品数组
-     * @description 基于用户-商品评分矩阵，找到相似用户，推荐他们喜欢的商品
-     * 
-     * 协同过滤算法步骤：
-     * 1. 获取目标用户的评分历史
-     * 2. 获取所有其他用户的评分历史  
-     * 3. 计算目标用户与其他用户的相似度（皮尔逊相关系数或余弦相似度）
-     * 4. 筛选出相似度超过阈值的用户
-     * 5. 基于相似用户的评分预测目标用户对未评分商品的评分
-     * 6. 选择预测评分最高的商品作为推荐
-     * 
-     * 预期返回格式：
-     * [
-     *   {
-     *     productId: 1001,
-     *     name: "商品名称",
-     *     price: 99.99,
-     *     avgRating: 4.5,
-     *     reviewers: 100,
-     *     category: "分类",
-     *     collaborativeScore: 4.2,           // 协同过滤预测评分 (1-5)
-     *     recommendationReason: "与您偏好相似的3位用户都给出了高评分",
-     *     similarUsers: ["user1", "user2", "user3"],  // 相似用户列表
-     *     userSimilarities: [0.85, 0.78, 0.65],      // 对应的相似度值
-     *     predictedRating: 4.2,              // 预测评分
-     *     confidence: 0.78                   // 推荐置信度
-     *   }
-     * ]
-     */
-    function generateCollaborativeRecommendations(username) {
-        console.log("TODO: 实现协同过滤推荐算法")
         
-        // TODO: 实现步骤
-        /*
-        1. 调用 getUserRatings(username) 获取目标用户评分历史
-        2. 调用 getAllUsersRatings() 获取所有用户评分数据
-        3. 调用 calculateUserSimilarity(targetUser, otherUser) 计算用户相似度
-        4. 调用 findSimilarUsers(username, threshold) 找到相似用户
-        5. 调用 predictRatings(username, similarUsers) 预测商品评分
-        6. 调用 selectTopRecommendations(predictions, count) 选择top推荐
-        */
-        
-        return []
-    }
-
-    /**
-     * 获取用户评分历史
-     * @param username 用户名
-     * @returns 用户评分数组
-     * @description 从DataManager获取用户的评分历史数据
-     * 
-     * 预期返回格式：
-     * [
-     *   { productId: 1001, rating: 4.5, timestamp: 1640995200 },
-     *   { productId: 1002, rating: 3.8, timestamp: 1641081600 },
-     *   ...
-     * ]
-     */
-    function getUserRatings(username) {
-        // TODO: 从DataManager获取用户评分数据
-        /*
-        1. 调用 DataManager.findUser(username) 获取用户对象
-        2. 解析用户的 favorites 字段 (格式: [[productId, rating], ...])
-        3. 转换为标准格式并返回
-        */
-        
-        console.log("TODO: 获取用户评分历史 -", username)
-        return []
-    }
-
-    /**
-     * 获取所有用户的评分数据
-     * @returns 所有用户评分映射
-     * @description 获取系统中所有用户的评分数据，用于计算用户相似度
-     * 
-     * 预期返回格式：
-     * {
-     *   "user1": [
-     *     { productId: 1001, rating: 4.5 },
-     *     { productId: 1002, rating: 3.8 }
-     *   ],
-     *   "user2": [
-     *     { productId: 1001, rating: 4.0 },
-     *     { productId: 1003, rating: 4.2 }
-     *   ],
-     *   ...
-     * }
-     */
-    function getAllUsersRatings() {
-        // TODO: 从DataManager获取所有用户评分数据
-        /*
-        1. 调用 DataManager.getUsers() 获取所有用户
-        2. 遍历每个用户，提取其评分历史
-        3. 构建用户-评分映射表
-        */
-        
-        console.log("TODO: 获取所有用户评分数据")
-        return {}
-    }
-
-    /**
-     * 计算两个用户之间的相似度
-     * @param userRatings1 用户1的评分数组
-     * @param userRatings2 用户2的评分数组
-     * @returns 相似度值 (0-1)
-     * @description 使用皮尔逊相关系数计算用户相似度
-     * 
-     * 算法说明：
-     * 1. 找到两个用户都评分过的商品
-     * 2. 如果共同评分商品少于最小阈值，返回0
-     * 3. 计算皮尔逊相关系数
-     * 4. 将相关系数转换为0-1范围的相似度
-     */
-    function calculateUserSimilarity(userRatings1, userRatings2) {
-        // TODO: 实现皮尔逊相关系数计算
-        /*
-        1. 找到共同评分的商品 commonProducts
-        2. 如果 commonProducts.length < collaborativeConfig.minRatingsCount，返回 0
-        3. 计算平均评分 mean1, mean2
-        4. 计算皮尔逊相关系数 r = Σ((x-μx)(y-μy)) / √(Σ(x-μx)²Σ(y-μy)²)
-        5. 返回 (r + 1) / 2 将-1~1转换为0~1
-        */
-        
-        console.log("TODO: 计算用户相似度")
-        return 0.0
-    }
-
-    /**
-     * 找到与目标用户相似的用户
-     * @param username 目标用户名
-     * @returns 相似用户数组
-     * @description 找到相似度超过阈值的用户
-     * 
-     * 预期返回格式：
-     * [
-     *   { username: "user1", similarity: 0.85 },
-     *   { username: "user2", similarity: 0.78 },
-     *   ...
-     * ]
-     */
-    function findSimilarUsers(username) {
-        // TODO: 实现相似用户查找
-        /*
-        1. 获取目标用户评分 targetRatings = getUserRatings(username)
-        2. 获取所有用户评分 allUsersRatings = getAllUsersRatings()
-        3. 遍历其他用户，计算与目标用户的相似度
-        4. 筛选相似度 >= collaborativeConfig.userSimilarityThreshold 的用户
-        5. 按相似度降序排序
-        6. 返回相似用户列表
-        */
-        
-        console.log("TODO: 查找相似用户 -", username)
-        return []
-    }
-
-    /**
-     * 基于相似用户预测目标用户对商品的评分
-     * @param username 目标用户名
-     * @param similarUsers 相似用户数组
-     * @returns 预测评分数组
-     * @description 使用加权平均预测用户对未评分商品的评分
-     * 
-     * 预测公式：
-     * 预测评分 = Σ(相似度 × 相似用户评分) / Σ(相似度)
-     * 
-     * 预期返回格式：
-     * [
-     *   { 
-     *     productId: 1001, 
-     *     predictedRating: 4.2, 
-     *     confidence: 0.78, 
-     *     contributingUsers: ["user1", "user2"] 
-     *   },
-     *   ...
-     * ]
-     */
-    function predictUserRatings(username, similarUsers) {
-        // TODO: 实现评分预测
-        /*
-        1. 获取目标用户已评分商品 ratedProducts
-        2. 获取所有商品列表 allProducts
-        3. 筛选出目标用户未评分的商品 unratedProducts
-        4. 对每个未评分商品：
-           a. 找到相似用户中对该商品有评分的用户
-           b. 使用加权平均计算预测评分
-           c. 计算预测置信度
-        5. 返回预测结果
-        */
-        
-        console.log("TODO: 预测用户评分 -", username)
-        return []
+        console.log("========== 推荐加载完成 ==========")
     }
 
     // ======================== 用户行为记录接口 ========================
@@ -878,7 +518,6 @@ Item {
      * @param actionType 行为类型: "view", "add_to_cart", "rate"
      * @param productData 商品数据
      * @param extraData 额外数据(如评分值)
-     * @description 记录用户行为，特别是评分行为对协同过滤很重要
      */
     function recordUserBehavior(actionType, productData, extraData = null) {
         if (!stateManager || !stateManager.isLoggedIn() || !productData) {
@@ -887,47 +526,21 @@ Item {
         }
         
         var username = stateManager.getCurrentUser()
-        var timestamp = Math.floor(Date.now() / 1000)
-        
-        // TODO: 更新用户行为数据到DataManager
-        /*
-        根据actionType更新对应的用户数据：
-        - "view": 更新viewHistory [[productId, timestamp], ...]
-        - "add_to_cart": 更新shoppingCart [[productId, quantity], ...]  
-        - "rate": 更新favorites [[productId, rating], ...] (这是评分数据)
-        
-        特别注意：评分数据对协同过滤算法至关重要
-        */
         
         console.log("记录用户行为:", {
             user: username,
             action: actionType,
             productId: productData.productId,
             productName: productData.name,
-            extraData: extraData,
-            timestamp: timestamp
+            extraData: extraData
         })
-        
-        // 如果是评分行为，可能需要重新生成推荐
-        if (actionType === "rate") {
-            console.log("用户新增评分，建议重新生成推荐")
-        }
     }
 
     /**
      * 显示评分对话框
      * @param productData 商品数据
-     * @description 让用户对商品进行评分，这是协同过滤的重要数据来源
      */
     function showRatingDialog(productData) {
-        // TODO: 实现评分对话框
-        /*
-        1. 创建评分对话框（1-5星评分）
-        2. 用户选择评分后，调用 recordUserBehavior("rate", productData, rating)
-        3. 更新用户的评分数据到DataManager
-        4. 可选：重新生成推荐
-        */
-        
         console.log("TODO: 显示评分对话框 -", productData ? productData.name : "未知商品")
         
         // 临时实现：直接记录4分评分
@@ -938,85 +551,42 @@ Item {
     // ======================== 辅助函数 ========================
     
     /**
-     * 获取算法状态
+     * 根据分类获取图标
      */
-    function getAlgorithmStatus() {
-        // TODO: 检查协同过滤算法的实际状态
-        /*
-        可能的状态：
-        - "正常": 有足够的用户评分数据
-        - "数据不足": 用户评分数据太少
-        - "冷启动": 新用户没有评分历史
-        - "开发中": 算法还在开发阶段
-        */
-        return "开发中"
-    }
-
-    /**
-     * 获取状态颜色
-     */
-    function getStatusColor() {
-        var status = getAlgorithmStatus()
-        switch(status) {
-            case "正常": return "#28a745"
-            case "数据不足": return "#ffc107" 
-            case "冷启动": return "#17a2b8"
-            case "开发中": return "#dc3545"
-            default: return "#6c757d"
+    function getCategoryIcon(category) {
+        switch(category) {
+            case "食品": return "🍎"
+            case "日用品": return "🧴"
+            case "电器": return "🔌"
+            case "数码产品": return "📱"
+            case "服装": return "👗"
+            case "酒水": return "🍷"
+            default: return "📦"
         }
     }
-
+    
     /**
-     * 临时实现：模拟协同过滤推荐
-     * @description 在真正的协同过滤算法完成前的模拟实现
+     * 根据分类获取颜色
      */
-    function loadMockCollaborativeRecommendations(username) {
-        try {
-            var allProducts = dataManager.getProducts()
-            
-            // 模拟协同过滤推荐逻辑
-            var mockRecommendations = []
-            var maxRecommendations = Math.min(allProducts.length, collaborativeConfig.maxRecommendations)
-            
-            for (var i = 0; i < maxRecommendations; i++) {
-                var product = allProducts[i]
-                
-                // 模拟协同过滤数据
-                var mockProduct = Object.assign({}, product)
-                mockProduct.collaborativeScore = Math.random() * 2 + 3  // 3-5分
-                mockProduct.recommendationReason = "模拟：与您偏好相似的用户推荐"
-                mockProduct.similarUsers = ["模拟用户1", "模拟用户2", "模拟用户3"]
-                mockProduct.userSimilarities = [0.85, 0.78, 0.65]
-                mockProduct.predictedRating = mockProduct.collaborativeScore
-                mockProduct.confidence = Math.random() * 0.3 + 0.7  // 0.7-1.0
-                
-                mockRecommendations.push(mockProduct)
-            }
-            
-            // 按协同过滤得分排序
-            mockRecommendations.sort(function(a, b) {
-                return b.collaborativeScore - a.collaborativeScore
-            })
-            
-            // 添加到界面模型
-            for (var j = 0; j < mockRecommendations.length; j++) {
-                recommendationsModel.append(mockRecommendations[j])
-            }
-
-            console.log("模拟协同过滤推荐加载完成，共", mockRecommendations.length, "个商品")
-
-        } catch (error) {
-            console.error("加载模拟协同过滤推荐时发生错误:", error)
+    function getCategoryColor(category) {
+        switch(category) {
+            case "食品": return "#e74c3c"
+            case "日用品": return "#9b59b6"
+            case "电器": return "#f39c12"
+            case "数码产品": return "#2ecc71"
+            case "服装": return "#34495e"
+            case "酒水": return "#3498db"
+            default: return "#3498db"
         }
     }
 
     // ======================== 组件初始化 ========================
     
     Component.onCompleted: {
-        console.log("协同过滤推荐页面初始化完成")
-        console.log("协同过滤配置:", JSON.stringify(collaborativeConfig, null, 2))
+        console.log("========== 推荐页面已加载 ==========")
+        console.log("配置:", JSON.stringify(collaborativeConfig, null, 2))
         
-        // 加载协同过滤推荐
-        loadCollaborativeRecommendations()
+        // 不在这里加载推荐，而是等待 stateManager 设置完成后自动加载
+        // 参见 onStateManagerChanged 处理器
     }
 }

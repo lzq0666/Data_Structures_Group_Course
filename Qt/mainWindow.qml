@@ -29,6 +29,9 @@ ApplicationWindow {
     // 当前查看的商品ID
     property int currentProductId: -1
     
+    // 记录进入商品详情前的页面状态，用于返回
+    property int previousState: StateManager.STATE_BROWSE
+    
     // 根据状态显示不同内容
     Loader {
         id: contentLoader
@@ -367,14 +370,17 @@ ApplicationWindow {
     // 跳转到商品详情页面
     function handleShowProductDetail(productId) {
         console.log("跳转到商品详情页面，商品ID:", productId);
+        // 记录当前状态，以便返回时能回到正确的页面
+        previousState = stateManager.getCurrentState();
+        console.log("记录前一个页面状态:", previousState);
         currentProductId = productId;
         stateManager.setState(StateManager.STATE_PRODUCT_DETAIL);
     }
     
-    // 从商品详情页面返回浏览页面
+    // 从商品详情页面返回到之前的页面
     function handleBackToBrowse() {
-        console.log("返回商品浏览页面");
-        stateManager.setState(StateManager.STATE_BROWSE);
+        console.log("返回到之前的页面，状态:", previousState);
+        stateManager.setState(previousState);
     }
     
     // 处理加入购物车请求 - 修正版本

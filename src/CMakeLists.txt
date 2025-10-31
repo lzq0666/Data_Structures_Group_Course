@@ -16,7 +16,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick Qml)
 set(RESOURCES ${PROJECT_SOURCE_DIR}/resources.qrc)
 
 # 定义可执行文件
-add_executable(main ${SRC_LIST} ${RESOURCES} "UserManager.cpp")
+add_executable(main ${SRC_LIST} ${RESOURCES})
 
 # 链接 Qt6 库
 target_link_libraries(main
