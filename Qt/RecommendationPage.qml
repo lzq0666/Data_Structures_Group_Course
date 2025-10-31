@@ -103,16 +103,10 @@ Item {
                             spacing: 5
 
                             Text {
-                                text: "智能推荐"
+                                text: "个性化推荐"
                                 color: "#2c3e50"
                                 font.pixelSize: 28
                                 font.bold: true
-                            }
-
-                            Text {
-                                text: "基于协同过滤算法的智能推荐系统"
-                                color: "#7f8c8d"
-                                font.pixelSize: 14
                             }
                         }
 
