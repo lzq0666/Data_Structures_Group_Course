@@ -143,7 +143,8 @@ Item {
                         GridView {
                             id: productList
                             anchors.fill: parent
-                            cellWidth: 300
+                            anchors.margins: 0
+                            cellWidth: Math.floor(width / Math.max(1, Math.floor(width / 300)))
                             cellHeight: 380
                             model: ListModel { id: recommendationsModel }
 
@@ -346,7 +347,9 @@ Item {
                                                 Layout.preferredWidth: 45
                                                 Layout.preferredHeight: 36
                                                 radius: 8
-                                                color: cartBtnArea.containsMouse ? "#27ae60" : "#2ecc71"
+                                                color: "#2ecc71"
+                                                enabled: (productData.stock || 0) > 0
+                                                opacity: enabled ? 1.0 : 0.5
 
                                                 Text {
                                                     anchors.centerIn: parent
@@ -359,15 +362,66 @@ Item {
                                                     anchors.fill: parent
                                                     hoverEnabled: true
                                                     cursorShape: Qt.PointingHandCursor
+                                                    enabled: parent.enabled
+                                                    
                                                     onClicked: {
                                                         recordUserBehavior("add_to_cart", productData)
                                                         addToCartRequested(productData.productId, productData.name, productData.price, 1)
+                                                        cartFeedback.start()
                                                         console.log("加入购物车:", productData ? productData.name : "")
                                                     }
                                                 }
 
-                                                Behavior on color {
-                                                    ColorAnimation { duration: 200 }
+                                                // 购物车反馈动画
+                                                Rectangle {
+                                                    id: cartFeedbackRect
+                                                    anchors.centerIn: parent
+                                                    width: 20
+                                                    height: 20
+                                                    radius: 10
+                                                    color: "#ffffff"
+                                                    opacity: 0
+                                                    scale: 1.0
+                                                    
+                                                    Text {
+                                                        anchors.centerIn: parent
+                                                        text: "✓"
+                                                        font.pixelSize: 12
+                                                        color: "#2ecc71"
+                                                        font.bold: true
+                                                    }
+                                                    
+                                                    SequentialAnimation {
+                                                        id: cartFeedback
+                                                        
+                                                        ParallelAnimation {
+                                                            NumberAnimation {
+                                                                target: cartFeedbackRect
+                                                                property: "opacity"
+                                                                from: 0; to: 1; duration: 150
+                                                            }
+                                                            NumberAnimation {
+                                                                target: cartFeedbackRect
+                                                                property: "scale"
+                                                                from: 0.5; to: 1.2; duration: 150
+                                                            }
+                                                        }
+                                                        
+                                                        PauseAnimation { duration: 400 }
+                                                        
+                                                        ParallelAnimation {
+                                                            NumberAnimation {
+                                                                target: cartFeedbackRect
+                                                                property: "opacity"
+                                                                to: 0; duration: 200
+                                                            }
+                                                            NumberAnimation {
+                                                                target: cartFeedbackRect
+                                                                property: "scale"
+                                                                to: 1.0; duration: 200
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
