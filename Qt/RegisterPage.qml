@@ -30,11 +30,11 @@ Item {
 
 
             GradientStop {
-                color: "#4158d0"
+                color: "#a1c4fd"
                 position: 0.0
             }
             GradientStop {
-                color: "#c850c0"
+                color: "#c2e9fb"
                 position: 1.0
             }
         }

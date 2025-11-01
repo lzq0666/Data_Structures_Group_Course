@@ -37,8 +37,8 @@ Item {
         anchors.fill: parent
         gradient: Gradient {
             orientation: Gradient.Horizontal
-            GradientStop { color: "#667eea"; position: 0.0 }
-            GradientStop { color: "#764ba2"; position: 1.0 }
+            GradientStop { color: "#a1c4fd"; position: 0.0 }
+            GradientStop { color: "#c2e9fb"; position: 1.0 }
         }
 
         // 主容器
