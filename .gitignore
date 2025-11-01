@@ -583,3 +583,7 @@ build/
 *.sln
 *.vcxproj
 *.vcxproj.filters
+bin/
+build/
+cmake-build-debug/
+.DS_Store
