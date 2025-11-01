@@ -377,11 +377,11 @@ Item {
         gradient: Gradient {
             orientation: Gradient.Horizontal
             GradientStop {
-                color: "#667eea"
+                color: "#a1c4fd"
                 position: 0.0
             }
             GradientStop {
-                color: "#764ba2"
+                color: "#c2e9fb"
                 position: 1.0
             }
         }
