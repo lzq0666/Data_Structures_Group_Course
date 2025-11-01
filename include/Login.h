@@ -9,7 +9,7 @@
 #include <memory>
 #include <algorithm>
 #include <QDebug>
-#include "stateManager.h"
+#include "StateManager.h"
 #include "DataManager.h"
 
 // 使用标准库类型替代 Qt 类型
